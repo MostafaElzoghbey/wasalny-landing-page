@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpeg" href="/assets/images/logo/WhatsApp Image 2026-01-10 at 10.21.56 PM (2).jpeg" />
@@ -11,15 +11,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Theme script to prevent FOUC -->
+    <!-- Theme script to prevent FOUC - runs before React -->
     <script>
       (function() {
-        const theme = localStorage.getItem('theme') || 'system';
+        const THEME_KEY = 'wasalny-theme';
+        const storedTheme = localStorage.getItem(THEME_KEY);
         const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDark = theme === 'dark' || (theme === 'system' && systemDark);
-        if (isDark) {
-          document.documentElement.classList.add('dark');
+        
+        let isDark = false;
+        if (storedTheme === 'dark') {
+          isDark = true;
+        } else if (storedTheme === 'light') {
+          isDark = false;
+        } else {
+          // system or no stored theme
+          isDark = systemDark;
         }
+        
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(isDark ? 'dark' : 'light');
       })();
     </script>
   </head>
