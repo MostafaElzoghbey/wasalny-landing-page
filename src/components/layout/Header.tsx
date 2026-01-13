@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Phone } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
 import { logoImage } from '@/data/cars';
 import { contactInfo } from '@/data/content';
+import gsap, { useGSAP } from '@/lib/gsap';
+import { useMagneticButton } from '@/hooks/useAnimations';
 
 const navLinks = [
   { href: '#home', label: 'الرئيسية' },
@@ -16,18 +17,51 @@ const navLinks = [
   { href: '#contact', label: 'تواصل معنا' },
 ];
 
+const MagneticNavLink = ({ href, label, onClick }: { href: string, label: string, onClick: (href: string) => void }) => {
+  const ref = useRef<HTMLButtonElement>(null);
+  useMagneticButton(ref);
+
+  return (
+    <button
+      ref={ref}
+      onClick={() => onClick(href)}
+      className="text-[hsl(var(--foreground))] hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors px-2 py-1"
+    >
+      {label}
+    </button>
+  );
+};
+
 export function Header() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+  useGSAP(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: document.body,
+        start: "top top",
+        end: "+=100",
+        scrub: 0.5,
+      }
+    });
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (bgRef.current) {
+      tl.to(bgRef.current, {
+        opacity: 1,
+        ease: "none"
+      }, 0);
+    }
+    
+    if (headerRef.current) {
+      tl.to(headerRef.current, {
+        paddingTop: "0.5rem",
+        paddingBottom: "0.5rem",
+        ease: "none"
+      }, 0);
+    }
+  }, { scope: headerRef });
 
   const handleNavClick = (href: string) => {
     setIsMobileMenuOpen(false);
@@ -40,18 +74,19 @@ export function Header() {
   return (
     <>
       <motion.header
-        className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-          isScrolled
-            ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg'
-            : 'bg-transparent'
-        )}
+        ref={headerRef}
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-5"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
+        <div 
+          ref={bgRef}
+          className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg opacity-0 -z-10 transition-colors duration-300"
+        />
+        
         <div className="section-container">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between">
             {/* Logo */}
             <motion.a
               href="#home"
@@ -72,15 +107,12 @@ export function Header() {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-8">
               {navLinks.map((link) => (
-                <motion.button
+                <MagneticNavLink 
                   key={link.href}
-                  onClick={() => handleNavClick(link.href)}
-                  className="text-[hsl(var(--foreground))] hover:text-primary-600 dark:hover:text-primary-400 font-medium transition-colors"
-                  whileHover={{ y: -2 }}
-                  whileTap={{ y: 0 }}
-                >
-                  {link.label}
-                </motion.button>
+                  href={link.href}
+                  label={link.label}
+                  onClick={handleNavClick}
+                />
               ))}
             </nav>
 

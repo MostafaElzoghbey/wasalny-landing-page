@@ -1,8 +1,8 @@
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useRef } from 'react';
 import { Shield, Star, Clock, Wallet, Headphones, MapPin } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { staggerContainer, fadeInUp, viewportConfig } from '@/lib/animations';
+import { useCounterAnimation, useBatchReveal } from '@/hooks/useAnimations';
 import { stats } from '@/data/content';
 
 const iconMap = {
@@ -59,52 +59,38 @@ const features = [
   },
 ];
 
-function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
-  const [isInView, setIsInView] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-  const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
-  const [displayValue, setDisplayValue] = useState(0);
-
-  useEffect(() => {
-    const unsubscribe = rounded.on('change', (latest) => {
-      setDisplayValue(latest);
-    });
-    return () => unsubscribe();
-  }, [rounded]);
-
-  useEffect(() => {
-    if (isInView) {
-      const controls = animate(count, value, { duration: 2, ease: 'easeOut' });
-      return controls.stop;
+function GSAPCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
+  const elementRef = useRef<HTMLSpanElement>(null);
+  
+  useCounterAnimation(elementRef, value, {
+    duration: 2.5,
+    ease: "power2.out",
+    scrollTrigger: {
+      trigger: elementRef.current,
+      start: "top 85%",
     }
-  }, [isInView, value, count]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
+  });
 
   return (
-    <span ref={ref}>
-      {displayValue}{suffix}
-    </span>
+    <span ref={elementRef}>0{suffix}</span>
   );
 }
 
 export function FeaturesSection() {
+  const [statsRef] = useBatchReveal({
+    selector: '.stat-card',
+    interval: 0.2,
+    from: { opacity: 0, scale: 0.8 },
+    to: { opacity: 1, scale: 1 }
+  });
+
+  const [featuresRef] = useBatchReveal({
+    selector: '.feature-card',
+    interval: 0.1,
+    from: { opacity: 0, y: 30 },
+    to: { opacity: 1, y: 0 }
+  });
+
   return (
     <section id="features" className="section-padding relative overflow-hidden">
       {/* Background Gradient */}
@@ -117,19 +103,14 @@ export function FeaturesSection() {
         />
 
         {/* Stats */}
-        <motion.div
+        <div
+          ref={statsRef}
           className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportConfig}
         >
-          {stats.map((stat, index) => (
-            <motion.div
+          {stats.map((stat) => (
+            <div
               key={stat.id}
-              variants={fadeInUp}
-              custom={index}
-              className="text-center"
+              className="stat-card text-center"
             >
               <motion.div
                 className="card bg-gradient-to-br from-primary-500 to-primary-700 text-white py-8"
@@ -137,31 +118,26 @@ export function FeaturesSection() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="text-4xl sm:text-5xl font-bold mb-2">
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                  <GSAPCounter value={stat.value} suffix={stat.suffix} />
                 </div>
                 <div className="text-primary-100 font-medium">{stat.label}</div>
               </motion.div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
         {/* Features Grid */}
-        <motion.div
+        <div
+          ref={featuresRef}
           className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportConfig}
         >
-          {features.map((feature, index) => {
+          {features.map((feature) => {
             const Icon = iconMap[feature.icon as keyof typeof iconMap];
             
             return (
-              <motion.div
+              <div
                 key={feature.id}
-                variants={fadeInUp}
-                custom={index}
-                className="group"
+                className="feature-card group"
               >
                 <motion.div
                   className="card h-full relative overflow-hidden"
@@ -192,10 +168,10 @@ export function FeaturesSection() {
                     </p>
                   </div>
                 </motion.div>
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

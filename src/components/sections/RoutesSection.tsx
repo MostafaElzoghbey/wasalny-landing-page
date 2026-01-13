@@ -1,10 +1,23 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Clock, ArrowLeft } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { staggerContainer, fadeInUp, viewportConfig, drawPath } from '@/lib/animations';
+import { viewportConfig } from '@/lib/animations';
 import { routes } from '@/data/content';
+import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
 
 export function RoutesSection() {
+  const path1Ref = useRef<SVGPathElement>(null);
+  const path2Ref = useRef<SVGPathElement>(null);
+
+  useDrawPath(path1Ref, { scrub: true });
+  useDrawPath(path2Ref, { scrub: true });
+
+  const [containerRef] = useBatchReveal({
+    selector: '.route-card',
+    interval: 0.1
+  });
+
   return (
     <section id="routes" className="section-padding relative overflow-hidden bg-[hsl(var(--muted))]/30">
       {/* Background Pattern */}
@@ -60,31 +73,25 @@ export function RoutesSection() {
                 />
 
                 {/* Route Line: Damietta to Cairo */}
-                <motion.path
+                <path
+                  ref={path1Ref}
                   d="M 320 140 C 280 180 240 220 200 320"
                   fill="none"
                   stroke="var(--color-primary-600)"
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeDasharray="8 4"
-                  variants={drawPath}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={viewportConfig}
                 />
 
                 {/* Route Line: Cairo to Airport */}
-                <motion.path
+                <path
+                  ref={path2Ref}
                   d="M 200 320 C 180 310 160 290 140 280"
                   fill="none"
                   stroke="var(--color-accent-500)"
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeDasharray="8 4"
-                  variants={drawPath}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={viewportConfig}
                 />
 
                 {/* Location: Damietta */}
@@ -170,19 +177,14 @@ export function RoutesSection() {
           </motion.div>
 
           {/* Routes List */}
-          <motion.div
+          <div
+            ref={containerRef}
             className="order-1 lg:order-2 space-y-6"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportConfig}
           >
-            {routes.map((route, index) => (
-              <motion.div
+            {routes.map((route) => (
+              <div
                 key={route.id}
-                variants={fadeInUp}
-                custom={index}
-                className="group"
+                className="route-card group"
               >
                 <motion.div
                   className="card flex items-center gap-6 cursor-pointer"
@@ -225,9 +227,9 @@ export function RoutesSection() {
                     <ArrowLeft className="w-6 h-6 text-primary-500 flip-rtl" />
                   </motion.div>
                 </motion.div>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useMagneticButton } from '@/hooks/useAnimations';
 import type { LucideIcon } from 'lucide-react';
 
 interface ButtonProps {
@@ -8,6 +10,8 @@ interface ButtonProps {
   icon?: LucideIcon;
   iconPosition?: 'start' | 'end';
   loading?: boolean;
+  magnetic?: boolean;
+  magneticStrength?: number;
   children: React.ReactNode;
   className?: string;
   disabled?: boolean;
@@ -21,12 +25,18 @@ export function Button({
   icon: Icon,
   iconPosition = 'start',
   loading = false,
+  magnetic = false,
+  magneticStrength = 0.3,
   children,
   className,
   disabled,
   onClick,
   type = 'button',
 }: ButtonProps) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  
+  // Apply magnetic effect only when enabled and not disabled
+  useMagneticButton(magnetic && !disabled ? buttonRef : { current: null }, magneticStrength);
   const variants = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
@@ -42,6 +52,7 @@ export function Button({
 
   return (
     <motion.button
+      ref={buttonRef}
       type={type}
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-300',

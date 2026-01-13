@@ -4,7 +4,8 @@ import { Users, Snowflake, Wifi, Star, ChevronLeft, ChevronRight, X } from 'luci
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { carImages, carCategories } from '@/data/cars';
 import { cn } from '@/lib/utils';
-import { staggerContainer, fadeInUp, viewportConfig, tabContent } from '@/lib/animations';
+import { tabContent } from '@/lib/animations';
+import { useBatchReveal } from '@/hooks/useAnimations';
 
 type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus';
 
@@ -31,10 +32,52 @@ const categoryInfo: Record<CarCategory, { name: string; passengers: number; feat
   },
 };
 
+interface GalleryContentProps {
+  images: string[];
+  info: typeof categoryInfo[keyof typeof categoryInfo];
+  openLightbox: (index: number) => void;
+}
+
+const GalleryContent = ({ images, info, openLightbox }: GalleryContentProps) => {
+  const [ref] = useBatchReveal({ selector: '.gallery-item', interval: 0.1 });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+    >
+      {images.map((image, index) => (
+        <div
+          key={image}
+          className="gallery-item opacity-0 translate-y-8 group cursor-pointer"
+          onClick={() => openLightbox(index)}
+        >
+          <div className="relative overflow-hidden rounded-2xl aspect-[4/3] bg-gray-100 dark:bg-gray-800 transition-transform duration-300 hover:scale-[1.03]">
+            <img
+              src={image}
+              alt={`سيارة ${info.name}`}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+              <span className="text-white font-medium">اضغط للتكبير</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </motion.div>
+  );
+};
+
 export function FleetSection() {
   const [activeCategory, setActiveCategory] = useState<CarCategory>('sedan');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [tabsRef] = useBatchReveal({ selector: '.category-tab', interval: 0.1 });
 
   const images = carImages[activeCategory];
   const info = categoryInfo[activeCategory];
@@ -72,32 +115,26 @@ export function FleetSection() {
         />
 
         {/* Category Tabs */}
-        <motion.div
+        <div
+          ref={tabsRef}
           className="flex flex-wrap justify-center gap-3 mb-12"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportConfig}
         >
           {carCategories.map((category) => (
-            <motion.button
+            <button
               key={category.id}
-              variants={fadeInUp}
               onClick={() => setActiveCategory(category.id as CarCategory)}
               className={cn(
-                'px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2',
+                'category-tab opacity-0 translate-y-8 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2',
                 activeCategory === category.id
-                  ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25'
-                  : 'bg-white dark:bg-gray-800 text-[hsl(var(--foreground))] hover:bg-primary-50 dark:hover:bg-primary-900/20 shadow-md'
+                  ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/25 scale-105'
+                  : 'bg-white dark:bg-gray-800 text-[hsl(var(--foreground))] hover:bg-primary-50 dark:hover:bg-primary-900/20 shadow-md hover:scale-105'
               )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               <span className="text-xl">{category.icon}</span>
               <span>{category.nameAr}</span>
-            </motion.button>
+            </button>
           ))}
-        </motion.div>
+        </div>
 
         {/* Car Info */}
         <AnimatePresence mode="wait">
@@ -143,47 +180,16 @@ export function FleetSection() {
         </AnimatePresence>
 
         {/* Image Gallery */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeCategory}
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-          >
-            {images.map((image, index) => (
-              <motion.div
-                key={image}
-                variants={fadeInUp}
-                custom={index}
-                className="group cursor-pointer"
-                onClick={() => openLightbox(index)}
-              >
-                <motion.div
-                  className="relative overflow-hidden rounded-2xl aspect-[4/3] bg-gray-100 dark:bg-gray-800"
-                  whileHover={{ scale: 1.03 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <img
-                    src={image}
-                    alt={`سيارة ${info.name}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  
-                  {/* Hover Overlay */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4"
-                  >
-                    <span className="text-white font-medium">
-                      اضغط للتكبير
-                    </span>
-                  </motion.div>
-                </motion.div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        <div className="min-h-[400px]">
+          <AnimatePresence mode="wait">
+            <GalleryContent 
+              key={activeCategory} 
+              images={images} 
+              info={info} 
+              openLightbox={openLightbox} 
+            />
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Lightbox */}

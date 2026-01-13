@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import { Phone, Mail, MapPin, Heart } from 'lucide-react';
 import { logoImage } from '@/data/cars';
 import { contactInfo } from '@/data/content';
-import { fadeInUp, viewportConfig, staggerContainer } from '@/lib/animations';
+import { viewportConfig } from '@/lib/animations';
+import { useBatchReveal } from '@/hooks/useAnimations';
 
 const quickLinks = [
   { label: 'الرئيسية', href: '#home' },
@@ -22,6 +23,8 @@ const services = [
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const [columnsRef] = useBatchReveal({ selector: '.footer-column', interval: 0.1 });
+  const [linksRef] = useBatchReveal({ selector: '.footer-link', interval: 0.05, to: { delay: 0.2 } });
 
   const handleNavClick = (href: string) => {
     const element = document.querySelector(href);
@@ -33,15 +36,12 @@ export function Footer() {
   return (
     <footer className="bg-gray-900 text-white pt-16 pb-8">
       <div className="section-container">
-        <motion.div
+        <div
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 mb-12"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportConfig}
+          ref={(el) => { columnsRef.current = el; linksRef.current = el; }}
         >
           {/* Brand Column */}
-          <motion.div variants={fadeInUp}>
+          <div className="footer-column">
             <div className="flex items-center gap-3 mb-6">
               <img
                 src={logoImage}
@@ -60,7 +60,7 @@ export function Footer() {
                 href={`https://wa.me/${contactInfo.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 bg-green-600 hover:bg-green-500 rounded-lg flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-green-600 hover:bg-green-500 rounded-lg flex items-center justify-center transition-colors footer-link"
                 whileHover={{ scale: 1.1, y: -3 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -70,24 +70,24 @@ export function Footer() {
               </motion.a>
               <motion.a
                 href={`tel:${contactInfo.phone}`}
-                className="w-10 h-10 bg-primary-600 hover:bg-primary-500 rounded-lg flex items-center justify-center transition-colors"
+                className="w-10 h-10 bg-primary-600 hover:bg-primary-500 rounded-lg flex items-center justify-center transition-colors footer-link"
                 whileHover={{ scale: 1.1, y: -3 }}
                 whileTap={{ scale: 0.9 }}
               >
                 <Phone className="w-5 h-5" />
               </motion.a>
             </div>
-          </motion.div>
+          </div>
 
           {/* Quick Links */}
-          <motion.div variants={fadeInUp}>
+          <div className="footer-column">
             <h4 className="text-lg font-bold mb-6">روابط سريعة</h4>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <motion.button
                     onClick={() => handleNavClick(link.href)}
-                    className="text-gray-400 hover:text-primary-400 transition-colors"
+                    className="text-gray-400 hover:text-primary-400 transition-colors footer-link"
                     whileHover={{ x: -5 }}
                   >
                     {link.label}
@@ -95,10 +95,10 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
           {/* Services */}
-          <motion.div variants={fadeInUp}>
+          <div className="footer-column">
             <h4 className="text-lg font-bold mb-6">خدماتنا</h4>
             <ul className="space-y-3">
               {services.map((service, index) => (
@@ -110,10 +110,10 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
           {/* Contact Info */}
-          <motion.div variants={fadeInUp}>
+          <div className="footer-column">
             <h4 className="text-lg font-bold mb-6">تواصل معنا</h4>
             <ul className="space-y-4">
               <li className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export function Footer() {
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm">اتصل بنا</p>
-                  <a href={`tel:${contactInfo.phone}`} className="text-white hover:text-primary-400 transition-colors" dir="ltr">
+                  <a href={`tel:${contactInfo.phone}`} className="text-white hover:text-primary-400 transition-colors footer-link" dir="ltr">
                     {contactInfo.phone}
                   </a>
                 </div>
@@ -133,7 +133,7 @@ export function Footer() {
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm">البريد الإلكتروني</p>
-                  <a href={`mailto:${contactInfo.email}`} className="text-white hover:text-primary-400 transition-colors">
+                  <a href={`mailto:${contactInfo.email}`} className="text-white hover:text-primary-400 transition-colors footer-link">
                     {contactInfo.email}
                   </a>
                 </div>
@@ -148,8 +148,8 @@ export function Footer() {
                 </div>
               </li>
             </ul>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Divider */}
         <div className="border-t border-gray-800 pt-8">

@@ -1,11 +1,54 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, MessageCircle, ChevronDown, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { carImages } from '@/data/cars';
 import { contactInfo } from '@/data/content';
-import { staggerContainer, fadeInUp, floatAnimation } from '@/lib/animations';
+import { fadeInUp } from '@/lib/animations';
+import gsap, { useGSAP } from '@/lib/gsap';
+import { useTextReveal, useFloatingAnimation, useParallax } from '@/hooks/useAnimations';
 
 export function HeroSection() {
+  const containerRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const heroImageRef = useRef<HTMLDivElement>(null);
+  const blob1Ref = useRef<HTMLDivElement>(null);
+  const blob2Ref = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  // Text Reveal for Title
+  useTextReveal(titleRef, { type: 'words', stagger: 0.1, delay: 0.2 });
+
+  // Floating Animation for Hero Image
+  useFloatingAnimation(heroImageRef, { amplitude: 20, duration: 4 });
+
+  // Parallax Background Blobs
+  useParallax(blob1Ref, 0.2);
+  useParallax(blob2Ref, -0.3);
+
+  // Stats Stagger Animation
+  useGSAP(() => {
+    if (!statsRef.current) return;
+    
+    gsap.from(statsRef.current.children, {
+      y: 40,
+      opacity: 0,
+      duration: 0.8,
+      stagger: 0.2,
+      ease: "power2.out",
+      delay: 1
+    });
+
+    // Hero Image Entrance
+    gsap.from(heroImageRef.current, {
+      x: -50,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out",
+      delay: 0.5
+    });
+  }, { scope: containerRef });
+
   const handleWhatsApp = () => {
     window.open(
       `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('مرحباً، أريد حجز رحلة')}`,
@@ -24,37 +67,16 @@ export function HeroSection() {
   return (
     <section
       id="home"
+      ref={containerRef}
       className="relative min-h-screen flex items-center overflow-hidden pt-20"
     >
       {/* Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-bl from-primary-50 via-white to-primary-100 dark:from-gray-900 dark:via-gray-900 dark:to-primary-950/30" />
       
       {/* Animated Background Shapes */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-40 -left-40 w-80 h-80 bg-primary-200/30 dark:bg-primary-500/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -right-40 w-96 h-96 bg-accent-200/30 dark:bg-accent-500/10 rounded-full blur-3xl"
-          animate={{
-            x: [0, -50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div ref={blob1Ref} className="absolute -top-40 -left-40 w-80 h-80 bg-primary-200/30 dark:bg-primary-500/10 rounded-full blur-3xl" />
+        <div ref={blob2Ref} className="absolute -bottom-40 -right-40 w-96 h-96 bg-accent-200/30 dark:bg-accent-500/10 rounded-full blur-3xl" />
         <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-300/20 dark:bg-primary-600/5 rounded-full blur-3xl"
           animate={{
@@ -71,15 +93,12 @@ export function HeroSection() {
       <div className="section-container relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           {/* Content */}
-          <motion.div
-            className="text-center lg:text-right"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-          >
+          <div className="text-center lg:text-right">
             {/* Badge */}
             <motion.div
-              variants={fadeInUp}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium mb-6"
             >
               <MapPin className="w-4 h-4" />
@@ -87,20 +106,20 @@ export function HeroSection() {
             </motion.div>
 
             {/* Heading */}
-            <motion.h1
-              variants={fadeInUp}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6"
-            >
+            <h1 ref={titleRef} className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6">
               <span className="text-[hsl(var(--foreground))]">خدمة نقل </span>
               <span className="gradient-text">الركاب</span>
               <br />
               <span className="text-[hsl(var(--foreground))]">الأولى في </span>
               <span className="text-accent-500">دمياط</span>
-            </motion.h1>
+            </h1>
 
             {/* Description */}
             <motion.p
               variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.6 }}
               className="text-lg sm:text-xl text-[hsl(var(--muted-foreground))] mb-8 max-w-xl mx-auto lg:mx-0 lg:mr-0"
             >
               رحلات مريحة وآمنة من دمياط إلى القاهرة والمطار. سيارات حديثة وسائقين محترفين في خدمتك على مدار الساعة.
@@ -108,7 +127,9 @@ export function HeroSection() {
 
             {/* CTA Buttons */}
             <motion.div
-              variants={fadeInUp}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <Button
@@ -130,46 +151,28 @@ export function HeroSection() {
             </motion.div>
 
             {/* Stats */}
-            <motion.div
-              variants={fadeInUp}
-              className="mt-12 grid grid-cols-3 gap-6"
-            >
+            <div ref={statsRef} className="mt-12 grid grid-cols-3 gap-6">
               {[
                 { value: '5000+', label: 'رحلة ناجحة' },
                 { value: '3000+', label: 'عميل سعيد' },
                 { value: '24/7', label: 'خدمة متاحة' },
               ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  className="text-center lg:text-right"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                >
+                <div key={index} className="text-center lg:text-right">
                   <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">
                     {stat.value}
                   </div>
                   <div className="text-sm text-[hsl(var(--muted-foreground))]">
                     {stat.label}
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Hero Image */}
-          <motion.div
-            className="relative"
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-          >
+          <div className="relative perspective-1000">
             {/* Main Car Image */}
-            <motion.div
-              className="relative z-10"
-              variants={floatAnimation}
-              animate="animate"
-            >
+            <div ref={heroImageRef} className="relative z-10">
               <div className="relative">
                 {/* Glow Effect */}
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-500/20 to-transparent rounded-3xl blur-2xl transform scale-95" />
@@ -188,7 +191,7 @@ export function HeroSection() {
                   className="absolute -bottom-4 -right-4 sm:bottom-6 sm:right-6 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1 }}
+                  transition={{ delay: 1.2 }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
@@ -210,17 +213,17 @@ export function HeroSection() {
                   className="absolute -top-4 -left-4 sm:top-6 sm:left-6 bg-accent-500 text-white rounded-2xl shadow-xl px-4 py-3"
                   initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ delay: 1.2 }}
+                  transition={{ delay: 1.4 }}
                   whileHover={{ scale: 1.05, rotate: 3 }}
                 >
                   <p className="text-xs font-medium opacity-90">أسعار تبدأ من</p>
                   <p className="text-xl font-bold">أفضل الأسعار</p>
                 </motion.div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Background Decorative Elements */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none">
               <motion.div
                 className="absolute top-0 right-0 w-32 h-32 border-2 border-primary-200 dark:border-primary-800 rounded-full"
                 animate={{ rotate: 360 }}
@@ -232,7 +235,7 @@ export function HeroSection() {
                 transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
               />
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 

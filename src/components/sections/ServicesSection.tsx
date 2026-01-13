@@ -1,7 +1,8 @@
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Plane, Car, Users } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { staggerContainer, fadeInUp, viewportConfig } from '@/lib/animations';
+import { useBatchReveal, useTiltEffect } from '@/hooks/useAnimations';
 
 const iconMap = {
   route: MapPin,
@@ -45,7 +46,25 @@ const services = [
   },
 ];
 
+const TiltCard = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  useTiltEffect(cardRef, { max: 15, speed: 400, glare: true });
+
+  return (
+    <div ref={cardRef} className={`transform-gpu ${className}`}>
+      {children}
+    </div>
+  );
+};
+
 export function ServicesSection() {
+  const [gridRef] = useBatchReveal({ 
+    selector: '.service-card', 
+    interval: 0.15,
+    from: { opacity: 0, y: 50, rotateX: 10 },
+    to: { opacity: 1, y: 0, rotateX: 0 }
+  });
+
   return (
     <section id="services" className="section-padding relative overflow-hidden">
       {/* Background Pattern */}
@@ -58,26 +77,21 @@ export function ServicesSection() {
           subtitle="نقدم لكم أفضل خدمات النقل والتوصيل في دمياط والقاهرة"
         />
 
-        <motion.div
+        <div
+          ref={gridRef}
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportConfig}
         >
-          {services.map((service, index) => {
+          {services.map((service) => {
             const Icon = iconMap[service.icon as keyof typeof iconMap];
             
             return (
-              <motion.div
+              <TiltCard
                 key={service.id}
-                variants={fadeInUp}
-                custom={index}
-                className="group"
+                className="service-card group h-full"
               >
                 <motion.div
-                  className="card h-full text-center cursor-pointer"
-                  whileHover={{ y: -8, scale: 1.02 }}
+                  className="card h-full text-center cursor-pointer bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300"
+                  whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
                 >
                   {/* Icon Container */}
@@ -108,10 +122,10 @@ export function ServicesSection() {
                     transition={{ duration: 0.3 }}
                   />
                 </motion.div>
-              </motion.div>
+              </TiltCard>
             );
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
