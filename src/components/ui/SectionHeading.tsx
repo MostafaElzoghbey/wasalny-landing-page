@@ -1,6 +1,9 @@
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { fadeInUp, viewportConfig } from '@/lib/animations';
+import { useRef, useEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface SectionHeadingProps {
   title: string;
@@ -15,17 +18,61 @@ export function SectionHeading({
   centered = true,
   className 
 }: SectionHeadingProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const line = lineRef.current;
+    if (!container || !line) return;
+
+    const ctx = gsap.context(() => {
+      // Fade in the container
+      gsap.fromTo(
+        container,
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: container,
+            start: 'top 85%',
+            once: true,
+          },
+        }
+      );
+
+      // Animate the underline width
+      gsap.fromTo(
+        line,
+        { width: 0 },
+        {
+          width: 96,
+          duration: 0.8,
+          delay: 0.3,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: container,
+            start: 'top 85%',
+            once: true,
+          },
+        }
+      );
+    }, container);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <motion.div
+    <div
+      ref={containerRef}
       className={cn(
         'mb-12 lg:mb-16',
         centered && 'text-center',
         className
       )}
-      initial="hidden"
-      whileInView="visible"
-      viewport={viewportConfig}
-      variants={fadeInUp}
     >
       <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[hsl(var(--foreground))] mb-4">
         {title}
@@ -35,16 +82,14 @@ export function SectionHeading({
           {subtitle}
         </p>
       )}
-      <motion.div 
+      <div 
+        ref={lineRef}
         className={cn(
-          'h-1 w-24 bg-gradient-to-l from-primary-500 to-primary-600 rounded-full mt-6',
+          'h-1 bg-gradient-to-l from-primary-500 to-primary-600 rounded-full mt-6',
           centered && 'mx-auto'
         )}
-        initial={{ width: 0 }}
-        whileInView={{ width: 96 }}
-        viewport={viewportConfig}
-        transition={{ duration: 0.8, delay: 0.3 }}
+        style={{ width: 0 }}
       />
-    </motion.div>
+    </div>
   );
 }

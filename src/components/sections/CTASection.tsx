@@ -1,11 +1,11 @@
 import { useRef } from 'react';
-import { motion } from 'framer-motion';
 import { Phone, MessageCircle, MapPin, Clock } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
 import { contactInfo } from '@/data/content';
 import { useTextReveal, useMagneticButton, useBatchReveal } from '@/hooks/useAnimations';
-import gsap, { useGSAP } from '@/lib/gsap';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 const MagneticWrapper = ({ children }: { children: React.ReactNode }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -22,6 +22,10 @@ export function CTASection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const pulseRef = useRef<HTMLDivElement>(null);
+  const blob1Ref = useRef<HTMLDivElement>(null);
+  const blob2Ref = useRef<HTMLDivElement>(null);
+  const blob3Ref = useRef<HTMLDivElement>(null);
+  const trustBadgeRef = useRef<HTMLParagraphElement>(null);
   
   useTextReveal(titleRef, {
     split: "chars",
@@ -37,6 +41,7 @@ export function CTASection() {
     to: { opacity: 1, x: 0 }
   });
 
+  // Pulse animation for CTA button
   useGSAP(() => {
     if (pulseRef.current) {
       gsap.to(pulseRef.current, {
@@ -49,6 +54,67 @@ export function CTASection() {
       });
     }
   }, { scope: containerRef });
+
+  // Background blob animations
+  useGSAP(() => {
+    // Blob 1 - rotate and scale
+    if (blob1Ref.current) {
+      gsap.to(blob1Ref.current, {
+        scale: 1.2,
+        rotation: 360,
+        duration: 20,
+        repeat: -1,
+        ease: 'none'
+      });
+    }
+
+    // Blob 2 - reverse rotation and scale
+    if (blob2Ref.current) {
+      gsap.to(blob2Ref.current, {
+        scale: 1,
+        rotation: -360,
+        duration: 25,
+        repeat: -1,
+        ease: 'none'
+      });
+      gsap.fromTo(blob2Ref.current,
+        { scale: 1.2 },
+        { scale: 1, duration: 12.5, repeat: -1, yoyo: true, ease: 'sine.inOut' }
+      );
+    }
+
+    // Blob 3 - pulsing center blob
+    if (blob3Ref.current) {
+      gsap.to(blob3Ref.current, {
+        scale: 1.1,
+        duration: 2.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut'
+      });
+    }
+  }, {});
+
+  // Trust badge entrance
+  useGSAP(() => {
+    if (trustBadgeRef.current) {
+      gsap.fromTo(trustBadgeRef.current,
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: trustBadgeRef.current,
+            start: 'top 90%',
+            toggleActions: 'play none none reverse'
+          },
+          delay: 0.5
+        }
+      );
+    }
+  }, {});
 
   const handleWhatsApp = () => {
     window.open(
@@ -68,26 +134,17 @@ export function CTASection() {
       
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <motion.div
+        <div
+          ref={blob1Ref}
           className="absolute -top-20 -right-20 w-80 h-80 bg-white/5 rounded-full"
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
         />
-        <motion.div
+        <div
+          ref={blob2Ref}
           className="absolute -bottom-40 -left-40 w-96 h-96 bg-white/5 rounded-full"
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [360, 180, 0],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
         />
-        <motion.div
+        <div
+          ref={blob3Ref}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-500/10 rounded-full blur-3xl"
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
 
@@ -164,14 +221,12 @@ export function CTASection() {
           </div>
 
           {/* Trust Badge */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mt-8 text-primary-200 text-sm"
+          <p
+            ref={trustBadgeRef}
+            className="mt-8 text-primary-200 text-sm opacity-0"
           >
             ✨ أكثر من 5000 رحلة ناجحة • 3000+ عميل سعيد • خدمة موثوقة منذ 2020
-          </motion.p>
+          </p>
         </div>
       </div>
     </section>

@@ -349,31 +349,18 @@ export const useBatchReveal = (
     const items = containerRef.current.querySelectorAll(selector);
     if (items.length === 0) return;
     
-    if (from || to) {
-        gsap.fromTo(items, 
-            {
-                y: y,
-                opacity: 0,
-                ...from
-            },
-            {
-                y: 0,
-                opacity: 1,
-                duration: 0.6,
-                stagger: actualStagger,
-                ease: animConfig.easeOut,
-                scrollTrigger: {
-                    trigger: containerRef.current,
-                    start: "top 80%",
-                    toggleActions: "play none none reverse"
-                },
-                ...to
-            }
-        );
-    } else {
-        gsap.from(items, {
+    // Always use fromTo to ensure proper initial AND final states
+    // This prevents issues where CSS classes might set conflicting initial states
+    gsap.fromTo(items, 
+        {
             y: y,
             opacity: 0,
+            clearProps: 'transform', // Clear any CSS transform classes
+            ...from
+        },
+        {
+            y: 0,
+            opacity: 1,
             duration: 0.6,
             stagger: actualStagger,
             ease: animConfig.easeOut,
@@ -381,9 +368,10 @@ export const useBatchReveal = (
                 trigger: containerRef.current,
                 start: "top 80%",
                 toggleActions: "play none none reverse"
-            }
-        });
-    }
+            },
+            ...to
+        }
+    );
   }, { scope: containerRef, dependencies: [selector, actualStagger, y] });
 
   return [containerRef];

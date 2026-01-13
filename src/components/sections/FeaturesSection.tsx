@@ -1,9 +1,10 @@
-import { motion } from 'framer-motion';
 import { useRef } from 'react';
 import { Shield, Star, Clock, Wallet, Headphones, MapPin } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { useCounterAnimation, useBatchReveal } from '@/hooks/useAnimations';
 import { stats } from '@/data/content';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 
 const iconMap = {
   shield: Shield,
@@ -76,6 +77,117 @@ function GSAPCounter({ value, suffix = '' }: { value: number; suffix?: string })
   );
 }
 
+interface StatCardProps {
+  stat: typeof stats[0];
+}
+
+const StatCard = ({ stat }: StatCardProps) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (!cardRef.current) return;
+
+    const card = cardRef.current;
+
+    const handleMouseEnter = () => {
+      gsap.to(card, { scale: 1.05, y: -5, duration: 0.3, ease: 'power2.out' });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(card, { scale: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+    };
+
+    card.addEventListener('mouseenter', handleMouseEnter);
+    card.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      card.removeEventListener('mouseenter', handleMouseEnter);
+      card.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, {});
+
+  return (
+    <div
+      ref={cardRef}
+      className="card bg-gradient-to-br from-primary-500 to-primary-700 text-white py-8 cursor-pointer"
+    >
+      <div className="text-4xl sm:text-5xl font-bold mb-2">
+        <GSAPCounter value={stat.value} suffix={stat.suffix} />
+      </div>
+      <div className="text-primary-100 font-medium">{stat.label}</div>
+    </div>
+  );
+};
+
+interface FeatureCardProps {
+  feature: typeof features[0];
+}
+
+const FeatureCard = ({ feature }: FeatureCardProps) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLDivElement>(null);
+  const Icon = iconMap[feature.icon as keyof typeof iconMap];
+
+  useGSAP(() => {
+    if (!cardRef.current || !iconRef.current) return;
+
+    const card = cardRef.current;
+    const icon = iconRef.current;
+
+    const handleMouseEnter = () => {
+      gsap.to(card, { y: -5, duration: 0.3, ease: 'power2.out' });
+      // Wiggle and scale icon
+      const tl = gsap.timeline();
+      tl.to(icon, { rotation: -10, scale: 1.1, duration: 0.1, ease: 'power2.out' })
+        .to(icon, { rotation: 10, duration: 0.1, ease: 'power2.out' })
+        .to(icon, { rotation: 0, duration: 0.1, ease: 'power2.out' });
+    };
+
+    const handleMouseLeave = () => {
+      gsap.to(card, { y: 0, duration: 0.3, ease: 'power2.out' });
+      gsap.to(icon, { scale: 1, rotation: 0, duration: 0.2, ease: 'power2.out' });
+    };
+
+    card.addEventListener('mouseenter', handleMouseEnter);
+    card.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      card.removeEventListener('mouseenter', handleMouseEnter);
+      card.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, {});
+
+  return (
+    <div
+      ref={cardRef}
+      className="card h-full relative overflow-hidden cursor-pointer"
+    >
+      {/* Gradient Background on Hover */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
+      />
+
+      <div className="relative z-10">
+        {/* Icon */}
+        <div
+          ref={iconRef}
+          className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-5 shadow-lg`}
+        >
+          <Icon className="w-7 h-7 text-white" />
+        </div>
+
+        {/* Content */}
+        <h3 className="text-xl font-bold mb-3 text-[hsl(var(--foreground))]">
+          {feature.title}
+        </h3>
+        <p className="text-[hsl(var(--muted-foreground))] leading-relaxed">
+          {feature.description}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export function FeaturesSection() {
   const [statsRef] = useBatchReveal({
     selector: '.stat-card',
@@ -112,16 +224,7 @@ export function FeaturesSection() {
               key={stat.id}
               className="stat-card text-center"
             >
-              <motion.div
-                className="card bg-gradient-to-br from-primary-500 to-primary-700 text-white py-8"
-                whileHover={{ scale: 1.05, y: -5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="text-4xl sm:text-5xl font-bold mb-2">
-                  <GSAPCounter value={stat.value} suffix={stat.suffix} />
-                </div>
-                <div className="text-primary-100 font-medium">{stat.label}</div>
-              </motion.div>
+              <StatCard stat={stat} />
             </div>
           ))}
         </div>
@@ -131,46 +234,14 @@ export function FeaturesSection() {
           ref={featuresRef}
           className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
         >
-          {features.map((feature) => {
-            const Icon = iconMap[feature.icon as keyof typeof iconMap];
-            
-            return (
-              <div
-                key={feature.id}
-                className="feature-card group"
-              >
-                <motion.div
-                  className="card h-full relative overflow-hidden"
-                  whileHover={{ y: -5 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* Gradient Background on Hover */}
-                  <motion.div
-                    className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}
-                  />
-
-                  <div className="relative z-10">
-                    {/* Icon */}
-                    <motion.div
-                      className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-5 shadow-lg`}
-                      whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <Icon className="w-7 h-7 text-white" />
-                    </motion.div>
-
-                    {/* Content */}
-                    <h3 className="text-xl font-bold mb-3 text-[hsl(var(--foreground))]">
-                      {feature.title}
-                    </h3>
-                    <p className="text-[hsl(var(--muted-foreground))] leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </motion.div>
-              </div>
-            );
-          })}
+          {features.map((feature) => (
+            <div
+              key={feature.id}
+              className="feature-card group"
+            >
+              <FeatureCard feature={feature} />
+            </div>
+          ))}
         </div>
       </div>
     </section>
