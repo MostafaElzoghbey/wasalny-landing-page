@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure dark mode to use selector (class-based) instead of media (OS preference) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Custom CSS Variables for Theming */
 @theme {
   /* Primary Blue Palette */
