@@ -1,13 +1,36 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { mockupImages } from '@/data/cars';
 import { fadeInUp, viewportConfig } from '@/lib/animations';
+import { useParallax } from '@/hooks/useAnimations';
+import gsap, { useGSAP } from '@/lib/gsap';
 
 export function AppShowcaseSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  
+  const blob1Ref = useRef<HTMLDivElement>(null);
+  const blob2Ref = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useParallax(blob1Ref, 0.3);
+  useParallax(blob2Ref, 0.5);
+
+  useGSAP(() => {
+    gsap.from(containerRef.current, {
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 80%",
+        toggleActions: "play none none reverse"
+      },
+      y: 50,
+      opacity: 0,
+      duration: 1,
+      ease: "power3.out"
+    });
+  }, []);
 
   // Only use a subset of mockup images
   const images = mockupImages.slice(0, 8);
@@ -32,8 +55,8 @@ export function AppShowcaseSection() {
     <section className="section-padding relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900">
       {/* Background Effects */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-500/20 rounded-full blur-3xl" />
+        <div ref={blob1Ref} className="absolute top-0 left-1/4 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
+        <div ref={blob2Ref} className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-500/20 rounded-full blur-3xl" />
       </div>
 
       <div className="section-container relative z-10">
@@ -52,11 +75,8 @@ export function AppShowcaseSection() {
 
         {/* Carousel Container */}
         <motion.div
+          ref={containerRef}
           className="relative max-w-4xl mx-auto"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={viewportConfig}
-          transition={{ duration: 0.6, delay: 0.2 }}
           onMouseEnter={() => setIsAutoPlaying(false)}
           onMouseLeave={() => setIsAutoPlaying(true)}
         >
