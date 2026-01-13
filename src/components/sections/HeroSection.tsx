@@ -313,15 +313,6 @@ export function HeroSection() {
           </div>
         </div>
       </div>
-
-      {/* Scroll Indicator */}
-      <button
-        ref={scrollIndicatorRef}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-primary-600 dark:text-primary-400"
-        onClick={scrollToServices}
-      >
-        <ChevronDown className="w-8 h-8" />
-      </button>
     </section>
   );
 }
