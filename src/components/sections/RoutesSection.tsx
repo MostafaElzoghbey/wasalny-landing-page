@@ -1,5 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { MapPin, Clock, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, ArrowRight } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { routes } from '@/data/content';
 import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
@@ -66,7 +66,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
           <span className="font-bold text-lg text-[hsl(var(--foreground))]">
             {route.from}
           </span>
-          <ArrowLeft className="w-5 h-5 text-primary-500 flip-rtl" />
+          <ArrowRight className="w-5 h-5 text-primary-500 flip-rtl" />
           <span className="font-bold text-lg text-[hsl(var(--foreground))]">
             {route.to}
           </span>
@@ -87,7 +87,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
         ref={arrowRef}
         className="opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <ArrowLeft className="w-6 h-6 text-primary-500 flip-rtl" />
+        <ArrowRight className="w-6 h-6 text-primary-500 flip-rtl" />
       </div>
     </div>
   );

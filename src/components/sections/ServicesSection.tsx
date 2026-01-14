@@ -102,25 +102,29 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   return (
     <div
       ref={cardRef}
-      className="card h-full text-center cursor-pointer bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-shadow duration-300"
+      className="relative h-full text-center cursor-pointer rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_40px_-8px_rgba(59,130,246,0.2)] dark:hover:shadow-[0_12px_40px_-8px_rgba(59,130,246,0.3)] transition-all duration-300 overflow-hidden"
     >
+      {/* Subtle gradient border accent on top */}
+      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-l ${service.color} opacity-80`} />
+      
+      {/* Background gradient glow on hover */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500`} />
+      
       {/* Icon Container */}
       <div
         ref={iconContainerRef}
-        className={`w-20 h-20 mx-auto mb-6 rounded-2xl ${service.bgColor} flex items-center justify-center relative overflow-hidden`}
+        className={`relative w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center shadow-lg`}
       >
-        {/* Gradient Overlay on Hover */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-        />
-        <Icon className={`w-10 h-10 relative z-10 text-primary-600 dark:text-primary-400 group-hover:text-white transition-colors duration-300`} />
+        {/* Inner glow effect */}
+        <div className="absolute inset-1 rounded-xl bg-white/20 backdrop-blur-sm" />
+        <Icon className="w-10 h-10 relative z-10 text-white drop-shadow-sm" />
       </div>
 
       {/* Content */}
-      <h3 className="text-xl font-bold mb-3 text-[hsl(var(--foreground))] group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+      <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
         {service.title}
       </h3>
-      <p className="text-[hsl(var(--muted-foreground))] leading-relaxed">
+      <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
         {service.description}
       </p>
 
