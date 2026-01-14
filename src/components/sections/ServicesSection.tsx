@@ -76,18 +76,18 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
     const line = lineRef.current;
 
     const handleMouseEnter = () => {
-      gsap.to(card, { scale: 1.02, duration: 0.3, ease: 'power2.out' });
+      gsap.to(card, { scale: 1.02, duration: 0.15, ease: 'power2.out' });
       // Wiggle animation using timeline
       const tl = gsap.timeline();
-      tl.to(iconContainer, { rotation: -5, duration: 0.1, ease: 'power2.out' })
-        .to(iconContainer, { rotation: 5, duration: 0.1, ease: 'power2.out' })
-        .to(iconContainer, { rotation: 0, duration: 0.1, ease: 'power2.out' });
-      gsap.to(line, { width: '50%', duration: 0.3, ease: 'power2.out' });
+      tl.to(iconContainer, { rotation: -5, duration: 0.08, ease: 'power2.out' })
+        .to(iconContainer, { rotation: 5, duration: 0.08, ease: 'power2.out' })
+        .to(iconContainer, { rotation: 0, duration: 0.08, ease: 'power2.out' });
+      gsap.to(line, { width: '50%', duration: 0.2, ease: 'power2.out' });
     };
 
     const handleMouseLeave = () => {
-      gsap.to(card, { scale: 1, duration: 0.3, ease: 'power2.out' });
-      gsap.to(line, { width: 0, duration: 0.3, ease: 'power2.out' });
+      gsap.to(card, { scale: 1, duration: 0.15, ease: 'power2.out' });
+      gsap.to(line, { width: 0, duration: 0.2, ease: 'power2.out' });
     };
 
     card.addEventListener('mouseenter', handleMouseEnter);

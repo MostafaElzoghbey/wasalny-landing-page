@@ -24,16 +24,16 @@ export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedCardProps>(
       // Entrance animation with scroll trigger
       gsap.fromTo(
         element,
-        { opacity: 0, y: 30 },
+        { opacity: 0, y: 20 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.6,
-          delay: delay * 0.1,
+          duration: 0.4,
+          delay: delay * 0.08,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: element,
-            start: 'top 85%',
+            start: 'top 92%',
             once: true,
           },
         }

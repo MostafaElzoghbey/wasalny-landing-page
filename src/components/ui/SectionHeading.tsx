@@ -30,15 +30,15 @@ export function SectionHeading({
       // Fade in the container
       gsap.fromTo(
         container,
-        { opacity: 0, y: 30 },
+        { opacity: 0, y: 20 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.6,
+          duration: 0.4,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: container,
-            start: 'top 85%',
+            start: 'top 92%',
             once: true,
           },
         }
@@ -50,12 +50,12 @@ export function SectionHeading({
         { width: 0 },
         {
           width: 96,
-          duration: 0.8,
-          delay: 0.3,
+          duration: 0.5,
+          delay: 0.2,
           ease: 'power2.out',
           scrollTrigger: {
             trigger: container,
-            start: 'top 85%',
+            start: 'top 92%',
             once: true,
           },
         }

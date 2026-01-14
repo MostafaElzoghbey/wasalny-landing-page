@@ -23,8 +23,8 @@ export const useTextReveal = (
     type = 'words', 
     stagger = 0.05, 
     delay = 0,
-    duration = 0.8,
-    start = "top 85%",
+    duration = 0.5, // Faster default
+    start = "top 92%", // Earlier trigger
     split: splitType,
     from,
     to
@@ -202,7 +202,7 @@ export const useCounterAnimation = (
 // Hook for standard section reveal
 export const useSectionReveal = (
   ref: React.RefObject<HTMLElement | null>,
-  stagger: number = 0.1
+  stagger: number = 0.08 // Faster default
 ) => {
   useGSAP(() => {
     if (!ref.current) return;
@@ -213,14 +213,14 @@ export const useSectionReveal = (
     if (children.length === 0) return;
 
     gsap.from(children, {
-      y: 30,
+      y: 20,
       opacity: 0,
-      duration: 0.8,
+      duration: 0.5,
       stagger: stagger,
       ease: animConfig.easeOut,
       scrollTrigger: {
         trigger: ref.current,
-        start: "top 80%",
+        start: "top 90%", // Earlier trigger
         toggleActions: "play none none reverse"
       }
     });
@@ -252,7 +252,7 @@ export const useScaleOnScroll = (
   ref: React.RefObject<HTMLElement | null>,
   options: { startScale?: number; endScale?: number } = {}
 ) => {
-  const { startScale = 0.8, endScale = 1 } = options;
+  const { startScale = 0.9, endScale = 1 } = options;
 
   useGSAP(() => {
     if (!ref.current) return;
@@ -264,8 +264,8 @@ export const useScaleOnScroll = (
         opacity: 1,
         scrollTrigger: {
           trigger: ref.current,
-          start: "top 85%",
-          end: "top 50%",
+          start: "top 90%",
+          end: "top 60%",
           scrub: 1
         }
       }
@@ -361,12 +361,12 @@ export const useBatchReveal = (
         {
             y: 0,
             opacity: 1,
-            duration: 0.6,
-            stagger: actualStagger,
+            duration: 0.4, // Faster duration
+            stagger: actualStagger * 0.7, // Faster stagger
             ease: animConfig.easeOut,
             scrollTrigger: {
                 trigger: containerRef.current,
-                start: "top 80%",
+                start: "top 90%", // Trigger earlier (was 80%)
                 toggleActions: "play none none reverse"
             },
             ...to
@@ -429,11 +429,11 @@ export const useImageReveal = (
       { clipPath: clips[direction].from },
       {
         clipPath: clips[direction].to,
-        duration: 1,
+        duration: 0.7,
         ease: "power3.inOut",
         scrollTrigger: {
           trigger: ref.current,
-          start: "top 85%",
+          start: "top 90%",
           toggleActions: "play none none reverse"
         }
       }

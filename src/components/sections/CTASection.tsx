@@ -3,7 +3,7 @@ import { Phone, MessageCircle, MapPin, Clock } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
 import { contactInfo } from '@/data/content';
-import { useTextReveal, useMagneticButton, useBatchReveal } from '@/hooks/useAnimations';
+import { useMagneticButton, useBatchReveal } from '@/hooks/useAnimations';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -27,12 +27,25 @@ export function CTASection() {
   const blob3Ref = useRef<HTMLDivElement>(null);
   const trustBadgeRef = useRef<HTMLParagraphElement>(null);
   
-  useTextReveal(titleRef, {
-    split: "chars",
-    from: { opacity: 0, scale: 0.5, y: 100, rotationX: -90 },
-    to: { opacity: 1, scale: 1, y: 0, rotationX: 0 },
-    stagger: 0.02
-  });
+  // Use simple fade-in for Arabic text instead of character split
+  useGSAP(() => {
+    if (!titleRef.current) return;
+    
+    gsap.fromTo(titleRef.current,
+      { opacity: 0, y: 30 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: titleRef.current,
+          start: 'top 85%',
+          toggleActions: 'play none none reverse'
+        }
+      }
+    );
+  }, {});
 
   const [cardsRef] = useBatchReveal({
     selector: '.contact-card',

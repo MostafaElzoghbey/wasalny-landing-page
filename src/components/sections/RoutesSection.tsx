@@ -21,11 +21,11 @@ const RouteCard = ({ route }: RouteCardProps) => {
     const card = cardRef.current;
 
     const handleMouseEnter = () => {
-      gsap.to(card, { x: -10, scale: 1.02, duration: 0.3, ease: 'power2.out' });
+      gsap.to(card, { x: -10, scale: 1.02, duration: 0.15, ease: 'power2.out' });
     };
 
     const handleMouseLeave = () => {
-      gsap.to(card, { x: 0, scale: 1, duration: 0.3, ease: 'power2.out' });
+      gsap.to(card, { x: 0, scale: 1, duration: 0.15, ease: 'power2.out' });
     };
 
     card.addEventListener('mouseenter', handleMouseEnter);

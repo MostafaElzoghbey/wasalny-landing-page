@@ -3,7 +3,7 @@ import { Users, Snowflake, Wifi, Star, ChevronLeft, ChevronRight, X } from 'luci
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { carImages, carCategories } from '@/data/cars';
 import { cn } from '@/lib/utils';
-import { useBatchReveal } from '@/hooks/useAnimations';
+import { useBatchReveal, useTiltEffect } from '@/hooks/useAnimations';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
@@ -39,6 +39,42 @@ interface GalleryContentProps {
   isActive: boolean;
 }
 
+// 3D Gallery Item with tilt effect
+const GalleryItem = ({ 
+  image, 
+  info, 
+  index, 
+  openLightbox 
+}: { 
+  image: string; 
+  info: typeof categoryInfo[keyof typeof categoryInfo];
+  index: number;
+  openLightbox: (index: number) => void;
+}) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  useTiltEffect(cardRef, { max: 15, speed: 300 });
+
+  return (
+    <div
+      ref={cardRef}
+      className="gallery-item group cursor-pointer preserve-3d"
+      onClick={() => openLightbox(index)}
+    >
+      <div className="relative overflow-hidden rounded-2xl aspect-[4/3] bg-gray-100 dark:bg-gray-800 shadow-lg transition-shadow duration-300 hover:shadow-2xl hover:shadow-primary-500/20">
+        <img
+          src={image}
+          alt={`سيارة ${info.name}`}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+          <span className="text-white font-medium">اضغط للتكبير</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const GalleryContent = ({ images, info, openLightbox, isActive }: GalleryContentProps) => {
   const [ref] = useBatchReveal({ selector: '.gallery-item', interval: 0.1 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -64,23 +100,13 @@ const GalleryContent = ({ images, info, openLightbox, isActive }: GalleryContent
         className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
       >
         {images.map((image, index) => (
-          <div
+          <GalleryItem
             key={image}
-            className="gallery-item group cursor-pointer"
-            onClick={() => openLightbox(index)}
-          >
-            <div className="relative overflow-hidden rounded-2xl aspect-[4/3] bg-gray-100 dark:bg-gray-800 transition-transform duration-300 hover:scale-[1.03]">
-              <img
-                src={image}
-                alt={`سيارة ${info.name}`}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                <span className="text-white font-medium">اضغط للتكبير</span>
-              </div>
-            </div>
-          </div>
+            image={image}
+            info={info}
+            index={index}
+            openLightbox={openLightbox}
+          />
         ))}
       </div>
     </div>
