@@ -90,11 +90,11 @@ const StatCard = ({ stat }: StatCardProps) => {
     const card = cardRef.current;
 
     const handleMouseEnter = () => {
-      gsap.to(card, { scale: 1.05, y: -5, duration: 0.25, ease: 'power3.out' });
+      gsap.to(card, { scale: 1.05, y: -5, duration: 0.3, ease: 'power2.out' });
     };
 
     const handleMouseLeave = () => {
-      gsap.to(card, { scale: 1, y: 0, duration: 0.25, ease: 'power3.out' });
+      gsap.to(card, { scale: 1, y: 0, duration: 0.3, ease: 'power2.out' });
     };
 
     card.addEventListener('mouseenter', handleMouseEnter);
@@ -109,7 +109,7 @@ const StatCard = ({ stat }: StatCardProps) => {
   return (
     <div
       ref={cardRef}
-      className="card bg-gradient-to-br from-primary-500 to-primary-700 text-white py-8 cursor-pointer"
+      className="card bg-gradient-to-br from-primary-500 to-primary-700 text-white py-8 cursor-pointer transition-shadow duration-300 hover:shadow-xl hover:shadow-primary-500/25"
     >
       <div className="text-4xl sm:text-5xl font-bold mb-2">
         <GSAPCounter value={stat.value} suffix={stat.suffix} />
@@ -135,17 +135,17 @@ const FeatureCard = ({ feature }: FeatureCardProps) => {
     const icon = iconRef.current;
 
     const handleMouseEnter = () => {
-      gsap.to(card, { y: -5, duration: 0.25, ease: 'power3.out' });
-      // Wiggle and scale icon
+      gsap.to(card, { y: -5, duration: 0.3, ease: 'power2.out' });
+      // Smooth wiggle and scale icon
       const tl = gsap.timeline();
-      tl.to(icon, { rotation: -10, scale: 1.1, duration: 0.1, ease: 'power2.out' })
-        .to(icon, { rotation: 10, duration: 0.1, ease: 'power2.out' })
-        .to(icon, { rotation: 0, duration: 0.1, ease: 'power2.out' });
+      tl.to(icon, { rotation: -10, scale: 1.1, duration: 0.15, ease: 'power2.out' })
+        .to(icon, { rotation: 10, duration: 0.15, ease: 'power2.out' })
+        .to(icon, { rotation: 0, duration: 0.15, ease: 'power2.out' });
     };
 
     const handleMouseLeave = () => {
-      gsap.to(card, { y: 0, duration: 0.25, ease: 'power3.out' });
-      gsap.to(icon, { scale: 1, rotation: 0, duration: 0.15, ease: 'power2.out' });
+      gsap.to(card, { y: 0, duration: 0.3, ease: 'power2.out' });
+      gsap.to(icon, { scale: 1, rotation: 0, duration: 0.2, ease: 'power2.out' });
     };
 
     card.addEventListener('mouseenter', handleMouseEnter);
@@ -160,7 +160,7 @@ const FeatureCard = ({ feature }: FeatureCardProps) => {
   return (
     <div
       ref={cardRef}
-      className="card h-full relative overflow-hidden cursor-pointer"
+      className="card h-full relative overflow-hidden cursor-pointer transition-shadow duration-300 hover:shadow-xl"
     >
       {/* Gradient Background on Hover */}
       <div

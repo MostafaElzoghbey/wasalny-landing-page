@@ -16,8 +16,8 @@ export function AppShowcaseSection() {
   const thumbnailsRef = useRef<HTMLDivElement>(null);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Use a subset of images
-  const images = mockupImages.slice(0, 8);
+  // Use all mockup images for better showcase
+  const images = mockupImages;
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -119,19 +119,18 @@ export function AppShowcaseSection() {
 
         {/* Main Carousel */}
         <div ref={containerRef} className="relative max-w-5xl mx-auto">
-          {/* Main Image Container - Square aspect ratio for mockup images */}
-          <div className="relative aspect-square sm:aspect-[4/3] lg:aspect-video rounded-3xl overflow-hidden shadow-2xl bg-gray-900">
-            <div ref={mainImageRef} className="absolute inset-0 flex items-center justify-center">
+          {/* Main Image Container - Adaptive to image content */}
+          <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-primary-800 to-primary-900">
+            <div ref={mainImageRef} className="relative flex items-center justify-center p-4 md:p-6">
               <img
                 src={images[currentIndex]}
                 alt={`عرض ${currentIndex + 1}`}
-                className="w-full h-full object-contain"
+                className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-2xl shadow-lg"
               />
             </div>
 
             {/* Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary-900/60 via-transparent to-transparent rounded-3xl pointer-events-none" />
 
             {/* Navigation Arrows */}
             <button

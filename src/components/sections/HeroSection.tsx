@@ -158,10 +158,10 @@ export function HeroSection() {
 
             {/* Heading */}
             <h1 ref={titleRef} className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6">
-              <span className="text-[hsl(var(--foreground))]">خدمة نقل </span>
+              <span className="text-[hsl(var(--foreground))]">خدمة نقل</span>{' '}
               <span className="text-primary-600 dark:text-primary-400">الركاب</span>
               <br />
-              <span className="text-[hsl(var(--foreground))]">الأولى في </span>
+              <span className="text-[hsl(var(--foreground))]">الأولى في</span>{' '}
               <span className="text-accent-500">دمياط</span>
             </h1>
 
