@@ -119,13 +119,13 @@ export function AppShowcaseSection() {
 
         {/* Main Carousel */}
         <div ref={containerRef} className="relative max-w-5xl mx-auto">
-          {/* Main Image Container - Fixed 16:9 aspect ratio */}
-          <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-gray-900">
-            <div ref={mainImageRef} className="absolute inset-0">
+          {/* Main Image Container - Square aspect ratio for mockup images */}
+          <div className="relative aspect-square sm:aspect-[4/3] lg:aspect-video rounded-3xl overflow-hidden shadow-2xl bg-gray-900">
+            <div ref={mainImageRef} className="absolute inset-0 flex items-center justify-center">
               <img
                 src={images[currentIndex]}
                 alt={`عرض ${currentIndex + 1}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
 

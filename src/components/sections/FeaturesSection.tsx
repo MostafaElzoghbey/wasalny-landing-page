@@ -90,11 +90,11 @@ const StatCard = ({ stat }: StatCardProps) => {
     const card = cardRef.current;
 
     const handleMouseEnter = () => {
-      gsap.to(card, { scale: 1.05, y: -5, duration: 0.15, ease: 'power2.out' });
+      gsap.to(card, { scale: 1.05, y: -5, duration: 0.25, ease: 'power3.out' });
     };
 
     const handleMouseLeave = () => {
-      gsap.to(card, { scale: 1, y: 0, duration: 0.15, ease: 'power2.out' });
+      gsap.to(card, { scale: 1, y: 0, duration: 0.25, ease: 'power3.out' });
     };
 
     card.addEventListener('mouseenter', handleMouseEnter);
@@ -135,17 +135,17 @@ const FeatureCard = ({ feature }: FeatureCardProps) => {
     const icon = iconRef.current;
 
     const handleMouseEnter = () => {
-      gsap.to(card, { y: -5, duration: 0.15, ease: 'power2.out' });
+      gsap.to(card, { y: -5, duration: 0.25, ease: 'power3.out' });
       // Wiggle and scale icon
       const tl = gsap.timeline();
-      tl.to(icon, { rotation: -10, scale: 1.1, duration: 0.08, ease: 'power2.out' })
-        .to(icon, { rotation: 10, duration: 0.08, ease: 'power2.out' })
-        .to(icon, { rotation: 0, duration: 0.08, ease: 'power2.out' });
+      tl.to(icon, { rotation: -10, scale: 1.1, duration: 0.1, ease: 'power2.out' })
+        .to(icon, { rotation: 10, duration: 0.1, ease: 'power2.out' })
+        .to(icon, { rotation: 0, duration: 0.1, ease: 'power2.out' });
     };
 
     const handleMouseLeave = () => {
-      gsap.to(card, { y: 0, duration: 0.15, ease: 'power2.out' });
-      gsap.to(icon, { scale: 1, rotation: 0, duration: 0.1, ease: 'power2.out' });
+      gsap.to(card, { y: 0, duration: 0.25, ease: 'power3.out' });
+      gsap.to(icon, { scale: 1, rotation: 0, duration: 0.15, ease: 'power2.out' });
     };
 
     card.addEventListener('mouseenter', handleMouseEnter);

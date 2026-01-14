@@ -19,8 +19,6 @@ export function HeroSection() {
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const carImageRef = useRef<HTMLImageElement>(null);
-  const floatingBadgeRef = useRef<HTMLDivElement>(null);
-  const priceBadgeRef = useRef<HTMLDivElement>(null);
   const circle1Ref = useRef<HTMLDivElement>(null);
   const circle2Ref = useRef<HTMLDivElement>(null);
 
@@ -66,18 +64,6 @@ export function HeroSection() {
     gsap.fromTo(heroImageRef.current,
       { x: -50, opacity: 0 },
       { x: 0, opacity: 1, duration: 1, ease: 'power3.out', delay: 0.5 }
-    );
-
-    // Floating badge entrance
-    gsap.fromTo(floatingBadgeRef.current,
-      { opacity: 0, scale: 0.8 },
-      { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.7)', delay: 1.2 }
-    );
-
-    // Price badge entrance
-    gsap.fromTo(priceBadgeRef.current,
-      { opacity: 0, scale: 0.8, rotation: -5 },
-      { opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: 'back.out(1.7)', delay: 1.4 }
     );
 
     // Center blob pulse animation
@@ -127,29 +113,6 @@ export function HeroSection() {
     };
   }, {});
 
-  // Price badge hover effect
-  useGSAP(() => {
-    if (!priceBadgeRef.current) return;
-    
-    const el = priceBadgeRef.current;
-    
-    const handleMouseEnter = () => {
-      gsap.to(el, { scale: 1.05, rotation: 3, duration: 0.3, ease: 'power2.out' });
-    };
-    
-    const handleMouseLeave = () => {
-      gsap.to(el, { scale: 1, rotation: 0, duration: 0.3, ease: 'power2.out' });
-    };
-    
-    el.addEventListener('mouseenter', handleMouseEnter);
-    el.addEventListener('mouseleave', handleMouseLeave);
-    
-    return () => {
-      el.removeEventListener('mouseenter', handleMouseEnter);
-      el.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, {});
-
   const handleWhatsApp = () => {
     window.open(
       `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('مرحباً، أريد حجز رحلة')}`,
@@ -165,7 +128,7 @@ export function HeroSection() {
     <section
       id="home"
       ref={containerRef}
-      className="relative min-h-screen flex items-center overflow-hidden pt-20"
+      className="relative min-h-screen flex items-center overflow-hidden pt-32 lg:pt-24"
     >
       {/* Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-bl from-primary-50 via-white to-primary-100 dark:from-gray-900 dark:via-gray-900 dark:to-primary-950/30" />
@@ -267,35 +230,6 @@ export function HeroSection() {
                   alt="سيارة وصلني"
                   className="w-full h-auto rounded-3xl shadow-2xl cursor-pointer"
                 />
-
-                {/* Floating Badge */}
-                <div
-                  ref={floatingBadgeRef}
-                  className="absolute -bottom-4 -right-4 sm:bottom-6 sm:right-6 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 opacity-0"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                      <MessageCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-[hsl(var(--foreground))]">
-                        احجز الآن
-                      </p>
-                      <p className="text-xs text-[hsl(var(--muted-foreground))]">
-                        رد فوري
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Floating Price Badge */}
-                <div
-                  ref={priceBadgeRef}
-                  className="absolute -top-4 -left-4 sm:top-6 sm:left-6 bg-accent-500 text-white rounded-2xl shadow-xl px-4 py-3 cursor-pointer opacity-0"
-                >
-                  <p className="text-xs font-medium opacity-90">أسعار تبدأ من</p>
-                  <p className="text-xl font-bold">أفضل الأسعار</p>
-                </div>
               </div>
             </div>
 
