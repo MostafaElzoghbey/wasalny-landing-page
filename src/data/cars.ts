@@ -103,8 +103,8 @@ export const cars: Car[] = [
 ];
 
 export const carCategories = [
-  { id: 'sedan', nameAr: 'سيدان', icon: '🚗' },
-  { id: 'suv', nameAr: 'دفع رباعي', icon: '🚙' },
-  { id: 'family_cruiser', nameAr: 'عائلية', icon: '🚐' },
-  { id: 'minibus', nameAr: 'ميني باص', icon: '🚌' },
+  { id: 'sedan', nameAr: 'سيدان', icon: 'Car' },
+  { id: 'suv', nameAr: 'دفع رباعي', icon: 'Truck' },
+  { id: 'family_cruiser', nameAr: 'عائلية', icon: 'Bus' },
+  { id: 'minibus', nameAr: 'ميني باص', icon: 'UsersRound' },
 ] as const;

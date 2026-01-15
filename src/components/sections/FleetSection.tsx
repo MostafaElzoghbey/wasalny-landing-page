@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase } from 'lucide-react';
+import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase, Car, Truck, Bus, UsersRound } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { carImages, carCategories } from '@/data/cars';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,20 @@ const categoryInfo: Record<CarCategory, { name: string; passengers: number; feat
     features: ['14 راكب', 'تكييف مركزي', 'راحة فائقة'],
     slogan: 'الحل الأمثل للمجموعات'
   },
+};
+
+const categoryColors: Record<CarCategory, { primary: string; accent: string }> = {
+  sedan: { primary: 'from-blue-500/15', accent: 'to-cyan-500/10' },
+  suv: { primary: 'from-emerald-500/15', accent: 'to-teal-500/10' },
+  family_cruiser: { primary: 'from-purple-500/15', accent: 'to-pink-500/10' },
+  minibus: { primary: 'from-orange-500/15', accent: 'to-amber-500/10' },
+};
+
+const iconMap = {
+  Car: Car,
+  Truck: Truck,
+  Bus: Bus,
+  UsersRound: UsersRound,
 };
 
 interface LightboxProps {
@@ -69,14 +83,33 @@ const Lightbox = ({ selectedImage, images, currentIndex, onClose, onNext, onPrev
   if (!selectedImage) return null;
 
   return (
-    <div ref={overlayRef} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" onClick={onClose}>
-      <button className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-50" onClick={onClose}>
+    <div 
+      ref={overlayRef} 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" 
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="معرض صور السيارة"
+    >
+      <button 
+        className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-50 focus-visible:ring-2 focus-visible:ring-primary-500" 
+        onClick={onClose}
+        aria-label="إغلاق"
+      >
         <X className="w-8 h-8" />
       </button>
-      <button className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-4 bg-white/5 hover:bg-white/10 rounded-full text-white hidden md:flex" onClick={(e) => { e.stopPropagation(); onPrev(); }}>
+      <button 
+        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-4 bg-white/5 hover:bg-white/10 rounded-full text-white hidden md:flex focus-visible:ring-2 focus-visible:ring-primary-500" 
+        onClick={(e) => { e.stopPropagation(); onPrev(); }}
+        aria-label="الصورة السابقة"
+      >
         <ChevronRight className="w-8 h-8" />
       </button>
-      <button className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-4 bg-white/5 hover:bg-white/10 rounded-full text-white hidden md:flex" onClick={(e) => { e.stopPropagation(); onNext(); }}>
+      <button 
+        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-4 bg-white/5 hover:bg-white/10 rounded-full text-white hidden md:flex focus-visible:ring-2 focus-visible:ring-primary-500" 
+        onClick={(e) => { e.stopPropagation(); onNext(); }}
+        aria-label="الصورة التالية"
+      >
         <ChevronLeft className="w-8 h-8" />
       </button>
       <div className="relative max-w-7xl max-h-[85vh] p-4">
@@ -101,14 +134,12 @@ const CarouselCard = ({
   onClick: () => void 
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   // RTL Adjustments:
-  // In RTL, positive offset (next items) should be to the LEFT.
-  // Standard CSS X-axis: +X is Right, -X is Left.
-  // So for offset 1 (next item), we want negative X.
-  const xOffset = offset * -65; // -65% shift per card
-  const zOffset = Math.abs(offset) * -300; // Push back
-  const rotateY = offset * -15; // Rotate inwards
+  const xOffset = offset * -65;
+  const zOffset = Math.abs(offset) * -300;
+  const rotateY = offset * -15;
   const scale = Math.max(0, 1 - Math.abs(offset) * 0.15);
   const opacity = Math.max(0, 1 - Math.abs(offset) * 0.4);
   const blur = Math.abs(offset) * 4;
@@ -143,11 +174,17 @@ const CarouselCard = ({
         "relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-gray-900",
         isActive ? "shadow-primary-500/20 ring-1 ring-white/20" : "shadow-black/50"
       )}>
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gray-800 animate-pulse">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 animate-shimmer" />
+          </div>
+        )}
         <img
           src={image}
           alt="Car view"
-          className="w-full h-full object-cover"
+          className={cn("w-full h-full object-cover transition-opacity duration-500", imageLoaded ? "opacity-100" : "opacity-0")}
           loading="lazy"
+          onLoad={() => setImageLoaded(true)}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
         
@@ -169,26 +206,59 @@ export function FleetSection() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
+  const card1Ref = useRef<HTMLDivElement>(null);
+  const icon1Ref = useRef<SVGSVGElement>(null);
+  const card2Ref = useRef<HTMLDivElement>(null);
+  const icon2Ref = useRef<SVGSVGElement>(null);
+  
+  // Touch refs
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   const images = useMemo(() => carImages[activeCategory], [activeCategory]);
   const info = categoryInfo[activeCategory];
+  const currentColors = categoryColors[activeCategory];
 
-  // Reset index on category change
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [activeCategory]);
 
-  // GSAP Entrance Animations
   useGSAP(() => {
-    // Animate Info Text Stagger
     if(infoRef.current) {
       const elements = infoRef.current.querySelectorAll('.info-anim');
       gsap.fromTo(elements, 
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, stagger: 0.1, duration: 0.5, ease: 'power2.out' }
+        { y: 20, opacity: 0, filter: 'blur(4px)' },
+        { 
+          y: 0, 
+          opacity: 1, 
+          filter: 'blur(0px)',
+          stagger: 0.08, 
+          duration: 0.5, 
+          ease: 'power2.out',
+          clearProps: 'filter'
+        }
       );
     }
   }, { dependencies: [activeCategory] });
+
+  // Hover effects for info cards
+  useGSAP(() => {
+    const cards = [
+        { card: card1Ref.current, icon: icon1Ref.current },
+        { card: card2Ref.current, icon: icon2Ref.current }
+    ];
+
+    cards.forEach(({ card, icon }) => {
+        if (!card || !icon) return;
+        
+        const tl = gsap.timeline({ paused: true });
+        tl.to(card, { y: -4, duration: 0.3, ease: "power2.out" })
+          .to(icon, { scale: 1.15, rotation: 5, duration: 0.3, ease: "back.out(1.7)" }, 0);
+
+        card.addEventListener('mouseenter', () => tl.play());
+        card.addEventListener('mouseleave', () => tl.reverse());
+    });
+  }, { scope: infoRef });
 
   const nextImage = useCallback(() => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -197,6 +267,26 @@ export function FleetSection() {
   const prevImage = useCallback(() => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   }, [images.length]);
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = 0;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+  
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe) nextImage();
+    if (isRightSwipe) prevImage();
+  };
 
   const handleCardClick = (index: number) => {
     if (index === currentImageIndex) {
@@ -208,17 +298,14 @@ export function FleetSection() {
 
   return (
     <section id="fleet" ref={containerRef} className="section-padding relative overflow-hidden bg-gray-50 dark:bg-gray-950 min-h-screen flex flex-col justify-center">
-      {/* Background Elements */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-100 via-gray-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-black opacity-80" />
       <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] bg-[size:60px_60px] bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)]" />
       
-      {/* Decorative Blobs */}
-      <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-accent-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+      <div className={cn("absolute top-1/4 left-0 w-[500px] h-[500px] bg-gradient-to-br rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} />
+      <div className={cn("absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} style={{ animationDelay: '2s' }} />
 
       <div className="section-container relative z-10 w-full">
         
-        {/* Header & Tabs */}
         <div className="flex flex-col items-center mb-12 lg:mb-20">
           <SectionHeading
             title="أسطولنا المميز"
@@ -226,33 +313,39 @@ export function FleetSection() {
             className="mb-8"
           />
 
-          {/* Glassmorphic Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-white/20 shadow-xl">
-            {carCategories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id as CarCategory)}
-                className={cn(
-                  "relative px-6 py-3 rounded-full text-sm md:text-base font-bold transition-all duration-500 flex items-center gap-2 overflow-hidden",
-                  activeCategory === cat.id
-                    ? "text-white shadow-lg shadow-primary-500/30"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/30"
-                )}
-              >
-                {activeCategory === cat.id && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-500 rounded-full -z-10" />
-                )}
-                <span className="text-xl">{cat.icon}</span>
-                <span>{cat.nameAr}</span>
-              </button>
-            ))}
+          <div 
+            className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-white/20 shadow-xl"
+            role="tablist"
+            aria-label="فئات السيارات"
+          >
+            {carCategories.map((cat) => {
+                const IconComponent = iconMap[cat.icon as keyof typeof iconMap];
+                return (
+                  <button
+                    key={cat.id}
+                    role="tab"
+                    aria-selected={activeCategory === cat.id}
+                    onClick={() => setActiveCategory(cat.id as CarCategory)}
+                    className={cn(
+                      "relative px-6 py-3 rounded-full text-sm md:text-base font-bold transition-all duration-500 flex items-center gap-2 overflow-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
+                      activeCategory === cat.id
+                        ? "text-white shadow-lg shadow-primary-500/30"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/30"
+                    )}
+                  >
+                    {activeCategory === cat.id && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-500 rounded-full -z-10" />
+                    )}
+                    <IconComponent className="w-5 h-5" />
+                    <span>{cat.nameAr}</span>
+                  </button>
+                );
+            })}
           </div>
         </div>
 
-        {/* Main Content Split */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center min-h-[500px]">
           
-          {/* Right Column: Info Panel (RTL Layout -> Actually Left side visually in LTR structure, but first in DOM) */}
           <div ref={infoRef} className="lg:col-span-4 flex flex-col gap-8 order-2 lg:order-1 text-right">
             <div className="info-anim space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400 text-sm font-medium">
@@ -265,13 +358,13 @@ export function FleetSection() {
             </div>
 
             <div className="info-anim grid grid-cols-2 gap-4">
-               <div className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow group">
-                 <Users className="w-8 h-8 text-primary-500 mb-3 group-hover:scale-110 transition-transform" />
+               <div ref={card1Ref} className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+                 <Users ref={icon1Ref} className="w-8 h-8 text-primary-500 mb-3" />
                  <p className="text-sm text-gray-500 dark:text-gray-400">سعة الركاب</p>
                  <p className="text-xl font-bold text-gray-900 dark:text-white">{info.passengers} أشخاص</p>
                </div>
-               <div className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow group">
-                 <Briefcase className="w-8 h-8 text-accent-500 mb-3 group-hover:scale-110 transition-transform" />
+               <div ref={card2Ref} className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+                 <Briefcase ref={icon2Ref} className="w-8 h-8 text-accent-500 mb-3" />
                  <p className="text-sm text-gray-500 dark:text-gray-400">المساحة</p>
                  <p className="text-xl font-bold text-gray-900 dark:text-white">واسعة جداً</p>
                </div>
@@ -284,8 +377,19 @@ export function FleetSection() {
               </h3>
               <ul className="space-y-3">
                 {info.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-600 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 p-3 rounded-xl backdrop-blur-sm border border-transparent hover:border-primary-200 dark:hover:border-primary-800 transition-colors">
-                    <div className="w-2 h-2 rounded-full bg-primary-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                  <li 
+                    key={i} 
+                    className="flex items-center gap-3 text-gray-600 dark:text-gray-300 
+                               bg-white/50 dark:bg-gray-800/50 p-3 rounded-xl backdrop-blur-sm 
+                               border border-transparent hover:border-primary-300 dark:hover:border-primary-700 
+                               hover:bg-white dark:hover:bg-gray-800 
+                               hover:shadow-md hover:shadow-primary-500/10
+                               transition-all duration-200 cursor-default group/feature"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-primary-500 
+                                    shadow-[0_0_10px_rgba(59,130,246,0.5)]
+                                    group-hover/feature:scale-125 group-hover/feature:shadow-[0_0_15px_rgba(59,130,246,0.7)]
+                                    transition-all duration-200" />
                     {feature}
                   </li>
                 ))}
@@ -295,35 +399,37 @@ export function FleetSection() {
             <div className="info-anim pt-4">
               <button 
                 onClick={() => setLightboxOpen(true)}
-                className="w-full group flex items-center justify-between p-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-2xl font-bold shadow-xl shadow-gray-900/10 hover:shadow-gray-900/20 transition-all hover:-translate-y-1"
+                className="w-full group relative overflow-hidden flex items-center justify-between p-4 
+                           bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 
+                           text-white rounded-2xl font-bold shadow-xl shadow-primary-500/25 
+                           hover:shadow-primary-500/40 transition-all duration-300 hover:-translate-y-1"
               >
-                <span className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-full bg-white/20 dark:bg-black/10 flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent 
+                                -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                
+                <span className="flex items-center gap-3 relative z-10">
+                  <span className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center 
+                                   group-hover:rotate-45 transition-transform duration-300">
                     <ArrowRight className="w-5 h-5" />
                   </span>
                   عرض المعرض
                 </span>
-                <span className="font-mono opacity-60 text-sm">
+                <span className="font-mono opacity-80 text-sm relative z-10">
                   {images.length} صور
                 </span>
               </button>
             </div>
           </div>
 
-          {/* Left Column: 3D Carousel (RTL Layout -> Visually Right) */}
-          <div className="lg:col-span-8 h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-10 lg:mb-0">
-            {/* Carousel Container */}
+          <div 
+            className="lg:col-span-8 h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-10 lg:mb-0"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
               {images.map((img, idx) => {
-                // Calculate offset for the 3D effect
                 let offset = idx - currentImageIndex;
-                
-                // Handle infinite loop visuals slightly better if needed, 
-                // but for stack effect simple distance is often enough.
-                // Or create a window if too many images. 
-                // For simplicity and performance with < 10 images, we render all.
-                
-                // Optimization: Only render items within range -2 to +2
                 if (Math.abs(offset) > 2) return null;
 
                 return (
@@ -338,33 +444,31 @@ export function FleetSection() {
               })}
             </div>
 
-            {/* Floating Navigation Controls */}
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20">
               <button 
                 onClick={prevImage}
-                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors active:scale-90"
+                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors active:scale-90 focus-visible:ring-2 focus-visible:ring-primary-500"
+                aria-label="الصورة السابقة"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
               
-              <div className="flex gap-2">
-                {images.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentImageIndex(idx)}
-                    className={cn(
-                      "w-2 h-2 rounded-full transition-all duration-300",
-                      currentImageIndex === idx 
-                        ? "w-8 bg-primary-600 dark:bg-primary-400" 
-                        : "bg-gray-300 dark:bg-gray-600 hover:bg-primary-400"
-                    )}
+              <div className="flex items-center gap-4 min-w-[120px]">
+                <div className="relative w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${((currentImageIndex + 1) / images.length) * 100}%` }}
                   />
-                ))}
+                </div>
+                <span className="text-sm font-mono text-gray-500 dark:text-gray-400 min-w-[3ch] text-center">
+                  {currentImageIndex + 1}/{images.length}
+                </span>
               </div>
 
               <button 
                 onClick={nextImage}
-                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors active:scale-90"
+                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors active:scale-90 focus-visible:ring-2 focus-visible:ring-primary-500"
+                aria-label="الصورة التالية"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
