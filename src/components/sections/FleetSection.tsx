@@ -1,10 +1,13 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase, Car, Truck, Bus, UsersRound } from 'lucide-react';
+import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase, Car, Truck, Bus, UsersRound, Play, Pause } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { carImages, carCategories } from '@/data/cars';
 import { cn } from '@/lib/utils';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus';
 
@@ -56,9 +59,10 @@ interface LightboxProps {
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
+  onSelect: (index: number) => void;
 }
 
-const Lightbox = ({ selectedImage, images, currentIndex, onClose, onNext, onPrev }: LightboxProps) => {
+const Lightbox = ({ selectedImage, images, currentIndex, onClose, onNext, onPrev, onSelect }: LightboxProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -112,10 +116,28 @@ const Lightbox = ({ selectedImage, images, currentIndex, onClose, onNext, onPrev
       >
         <ChevronLeft className="w-8 h-8" />
       </button>
-      <div className="relative max-w-7xl max-h-[85vh] p-4">
-        <img ref={imageRef} src={selectedImage} alt="Full view" className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl" onClick={(e) => e.stopPropagation()} />
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 font-mono text-sm bg-black/50 px-4 py-1 rounded-full">
+      <div className="relative max-w-7xl max-h-[85vh] p-4 flex flex-col items-center">
+        <img ref={imageRef} src={selectedImage} alt="Full view" className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl mb-4" onClick={(e) => e.stopPropagation()} />
+        <div className="text-white/80 font-mono text-sm bg-black/50 px-4 py-1 rounded-full mb-4">
           {currentIndex + 1} / {images.length}
+        </div>
+        
+        {/* Thumbnail Strip */}
+        <div className="flex gap-2 p-2 bg-black/50 backdrop-blur-md rounded-xl max-w-[90vw] overflow-x-auto scrollbar-hide" onClick={(e) => e.stopPropagation()}>
+          {images.map((img, idx) => (
+            <button
+              key={idx}
+              onClick={() => onSelect(idx)}
+              className={cn(
+                "flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200",
+                idx === currentIndex 
+                  ? "border-primary-500 ring-2 ring-primary-500/50" 
+                  : "border-transparent opacity-60 hover:opacity-100"
+              )}
+            >
+              <img src={img} alt="" className="w-full h-full object-cover" />
+            </button>
+          ))}
         </div>
       </div>
     </div>
@@ -126,12 +148,16 @@ const CarouselCard = ({
   image, 
   isActive, 
   offset, 
-  onClick 
+  onClick,
+  currentIndex,
+  totalImages
 }: { 
   image: string; 
   isActive: boolean; 
   offset: number; 
-  onClick: () => void 
+  onClick: () => void;
+  currentIndex: number;
+  totalImages: number;
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -189,7 +215,10 @@ const CarouselCard = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
         
         {isActive && (
-          <div className="absolute top-4 right-4 z-30 animate-in fade-in zoom-in duration-500 delay-300">
+          <div className="absolute top-4 right-4 z-30 flex items-center gap-2 animate-in fade-in zoom-in duration-500 delay-300">
+            <div className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-sm font-mono border border-white/20">
+              {currentIndex + 1}/{totalImages}
+            </div>
             <div className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white border border-white/30 cursor-pointer hover:bg-white/30 transition-colors">
               <Maximize2 className="w-5 h-5" />
             </div>
@@ -204,12 +233,14 @@ export function FleetSection() {
   const [activeCategory, setActiveCategory] = useState<CarCategory>('sedan');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const card1Ref = useRef<HTMLDivElement>(null);
   const icon1Ref = useRef<SVGSVGElement>(null);
   const card2Ref = useRef<HTMLDivElement>(null);
   const icon2Ref = useRef<SVGSVGElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   
   // Touch refs
   const touchStartX = useRef(0);
@@ -222,6 +253,62 @@ export function FleetSection() {
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [activeCategory]);
+
+  // Preload images
+  useEffect(() => {
+    const preloadImages = () => {
+      for (let i = 1; i <= 2; i++) {
+        const nextIdx = (currentImageIndex + i) % images.length;
+        const img = new Image();
+        img.src = images[nextIdx];
+      }
+    };
+    preloadImages();
+  }, [currentImageIndex, images]);
+
+  // Auto-play
+  useEffect(() => {
+    if (isHovering || lightboxOpen) return;
+    
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isHovering, lightboxOpen, images.length]);
+
+  const nextImage = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
+  const prevImage = useCallback(() => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxOpen) return;
+
+      // Check if section is visible
+      const rect = containerRef.current?.getBoundingClientRect();
+      const isVisible = rect && rect.top < window.innerHeight && rect.bottom > 0;
+      
+      if (!isVisible) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        nextImage(); // RTL: left arrow goes to next
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        prevImage(); // RTL: right arrow goes to previous
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, nextImage, prevImage]);
 
   useGSAP(() => {
     if(infoRef.current) {
@@ -241,6 +328,26 @@ export function FleetSection() {
     }
   }, { dependencies: [activeCategory] });
 
+  // Scroll Entrance Animation
+  useGSAP(() => {
+    if (!carouselRef.current) return;
+    
+    gsap.fromTo(carouselRef.current,
+      { opacity: 0, x: -50 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: carouselRef.current,
+          start: 'top 80%',
+          once: true,
+        }
+      }
+    );
+  }, { scope: containerRef });
+
   // Hover effects for info cards
   useGSAP(() => {
     const cards = [
@@ -259,14 +366,6 @@ export function FleetSection() {
         card.addEventListener('mouseleave', () => tl.reverse());
     });
   }, { scope: infoRef });
-
-  const nextImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  }, [images.length]);
-
-  const prevImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  }, [images.length]);
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -422,7 +521,10 @@ export function FleetSection() {
           </div>
 
           <div 
-            className="lg:col-span-8 h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-10 lg:mb-0"
+            ref={carouselRef}
+            className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8 sm:mb-10 lg:mb-0"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -430,7 +532,9 @@ export function FleetSection() {
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
               {images.map((img, idx) => {
                 let offset = idx - currentImageIndex;
-                if (Math.abs(offset) > 2) return null;
+                // Only show current (0) and next images (positive offset up to 2)
+                // Hide previous images (negative offset) to avoid conflict with right-side info panel
+                if (offset < 0 || offset > 2) return null;
 
                 return (
                   <CarouselCard
@@ -439,12 +543,14 @@ export function FleetSection() {
                     isActive={idx === currentImageIndex}
                     offset={offset}
                     onClick={() => handleCardClick(idx)}
+                    currentIndex={currentImageIndex}
+                    totalImages={images.length}
                   />
                 );
               })}
             </div>
 
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20">
+            <div className="absolute -bottom-4 sm:-bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 sm:gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg border border-white/20">
               <button 
                 onClick={prevImage}
                 className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors active:scale-90 focus-visible:ring-2 focus-visible:ring-primary-500"
@@ -472,6 +578,16 @@ export function FleetSection() {
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
+
+              <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-2" />
+
+              <button 
+                onClick={() => setIsHovering(!isHovering)}
+                className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition-colors"
+                aria-label={isHovering ? "تشغيل" : "إيقاف مؤقت"}
+              >
+                {isHovering ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -485,6 +601,7 @@ export function FleetSection() {
         onClose={() => setLightboxOpen(false)}
         onNext={nextImage}
         onPrev={prevImage}
+        onSelect={setCurrentImageIndex}
       />
     </section>
   );
