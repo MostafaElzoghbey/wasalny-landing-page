@@ -89,7 +89,7 @@ const Lightbox = ({ selectedImage, images, currentIndex, onClose, onNext, onPrev
   return (
     <div 
       ref={overlayRef} 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl" 
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl" 
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -116,14 +116,20 @@ const Lightbox = ({ selectedImage, images, currentIndex, onClose, onNext, onPrev
       >
         <ChevronLeft className="w-8 h-8" />
       </button>
-      <div className="relative max-w-7xl max-h-[85vh] p-4 flex flex-col items-center">
-        <img ref={imageRef} src={selectedImage} alt="Full view" className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl mb-4" onClick={(e) => e.stopPropagation()} />
-        <div className="text-white/80 font-mono text-sm bg-black/50 px-4 py-1 rounded-full mb-4">
-          {currentIndex + 1} / {images.length}
-        </div>
-        
-        {/* Thumbnail Strip */}
-        <div className="flex gap-2 p-2 bg-black/50 backdrop-blur-md rounded-xl max-w-[90vw] overflow-x-auto scrollbar-hide" onClick={(e) => e.stopPropagation()}>
+      
+      {/* Main image container */}
+      <div className="flex-1 flex items-center justify-center p-4 pb-0 max-w-7xl w-full" onClick={(e) => e.stopPropagation()}>
+        <img ref={imageRef} src={selectedImage} alt="Full view" className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl" />
+      </div>
+      
+      {/* Counter */}
+      <div className="text-white/80 font-mono text-sm bg-black/50 px-4 py-1 rounded-full my-3" onClick={(e) => e.stopPropagation()}>
+        {currentIndex + 1} / {images.length}
+      </div>
+      
+      {/* Thumbnail Strip - Fixed at bottom */}
+      <div className="pb-6 px-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex gap-2 p-2 bg-black/50 backdrop-blur-md rounded-xl max-w-[90vw] overflow-x-auto scrollbar-hide">
           {images.map((img, idx) => (
             <button
               key={idx}
@@ -234,6 +240,7 @@ export function FleetSection() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const card1Ref = useRef<HTMLDivElement>(null);
@@ -268,14 +275,14 @@ export function FleetSection() {
 
   // Auto-play
   useEffect(() => {
-    if (isHovering || lightboxOpen) return;
+    if (isHovering || lightboxOpen || isPaused) return;
     
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    }, 5000);
+    }, 500);
     
     return () => clearInterval(interval);
-  }, [isHovering, lightboxOpen, images.length]);
+  }, [isHovering, lightboxOpen, isPaused, images.length]);
 
   const nextImage = useCallback(() => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
@@ -582,11 +589,11 @@ export function FleetSection() {
               <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-2" />
 
               <button 
-                onClick={() => setIsHovering(!isHovering)}
+                onClick={() => setIsPaused(!isPaused)}
                 className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition-colors"
-                aria-label={isHovering ? "تشغيل" : "إيقاف مؤقت"}
+                aria-label={isPaused ? "تشغيل" : "إيقاف مؤقت"}
               >
-                {isHovering ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               </button>
             </div>
           </div>
