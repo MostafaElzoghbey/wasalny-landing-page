@@ -171,9 +171,10 @@ const CarouselCard = ({
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   
-  // RTL Adjustments:
-  const xOffset = offset * -65;
+  // RTL Adjustments - offset 0 = center (-50%), positive offset moves left (RTL)
+  const xOffset = -50 + (offset * -65); // Start centered, then offset
   const zOffset = Math.abs(offset) * -300;
   const rotateY = offset * -15;
   const scale = Math.max(0, 1 - Math.abs(offset) * 0.15);
@@ -183,6 +184,7 @@ const CarouselCard = ({
   useGSAP(() => {
     gsap.to(cardRef.current, {
       xPercent: xOffset,
+      yPercent: -50, // Center vertically
       z: zOffset,
       rotationY: rotateY,
       scale: scale,
@@ -194,38 +196,82 @@ const CarouselCard = ({
     });
   }, { dependencies: [offset] });
 
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    setImageLoaded(true);
+  };
+
+  // Calculate dimensions that fit within container while preserving aspect ratio
+  const getCardStyle = () => {
+    if (!imageDimensions) {
+      // Default 16:9 while loading
+      return { width: '100%', maxWidth: '100%', aspectRatio: '16/9' };
+    }
+
+    const { width, height } = imageDimensions;
+    const aspectRatio = width / height;
+    
+    // Constrain: max 100% width, max 100% height of parent
+    // For wide images (landscape): width-constrained, height auto
+    // For tall images (portrait): height-constrained, width auto
+    
+    if (aspectRatio >= 1) {
+      // Landscape or square - constrain by width
+      return { 
+        width: '100%',
+        maxWidth: '100%',
+        aspectRatio: `${width}/${height}`,
+      };
+    } else {
+      // Portrait - constrain by height
+      return { 
+        height: '100%',
+        maxHeight: '100%',
+        aspectRatio: `${width}/${height}`,
+      };
+    }
+  };
+
   return (
     <div
       ref={cardRef}
       onClick={onClick}
       className={cn(
-        "absolute top-0 left-0 w-full h-full origin-bottom transition-colors duration-300",
+        "absolute top-1/2 left-1/2 origin-center transition-colors duration-300",
+        "max-w-[95%] max-h-[95%]",
         isActive ? "z-20 cursor-default" : "z-10 cursor-pointer hover:brightness-110"
       )}
       style={{
         transformStyle: 'preserve-3d',
+        ...getCardStyle(),
       }}
     >
       <div className={cn(
-        "relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-gray-900",
-        isActive ? "shadow-primary-500/20 ring-1 ring-white/20" : "shadow-black/50"
+        "relative w-full h-full rounded-2xl overflow-hidden shadow-2xl",
+        "border border-white/20 dark:border-white/10",
+        isActive ? "shadow-primary-500/30 ring-1 ring-primary-500/20" : "shadow-black/40"
       )}>
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-gray-800 animate-pulse">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 animate-shimmer" />
+          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-800 animate-pulse">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/10 to-transparent skew-x-12 animate-shimmer" />
           </div>
         )}
+        
+        {/* Main image - covers full card since aspect ratio matches */}
         <img
           src={image}
           alt="Car view"
-          className={cn("w-full h-full object-cover transition-opacity duration-500", imageLoaded ? "opacity-100" : "opacity-0")}
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-500",
+            imageLoaded ? "opacity-100" : "opacity-0"
+          )}
           loading="lazy"
-          onLoad={() => setImageLoaded(true)}
+          onLoad={handleImageLoad}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
         
         {isActive && (
-          <div className="absolute top-4 right-4 z-30 flex items-center gap-2 animate-in fade-in zoom-in duration-500 delay-300">
+          <div className="absolute top-3 right-3 z-30 flex items-center gap-2 animate-in fade-in zoom-in duration-500 delay-300">
             <div className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-sm font-mono border border-white/20">
               {currentIndex + 1}/{totalImages}
             </div>
@@ -489,10 +535,12 @@ export function FleetSection() {
                 {info.features.map((feature, i) => (
                   <li 
                     key={i} 
-                    className="flex items-center gap-3 text-gray-600 dark:text-gray-300 
-                               bg-white/50 dark:bg-gray-800/50 p-3 rounded-xl backdrop-blur-sm 
-                               border border-transparent hover:border-primary-300 dark:hover:border-primary-700 
-                               hover:bg-white dark:hover:bg-gray-800 
+                    className="flex items-center gap-3 text-gray-700 dark:text-gray-200 
+                               bg-white dark:bg-gray-800/80 p-3 rounded-xl 
+                               border border-gray-200 dark:border-gray-700
+                               shadow-sm dark:shadow-none
+                               hover:border-primary-400 dark:hover:border-primary-600 
+                               hover:bg-primary-50 dark:hover:bg-gray-700/80 
                                hover:shadow-md hover:shadow-primary-500/10
                                transition-all duration-200 cursor-default group/feature"
                   >
