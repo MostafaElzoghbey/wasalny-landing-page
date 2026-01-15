@@ -131,7 +131,7 @@ export function CTASection() {
 
   const handleWhatsApp = () => {
     window.open(
-      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('مرحباً، أريد حجز رحلة من دمياط')}`,
+      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('السلام عليكم، أريد حجز رحلة')}`,
       '_blank'
     );
   };
@@ -238,7 +238,7 @@ export function CTASection() {
             ref={trustBadgeRef}
             className="mt-8 text-primary-200 text-sm opacity-0"
           >
-            ✨ أكثر من 5000 رحلة ناجحة • 3000+ عميل سعيد • خدمة موثوقة منذ 2020
+            ✨ أكثر من 3000+ عميل سعيد • 5000 رحلة ناجحة • خدمة موثوقة منذ 2020
           </p>
         </div>
       </div>

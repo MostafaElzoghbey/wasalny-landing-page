@@ -89,10 +89,10 @@ export const routes = [
 ];
 
 export const stats = [
-  { id: 'trips', value: 5000, suffix: '+', label: 'رحلة ناجحة' },
-  { id: 'customers', value: 3000, suffix: '+', label: 'عميل سعيد' },
-  { id: 'drivers', value: 50, suffix: '+', label: 'سائق محترف' },
   { id: 'years', value: 5, suffix: '+', label: 'سنوات خبرة' },
+  { id: 'drivers', value: 50, suffix: '+', label: 'سائق محترف' },
+  { id: 'customers', value: 3000, suffix: '+', label: 'عميل سعيد' },
+  { id: 'trips', value: 5000, suffix: '+', label: 'رحلة ناجحة' },
 ];
 
 export const contactInfo = {

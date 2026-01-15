@@ -115,7 +115,7 @@ export function HeroSection() {
 
   const handleWhatsApp = () => {
     window.open(
-      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('مرحباً، أريد حجز رحلة')}`,
+      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('السلام عليكم، أريد حجز رحلة')}`,
       '_blank'
     );
   };
@@ -199,9 +199,9 @@ export function HeroSection() {
             {/* Stats */}
             <div ref={statsRef} className="mt-12 grid grid-cols-3 gap-6">
               {[
-                { value: '5000+', label: 'رحلة ناجحة' },
-                { value: '3000+', label: 'عميل سعيد' },
                 { value: '24/7', label: 'خدمة متاحة' },
+                { value: '3000+', label: 'عميل سعيد' },
+                { value: '5000+', label: 'رحلة ناجحة' },
               ].map((stat, index) => (
                 <div key={index} className="text-center lg:text-right">
                   <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">
@@ -226,7 +226,7 @@ export function HeroSection() {
                 {/* Car Image */}
                 <img
                   ref={carImageRef}
-                  src={carImages.family_cruiser[0]}
+                  src={carImages.family_cruiser[2]}
                   alt="سيارة وصلني"
                   className="w-full h-auto rounded-3xl shadow-2xl cursor-pointer"
                 />

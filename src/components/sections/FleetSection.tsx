@@ -11,30 +11,34 @@ gsap.registerPlugin(ScrollTrigger);
 
 type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus';
 
-const categoryInfo: Record<CarCategory, { name: string; passengers: number; features: string[]; slogan: string }> = {
+const categoryInfo: Record<CarCategory, { name: string; passengers: number; features: string[]; slogan: string; space: string }> = {
   sedan: {
-    name: 'تويوتا كورولا',
+    name: 'أحدث السيارات',
     passengers: 4,
     features: ['تكييف', 'مقاعد مريحة', 'شاحن USB'],
-    slogan: 'راحة واقتصاد لكل مشوار'
+    slogan: 'راحة واقتصاد لكل مشوار',
+    space: 'مناسبة'
   },
   suv: {
-    name: 'سوزوكي فيتارا',
-    passengers: 5,
-    features: ['تكييف', 'مساحة أمتعة', 'نظام ترفيه'],
-    slogan: 'قوة وفخامة لجميع الطرق'
+    name: 'أفخم العربات',
+    passengers: 4,
+    features: ['تكييف', 'مساحة أمتعة كبيرة', 'مقاعد جلد'],
+    slogan: 'قوة وفخامة لجميع الطرق',
+    space: 'كبيرة'
   },
   family_cruiser: {
-    name: 'ميتسوبيشي إكسباندر',
-    passengers: 7,
-    features: ['7 مقاعد', 'تكييف خلفي', 'مساحة واسعة'],
-    slogan: 'رحلات عائلية لا تُنسى'
+    name: 'أفضل السيارات',
+    passengers: 6,
+    features: ['6 مقاعد', 'تكييف خلفي', 'مساحة واسعة'],
+    slogan: 'رحلات عائلية لا تُنسى',
+    space: 'كبيرة جدا'
   },
   minibus: {
-    name: 'تويوتا هاي إيس',
-    passengers: 14,
-    features: ['14 راكب', 'تكييف مركزي', 'راحة فائقة'],
-    slogan: 'الحل الأمثل للمجموعات'
+    name: 'جميع الاحتياجات',
+    passengers: 13,
+    features: ['13 راكب', 'تكييف مركزي', 'راحة فائقة'],
+    slogan: 'الحل الأمثل للمجموعات',
+    space: 'ضخمة'
   },
 };
 
@@ -472,7 +476,7 @@ export function FleetSection() {
                <div ref={card2Ref} className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
                  <Briefcase ref={icon2Ref} className="w-8 h-8 text-accent-500 mb-3" />
                  <p className="text-sm text-gray-500 dark:text-gray-400">المساحة</p>
-                 <p className="text-xl font-bold text-gray-900 dark:text-white">واسعة جداً</p>
+                 <p className="text-xl font-bold text-gray-900 dark:text-white">{info.space}</p>
                </div>
             </div>
 

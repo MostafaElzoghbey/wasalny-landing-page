@@ -3,8 +3,8 @@ import type { Car } from '@/types';
 // Car images organized by category
 export const carImages = {
   sedan: [
-    '/assets/images/cars/sedan/WhatsApp Image 2026-01-10 at 11.01.00 PM.jpeg',
     '/assets/images/cars/sedan/WhatsApp Image 2026-01-10 at 11.01.01 PM.jpeg',
+    '/assets/images/cars/sedan/WhatsApp Image 2026-01-10 at 11.01.00 PM.jpeg',
     '/assets/images/cars/sedan/WhatsApp Image 2026-01-10 at 11.01.01 PM (1).jpeg',
     '/assets/images/cars/sedan/WhatsApp Image 2026-01-10 at 11.01.02 PM.jpeg',
     '/assets/images/cars/sedan/WhatsApp Image 2026-01-10 at 11.01.02 PM (1).jpeg',
@@ -23,15 +23,15 @@ export const carImages = {
     '/assets/images/cars/suv/WhatsApp Image 2026-01-10 at 11.01.36 PM (1).jpeg',
   ],
   family_cruiser: [
+    '/assets/images/cars/family_cruiser/WhatsApp Image 2026-01-10 at 11.03.51 PM.jpeg',
     '/assets/images/cars/family_cruiser/WhatsApp Image 2026-01-10 at 11.03.40 PM.jpeg',
     '/assets/images/cars/family_cruiser/WhatsApp Image 2026-01-10 at 11.03.42 PM.jpeg',
     '/assets/images/cars/family_cruiser/WhatsApp Image 2026-01-10 at 11.03.43 PM.jpeg',
     '/assets/images/cars/family_cruiser/WhatsApp Image 2026-01-10 at 11.03.49 PM.jpeg',
-    '/assets/images/cars/family_cruiser/WhatsApp Image 2026-01-10 at 11.03.51 PM.jpeg',
   ],
   minibus: [
-    '/assets/images/cars/minibus/WhatsApp Image 2026-01-10 at 11.03.57 PM.jpeg',
     '/assets/images/cars/minibus/WhatsApp Image 2026-01-10 at 11.03.58 PM.jpeg',
+    '/assets/images/cars/minibus/WhatsApp Image 2026-01-10 at 11.03.57 PM.jpeg',
   ],
 };
 
@@ -65,7 +65,7 @@ export const cars: Car[] = [
     description: 'سيارة اقتصادية مريحة للرحلات الفردية والثنائية',
     passengers: 4,
     images: carImages.sedan.slice(0, 4),
-    features: ['تكييف', 'مقاعد مريحة', 'شاحن USB', 'واي فاي'],
+    features: ['تكييف', 'مقاعد مريحة', 'شاحن USB'],
   },
   {
     id: 'suv-1',
@@ -74,9 +74,9 @@ export const cars: Car[] = [
     category: 'suv',
     categoryAr: 'دفع رباعي',
     description: 'سيارة عائلية واسعة مع مساحة للأمتعة',
-    passengers: 5,
+    passengers: 4,
     images: carImages.suv.slice(0, 4),
-    features: ['تكييف', 'مساحة أمتعة كبيرة', 'نظام ترفيه', 'مقاعد جلد'],
+    features: ['تكييف', 'مساحة أمتعة كبيرة', 'مقاعد جلد'],
   },
   {
     id: 'family-1',
@@ -85,9 +85,9 @@ export const cars: Car[] = [
     category: 'family_cruiser',
     categoryAr: 'عائلية',
     description: 'السيارة المثالية للعائلات والرحلات الطويلة',
-    passengers: 7,
+    passengers: 6,
     images: carImages.family_cruiser,
-    features: ['7 مقاعد', 'تكييف خلفي', 'شاشة ترفيه', 'مساحة واسعة'],
+    features: ['6 مقاعد', 'تكييف خلفي', 'مساحة واسعة'],
   },
   {
     id: 'minibus-1',
@@ -96,9 +96,9 @@ export const cars: Car[] = [
     category: 'minibus',
     categoryAr: 'ميني باص',
     description: 'الخيار الأمثل للمجموعات الكبيرة والرحلات الجماعية',
-    passengers: 14,
+    passengers: 13,
     images: carImages.minibus,
-    features: ['14 راكب', 'تكييف مركزي', 'مساحة أمتعة ضخمة', 'راحة فائقة'],
+    features: ['13 راكب', 'تكييف مركزي', 'راحة فائقة'],
   },
 ];
 
