@@ -100,4 +100,5 @@ export const contactInfo = {
   whatsapp: '201005656117',
   email: 'info@wasalny.eg',
   address: 'دمياط، مصر',
+  facebook: 'https://www.facebook.com/damitta.wasalny/?locale=ar_AR',
 };

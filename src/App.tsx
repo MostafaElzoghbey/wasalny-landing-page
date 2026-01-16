@@ -4,6 +4,7 @@ import { SmoothScrollProvider } from '@/providers/SmoothScrollProvider';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { PageLoader } from '@/components/ui/PageLoader';
+import { FloatingCTA } from '@/components/ui/FloatingCTA';
 import {
   HeroSection,
   ServicesSection,
@@ -36,6 +37,7 @@ function App() {
             <CTASection />
           </main>
           <Footer />
+          <FloatingCTA />
         </div>
       </SmoothScrollProvider>
     </ThemeProvider>
