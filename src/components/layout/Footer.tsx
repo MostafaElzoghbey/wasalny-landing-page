@@ -259,18 +259,25 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-800 pt-8">
+        {/* Divider with subtle transparency for depth */}
+        <div className="border-t border-gray-800/60 pt-8">
           <div
             ref={copyrightRef}
-            className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right opacity-0"
+            className="flex flex-col-reverse md:flex-row items-center justify-between gap-6 text-center md:text-start opacity-0"
           >
-            <p className="text-gray-500 text-sm">
-              © {currentYear} وصلني. جميع الحقوق محفوظة.
+            {/* Copyright: Primary Anchor */}
+            <p className="text-gray-400 text-sm tracking-wide">
+              © {currentYear} <span className="font-bold text-gray-200 hover:text-white transition-colors duration-300">وصلني</span>. جميع الحقوق محفوظة.
             </p>
-            <p className="text-gray-500 text-sm flex items-center gap-1">
-              صنع بـ <Heart className="w-4 h-4 text-red-500 fill-red-500" /> في دمياط
-            </p>
+            {/* Made In: Secondary Detail */}
+            <div className="flex items-center gap-1.5 text-sm text-gray-400 group select-none">
+              <span>صنع بـ</span>
+              {/* Heart beats on hover */}
+              <Heart className="w-4 h-4 text-red-500/90 fill-red-500/90 transition-transform duration-300 group-hover:scale-125 group-hover:animate-pulse" />
+              <span>
+                في <span className="font-medium text-gray-300 group-hover:text-white transition-colors duration-300">دمياط</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
