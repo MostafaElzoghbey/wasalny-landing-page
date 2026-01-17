@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { cn } from '@/lib/utils';
+import { contactInfo } from '@/data/content';
 
 export function FloatingCTA() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,8 +76,8 @@ export function FloatingCTA() {
     });
   }, {});
 
-  const whatsappLink = `https://wa.me/201005656117?text=${encodeURIComponent('السلام عليكم، أريد حجز رحلة')}`;
-  const facebookLink = 'https://www.facebook.com/damitta.wasalny/?locale=ar_AR';
+  const whatsappLink = `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('السلام عليكم، أريد حجز رحلة')}`;
+  const facebookLink = contactInfo.facebook;
 
   return (
     <div 
