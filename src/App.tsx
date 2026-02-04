@@ -13,6 +13,7 @@ import {
   FeaturesSection,
   AppShowcaseSection,
   CTASection,
+  PricingCalculator,
 } from '@/components/sections';
 
 // Import GSAP config to register plugins
@@ -33,6 +34,7 @@ function App() {
             <FleetSection />
             <AppShowcaseSection />
             <RoutesSection />
+            <PricingCalculator />
             <FeaturesSection />
             <CTASection />
           </main>

@@ -13,6 +13,7 @@ const navLinks = [
   { href: '#services', label: 'خدماتنا' },
   { href: '#fleet', label: 'أسطولنا' },
   { href: '#routes', label: 'مساراتنا' },
+  { href: '#pricing', label: 'احسب سعرك' },
   { href: '#features', label: 'مميزاتنا' },
   { href: '#contact', label: 'تواصل معنا' },
 ];
