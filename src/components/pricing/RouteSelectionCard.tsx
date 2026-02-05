@@ -1,32 +1,26 @@
-import { MapPin, Clock } from 'lucide-react';
-import { locations, routes, type Route } from '@/data/pricing';
+import { MapPin } from 'lucide-react';
+import { type Location, type RouteType } from '@/data/pricing';
 import { CustomSelect } from '../ui/CustomSelect';
 
 interface RouteSelectionProps {
+  routeType: RouteType;
   fromLocation: string;
   setFromLocation: (value: string) => void;
   toLocation: string;
   setToLocation: (value: string) => void;
-  availableToLocations: Set<string>;
-  currentRoute: Route | null;
+  availableFromLocations: Location[];
+  availableToLocations: Location[];
 }
 
 export const RouteSelectionCard = ({
+  routeType,
   fromLocation, setFromLocation,
   toLocation, setToLocation,
+  availableFromLocations,
   availableToLocations,
-  currentRoute
 }: RouteSelectionProps) => {
-  // Get all unique 'from' locations that act as a start point
-  const validFromLocations = new Set(routes.map(r => r.from));
-
-  const fromOptions = locations
-    .filter(loc => validFromLocations.has(loc.id))
-    .map(loc => ({ id: loc.id, name: loc.nameAr }));
-
-  const toOptions = locations
-    .filter(loc => availableToLocations.has(loc.id))
-    .map(loc => ({ id: loc.id, name: loc.nameAr }));
+  const fromOptions = availableFromLocations.map(loc => ({ id: loc.id, name: loc.nameAr }));
+  const toOptions = availableToLocations.map(loc => ({ id: loc.id, name: loc.nameAr }));
 
   return (
     <div className="pricing-card bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 relative group isolate">
@@ -68,23 +62,6 @@ export const RouteSelectionCard = ({
           />
 
         </div>
-
-        {currentRoute && (
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 rounded-xl flex flex-wrap gap-6 text-sm animate-in fade-in slide-in-from-top-2">
-            <span className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-medium">
-              <div className="p-1 bg-white dark:bg-blue-900/50 rounded-full">
-                 <MapPin className="w-4 h-4" />
-              </div>
-              المسافة: <span className="font-bold">{currentRoute.distanceKm} كم</span>
-            </span>
-            <span className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-medium">
-              <div className="p-1 bg-white dark:bg-blue-900/50 rounded-full">
-                 <Clock className="w-4 h-4" />
-              </div>
-              المدة التقريبية: <span className="font-bold">{Math.floor(currentRoute.durationMinutes / 60)} ساعة {currentRoute.durationMinutes % 60 > 0 && `و ${currentRoute.durationMinutes % 60} دقيقة`}</span>
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { type PriceCalculationResult, formatPrice } from '@/utils/pricingCalculator';
-import { Check, Info, MessageCircle, AlertCircle } from 'lucide-react';
+import { Info, MessageCircle, AlertCircle } from 'lucide-react';
 
 interface PriceBreakdownProps {
   result: PriceCalculationResult | null;
@@ -11,8 +11,6 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
   result,
   whatsappLink,
 }) => {
-  // Static price display (no animation)
-
   if (!result) {
     return (
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-center items-center text-center opacity-60">
@@ -46,84 +44,30 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
       </div>
 
       {/* Breakdown Items */}
-      <div className="p-6 space-y-3">
-        {/* Base Price */}
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600 dark:text-gray-300">سعر الرحلة الأساسي ({details.vehicleCategoryAr})</span>
+      <div className="p-6 space-y-4">
+        {/* Vehicle Type */}
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-600 dark:text-gray-300">نوع السيارة</span>
           <span className="font-medium text-gray-900 dark:text-white">
-            {formatPrice(breakdown.vehiclePrice)}
+            {breakdown.vehicleType}
           </span>
         </div>
 
-        {/* Multipliers (only show if applies) */}
-        {breakdown.timeMultiplier > 1 && (
-          <div className="flex justify-between text-sm text-amber-600 dark:text-amber-500">
-            <span>زيادة التوقيت ({details.timeSlotAr})</span>
-            <span>+ {Math.round((breakdown.timeMultiplier - 1) * 100)}%</span>
-          </div>
-        )}
-        
-        {breakdown.dayTypeMultiplier > 1 && (
-          <div className="flex justify-between text-sm text-amber-600 dark:text-amber-500">
-            <span>زيادة {details.dayTypeAr}</span>
-            <span>+ {Math.round((breakdown.dayTypeMultiplier - 1) * 100)}%</span>
-          </div>
-        )}
-
-        {/* Extra Passengers */}
-        {breakdown.extraPassengerPrice > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-gray-400">ركاب إضافيين ({details.passengerCount - 4})</span>
-            <span className="font-medium text-gray-900 dark:text-white">
-              + {formatPrice(breakdown.extraPassengerPrice)}
-            </span>
-          </div>
-        )}
-
-        {/* Additional Services */}
-        {details.additionalServices.length > 0 && (
-          <div className="border-t border-dashed border-gray-200 dark:border-gray-700 py-2 my-2 space-y-2">
-            <p className="text-xs text-gray-400 font-medium mb-1">الخدمات الإضافية</p>
-            {details.additionalServices.map(service => (
-              <div key={service.id} className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                  <Check className="w-3 h-3 text-primary" /> {service.nameAr}
-                </span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  + {formatPrice(service.price)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Subtotal */}
-        <div className="flex justify-between items-center py-2 border-t border-gray-100 dark:border-gray-800 font-medium">
-          <span className="text-gray-500">المجموع الفرعي</span>
-          <span className="text-gray-900 dark:text-white">{formatPrice(breakdown.subtotal)}</span>
+        {/* Passenger Count */}
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-600 dark:text-gray-300">عدد الركاب</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {details.passengerCount}
+          </span>
         </div>
 
-        {/* Discounts */}
-        {breakdown.discounts.length > 0 && (
-          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 space-y-2">
-            {breakdown.discounts.map((discount, idx) => (
-              <div key={idx} className="flex justify-between text-sm text-green-700 dark:text-green-400">
-                <span className="flex items-center gap-1">
-                   <Check className="w-3 h-3" /> {discount.rule.nameAr}
-                </span>
-                <span className="font-bold">- {formatPrice(discount.amount)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {/* Round Trip Return Price */}
-        {details.isRoundTrip && (
-           <div className="flex justify-between items-center py-2 text-sm text-gray-500">
-             <span>سعر رحلة العودة (تقديري)</span>
-             <span>{formatPrice(breakdown.returnTotal || 0)}</span>
-           </div>
-        )}
+        {/* Trip Type */}
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-600 dark:text-gray-300">نوع الرحلة</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {details.isRoundTrip ? 'ذهاب وعودة' : 'ذهاب فقط'}
+          </span>
+        </div>
 
         {/* Warnings */}
         {warnings.length > 0 && (
@@ -142,9 +86,9 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
         {/* Total Price & CTA */}
         <div className="space-y-4">
           <div className="flex justify-between items-end">
-            <span className="text-lg font-bold text-gray-900 dark:text-white">الإجمالي النهائي</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-white">الإجمالي</span>
             <span className="text-3xl font-extrabold text-primary">
-              {formatPrice(result.breakdown.grandTotal)}
+              {formatPrice(breakdown.total)}
             </span>
           </div>
 
@@ -166,7 +110,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
           </a>
           
           <p className="text-xs text-center text-gray-400">
-            * السعر نهائي وشامل جميع الرسوم والضرائب
+            * السعر نهائي وشامل جميع الرسوم
           </p>
         </div>
       </div>

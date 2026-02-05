@@ -1,17 +1,11 @@
 import { usePricingCalculator } from '@/hooks/usePricingCalculator';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { PriceBreakdown } from '@/components/ui/PriceBreakdown';
-import { ServiceSelector } from '@/components/ui/ServiceSelector';
 import { useBatchReveal } from '@/hooks/useAnimations';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Plane, MapPin } from 'lucide-react';
 import { RouteSelectionCard } from '@/components/pricing/RouteSelectionCard';
 import { VehiclePassengerCard } from '@/components/pricing/VehiclePassengerCard';
 import { DateTimeCard } from '@/components/pricing/DateTimeCard';
-
-
-// --- Utils ---
-
-// Internal definitions removed - imported from @/components/pricing/
 
 
 export const PricingCalculator = () => {
@@ -42,14 +36,50 @@ export const PricingCalculator = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Form Column */}
           <div className="lg:col-span-2 space-y-6 isolate">
+            {/* Route Type Toggle */}
+            <div className="pricing-card bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+              <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">نوع الرحلة</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => pricing.actions.setRouteType('travel')}
+                  className={`
+                    flex items-center justify-center gap-2 px-6 py-4 rounded-lg font-semibold
+                    transition-all duration-300 transform hover:scale-105
+                    ${pricing.state.routeType === 'travel'
+                      ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }
+                  `}
+                >
+                  <Plane className="w-5 h-5" />
+                  <span>سفر</span>
+                </button>
+                <button
+                  onClick={() => pricing.actions.setRouteType('internal')}
+                  className={`
+                    flex items-center justify-center gap-2 px-6 py-4 rounded-lg font-semibold
+                    transition-all duration-300 transform hover:scale-105
+                    ${pricing.state.routeType === 'internal'
+                      ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }
+                  `}
+                >
+                  <MapPin className="w-5 h-5" />
+                  <span>دمياط داخلي</span>
+                </button>
+              </div>
+            </div>
+
             <div className="relative z-30">
               <RouteSelectionCard 
+                routeType={pricing.state.routeType}
                 fromLocation={pricing.state.fromLocation}
                 setFromLocation={pricing.actions.setFromLocation}
                 toLocation={pricing.state.toLocation}
                 setToLocation={pricing.actions.setToLocation}
+                availableFromLocations={pricing.computed.availableFromLocations}
                 availableToLocations={pricing.computed.availableToLocations}
-                currentRoute={pricing.computed.currentRoute || null}
               />
             </div>
             
@@ -70,20 +100,8 @@ export const PricingCalculator = () => {
                  setTripTime={pricing.actions.setTripTime}
                  isRoundTrip={pricing.state.isRoundTrip}
                  setIsRoundTrip={pricing.actions.setIsRoundTrip}
-                 returnDate={pricing.state.returnDate}
-                 setReturnDate={pricing.actions.setReturnDate}
-                 returnTime={pricing.state.returnTime}
-                 setReturnTime={pricing.actions.setReturnTime}
+                 showRoundTripToggle={pricing.computed.showRoundTripToggle}
               />
-            </div>
-            
-            <div className="relative z-0">
-              <div className="pricing-card bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
-                 <ServiceSelector 
-                    selectedServices={pricing.state.selectedServices}
-                    onToggle={pricing.actions.toggleService}
-                 />
-              </div>
             </div>
           </div>
           
@@ -98,12 +116,12 @@ export const PricingCalculator = () => {
             <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-900/30">
               <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" />
-                نصائح للتوفير
+                معلومات مهمة
               </h4>
               <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside opacity-80">
-                <li>احجز رحلة ذهاب وعودة لخصم 15%</li>
-                <li>المجموعات الكبيرة (5+) تحصل على خصم إضافي</li>
-                <li>الحجز المبكر (3 أيام) يوفر 10%</li>
+                <li>أسعار ثابتة على مدار اليوم</li>
+                <li>رحلات الذهاب والعودة في نفس اليوم</li>
+                <li>السعر شامل جميع الرسوم</li>
               </ul>
             </div>
           </div>

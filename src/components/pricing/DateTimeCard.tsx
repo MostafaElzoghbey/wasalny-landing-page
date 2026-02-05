@@ -7,10 +7,7 @@ interface DateTimeProps {
   setTripTime: (time: string) => void;
   isRoundTrip: boolean;
   setIsRoundTrip: (isRoundTrip: boolean) => void;
-  returnDate: Date | undefined;
-  setReturnDate: (date: Date) => void;
-  returnTime: string;
-  setReturnTime: (time: string) => void;
+  showRoundTripToggle: boolean;
 }
 
 const formatDateForInput = (date: Date | undefined) => {
@@ -28,8 +25,7 @@ export const DateTimeCard = ({
   tripDate, setTripDate,
   tripTime, setTripTime,
   isRoundTrip, setIsRoundTrip,
-  returnDate, setReturnDate,
-  returnTime, setReturnTime
+  showRoundTripToggle
 }: DateTimeProps) => {
 
   return (
@@ -48,7 +44,7 @@ export const DateTimeCard = ({
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                <Calendar className="w-4 h-4 text-gray-400" />
-               تاريخ الذهاب
+               تاريخ الرحلة
             </label>
             <input 
               type="date"
@@ -61,7 +57,7 @@ export const DateTimeCard = ({
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                <Clock className="w-4 h-4 text-gray-400" />
-               وقت الذهاب
+               وقت الرحلة
             </label>
             <input 
               type="time" 
@@ -72,65 +68,36 @@ export const DateTimeCard = ({
           </div>
         </div>
 
-        <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
-          <div className="flex items-center justify-between mb-4">
-             <div className="flex items-center gap-3">
-                 <div className={`p-2 rounded-full transition-colors ${isRoundTrip ? 'bg-primary/20 text-primary' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
-                    <ArrowRightLeft className="w-5 h-5" />
-                 </div>
-                 <div>
-                    <span className="block font-medium text-gray-900 dark:text-white">ذهاب وعودة</span>
-                    <span className="text-xs text-green-600 font-medium">خصم فوري 15%</span>
-                 </div>
-             </div>
-             
-             <div 
-              onClick={() => setIsRoundTrip(!isRoundTrip)}
-              className={`
-                w-12 h-6 rounded-full transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
-                ${isRoundTrip ? 'bg-black dark:bg-white' : 'bg-gray-200 dark:bg-gray-700'}
-              `}
-            >
-              <div 
+        {showRoundTripToggle && (
+          <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                   <div className={`p-2 rounded-full transition-colors ${isRoundTrip ? 'bg-primary/20 text-primary' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
+                      <ArrowRightLeft className="w-5 h-5" />
+                   </div>
+                   <div>
+                      <span className="block font-medium text-gray-900 dark:text-white">ذهاب وعودة</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">في نفس اليوم</span>
+                   </div>
+               </div>
+               
+               <div 
+                onClick={() => setIsRoundTrip(!isRoundTrip)}
                 className={`
-                  w-4 h-4 rounded-full bg-white dark:bg-black shadow-sm transition-transform duration-300 absolute top-1 left-1
-                  ${isRoundTrip ? 'translate-x-6' : 'translate-x-0'}
-                `} 
-              />
+                  w-12 h-6 rounded-full transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer
+                  ${isRoundTrip ? 'bg-black dark:bg-white' : 'bg-gray-200 dark:bg-gray-700'}
+                `}
+              >
+                <div 
+                  className={`
+                    w-4 h-4 rounded-full bg-white dark:bg-black shadow-sm transition-transform duration-300 absolute top-1 left-1
+                    ${isRoundTrip ? 'translate-x-6' : 'translate-x-0'}
+                  `} 
+                />
+              </div>
             </div>
           </div>
-
-          {isRoundTrip && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">تاريخ العودة</label>
-                <input 
-                  type="date"
-                  min={formatDateForInput(tripDate)} // Prevent selecting past dates
-                  value={returnDate ? formatDateForInput(returnDate) : ''}
-                  onChange={(e) => setReturnDate(new Date(e.target.value))}
-                  className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none dark:[color-scheme:dark]"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">وقت العودة</label>
-                <input 
-                  type="time" 
-                  // If same day, restrict time? Native time input 'min' support varies, but usually valid.
-                  // We only restrict if returnDate === tripDate
-                  min={
-                    returnDate && tripDate && formatDateForInput(returnDate) === formatDateForInput(tripDate)
-                      ? tripTime 
-                      : undefined
-                  }
-                  value={returnTime}
-                  onChange={(e) => setReturnTime(e.target.value)}
-                  className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none dark:[color-scheme:dark]"
-                />
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
