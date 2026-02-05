@@ -1,7 +1,7 @@
 // src/utils/pricingCalculator.ts
 import {
-  type RouteGroup,
   type VehicleCategory,
+  locations,
   findRouteGroup,
   getVehiclePricing,
   pricingConfig,
@@ -90,8 +90,13 @@ export function calculatePrice(tripDetails: TripDetails): PriceCalculationResult
     total,
   };
 
+  // Get actual location names for the specific route
+  const fromLocationObj = locations.find(loc => loc.id === fromLocation);
+  const toLocationObj = locations.find(loc => loc.id === toLocation);
+  const actualRouteNameAr = `${fromLocationObj?.nameAr || fromLocation} - ${toLocationObj?.nameAr || toLocation}`;
+
   const details = {
-    routeNameAr: routeGroup.nameAr,
+    routeNameAr: actualRouteNameAr,
     vehicleCategoryAr: vehiclePricingInfo.categoryAr,
     passengerCount,
     tripDateTime: dateTime,
@@ -113,19 +118,20 @@ export function generateWhatsAppMessage(
   result: PriceCalculationResult,
   customerName?: string
 ): string {
-  const { details, breakdown } = result;
+  const { details } = result;
   
-  let message = '🚗 *طلب حجز جديد - وصلني*\n\n';
+  let message = 'السلام عليكم\n\n';
+  message += 'أريد حجز رحلة مع وصلني\n\n';
   
   if (customerName) {
-    message += `👤 *الاسم:* ${customerName}\n`;
+    message += `الاسم: ${customerName}\n`;
   }
   
-  message += `📍 *المسار:* ${details.routeNameAr}\n`;
-  message += `🚙 *نوع السيارة:* ${details.vehicleCategoryAr}\n`;
-  message += `👥 *عدد الركاب:* ${details.passengerCount}\n`;
-  message += `${details.isRoundTrip ? '🔄' : '➡️'} *نوع الرحلة:* ${details.isRoundTrip ? 'ذهاب وعودة' : 'ذهاب فقط'}\n`;
-  message += `📅 *الموعد:* ${details.tripDateTime.toLocaleDateString('ar-EG', {
+  message += `المسار: ${details.routeNameAr}\n`;
+  message += `نوع السيارة: ${details.vehicleCategoryAr}\n`;
+  message += `عدد الركاب: ${details.passengerCount}\n`;
+  message += `نوع الرحلة: ${details.isRoundTrip ? 'ذهاب وعودة' : 'ذهاب فقط'}\n`;
+  message += `الموعد: ${details.tripDateTime.toLocaleDateString('ar-EG', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -135,8 +141,7 @@ export function generateWhatsAppMessage(
     minute: '2-digit',
   })}\n`;
 
-  message += `\n💰 *السعر الإجمالي:* ${formatPrice(breakdown.total)}\n`;
-  message += '\nيرجى تأكيد الحجز 🙏';
+  message += '\nيرجى تأكيد الحجز';
   
   return encodeURIComponent(message);
 }

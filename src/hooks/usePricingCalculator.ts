@@ -25,8 +25,9 @@ export function usePricingCalculator() {
   
   // Trip date/time (same day, no return selection)
   const [tripDate, setTripDateState] = useState<string>(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
   });
   const [tripTime, setTripTimeState] = useState<string>('10:00');
   

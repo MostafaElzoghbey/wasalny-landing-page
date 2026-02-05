@@ -186,7 +186,7 @@ export const vehiclePricing: VehiclePricing[] = [
 export const pricingConfig = {
   currency: 'EGP',
   currencyAr: 'جنيه',
-  whatsappNumber: '201090400030',
+  whatsappNumber: '201005656117',
   contactEmail: 'booking@wasalny.com',
 };
 

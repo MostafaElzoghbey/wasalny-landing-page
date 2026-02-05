@@ -39,15 +39,16 @@ export const PricingCalculator = () => {
             {/* Route Type Toggle */}
             <div className="pricing-card bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
               <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">نوع الرحلة</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => pricing.actions.setRouteType('travel')}
                   className={`
-                    flex items-center justify-center gap-2 px-6 py-4 rounded-lg font-semibold
-                    transition-all duration-300 transform hover:scale-105
+                    flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-base
+                    transition-all duration-300 transform hover:scale-[1.02] active:scale-95
+                    border-2 relative overflow-hidden group
                     ${pricing.state.routeType === 'travel'
-                      ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/40 ring-2 ring-blue-600/20'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md'
                     }
                   `}
                 >
@@ -57,11 +58,12 @@ export const PricingCalculator = () => {
                 <button
                   onClick={() => pricing.actions.setRouteType('internal')}
                   className={`
-                    flex items-center justify-center gap-2 px-6 py-4 rounded-lg font-semibold
-                    transition-all duration-300 transform hover:scale-105
+                    flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-base
+                    transition-all duration-300 transform hover:scale-[1.02] active:scale-95
+                    border-2 relative overflow-hidden group
                     ${pricing.state.routeType === 'internal'
-                      ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/40 ring-2 ring-blue-600/20'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md'
                     }
                   `}
                 >
@@ -113,17 +115,17 @@ export const PricingCalculator = () => {
             />
             
             {/* Quick Tips */}
-            <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-900/30">
-              <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
-                معلومات مهمة
-              </h4>
-              <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside opacity-80">
-                <li>أسعار ثابتة على مدار اليوم</li>
-                <li>رحلات الذهاب والعودة في نفس اليوم</li>
-                <li>السعر شامل جميع الرسوم</li>
-              </ul>
-            </div>
+            {pricing.computed.showRoundTripToggle && (
+              <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-900/30">
+                <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  معلومات مهمة
+                </h4>
+                <p className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed">
+                  احجز رحلة ذهاب وعودة واحصل على خصم فوري على السعر الإجمالي
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
