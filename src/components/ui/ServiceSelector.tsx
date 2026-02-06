@@ -1,5 +1,5 @@
 import React from 'react';
-import { additionalServices } from '@/data/pricing';
+
 import { Check, Baby, Briefcase, Clock, UserCheck, MapPin } from 'lucide-react';
 
 interface ServiceSelectorProps {
@@ -27,7 +27,7 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
       </h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {additionalServices.map((service) => {
+        {([] as any[]).map((service: any) => {
           const isSelected = selectedServices.includes(service.id);
           const Icon = iconMap[service.icon] || Briefcase;
           

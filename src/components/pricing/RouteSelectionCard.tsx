@@ -13,7 +13,6 @@ interface RouteSelectionProps {
 }
 
 export const RouteSelectionCard = ({
-  routeType,
   fromLocation, setFromLocation,
   toLocation, setToLocation,
   availableFromLocations,

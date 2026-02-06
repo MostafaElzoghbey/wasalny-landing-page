@@ -21,7 +21,7 @@ export const VehiclePassengerCard = ({
     return car?.images[0] || null;
   };
 
-  const InfoIcon = ({className}: {className?: string}) => <AlertCircle className={className} />;
+
 
   return (
     <div className="pricing-card bg-white dark:bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden group">
@@ -128,13 +128,7 @@ export const VehiclePassengerCard = ({
                 تنبيه: العدد يتجاوز سعة السيارة ({selectedVehicle.maxPassengers})، قد تحتاج لسيارة أكبر أو أكثر من سيارة.
               </p>
             )}
-            
-            {selectedVehicle && (selectedVehicle.pricePerExtraPassenger ?? 0) > 0 && passengerCount > 4 && (
-               <p className="mt-2 text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/10 p-2 rounded-lg flex items-center gap-2">
-                <InfoIcon className="w-4 h-4" />
-                يتم احتساب رسوم إضافية للركاب فوق 4
-               </p>
-            )}
+
         </div>
       </div>
     </div>
