@@ -18,10 +18,10 @@ export const services = [
     icon: 'car',
   },
   {
-    id: 'group-travel',
-    title: 'سفر جماعي',
-    description: 'أسعار مميزة للمجموعات والرحلات الجماعية',
-    icon: 'users',
+    id: 'internal-routes',
+    title: 'رحلات داخلية',
+    description: 'رحلات سريعة ومريحة داخل دمياط ومدنها',
+    icon: 'route',
   },
 ];
 

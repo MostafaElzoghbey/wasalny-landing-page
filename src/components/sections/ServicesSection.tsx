@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { MapPin, Plane, Car, Users } from 'lucide-react';
+import { MapPin, Plane, Car } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { useBatchReveal, useTiltEffect } from '@/hooks/useAnimations';
 import { useGSAP } from '@gsap/react';
@@ -9,7 +9,6 @@ const iconMap = {
   route: MapPin,
   plane: Plane,
   car: Car,
-  users: Users,
 };
 
 const services = [
@@ -38,10 +37,10 @@ const services = [
     bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
   },
   {
-    id: 'group-travel',
-    title: 'سفر جماعي',
-    description: 'أسعار مميزة للمجموعات والرحلات الجماعية والشركات',
-    icon: 'users',
+    id: 'internal-routes',
+    title: 'رحلات داخلية',
+    description: 'رحلات سريعة ومريحة داخل دمياط ومدنها بأسعار مناسبة',
+    icon: 'route',
     color: 'from-orange-500 to-orange-600',
     bgColor: 'bg-orange-50 dark:bg-orange-900/20',
   },
