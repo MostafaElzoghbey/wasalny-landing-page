@@ -8,3 +8,4 @@ reviews:
     enabled: true
     drafts: true   # <--- CRITICAL: Enables review for Draft PRs
     base_branches: [".*"] # <--- CRITICAL: Reviews PRs merging into ANY branch (not just main)
+    auto_incremental_review: true # <--- Reviews every new commit automatically
