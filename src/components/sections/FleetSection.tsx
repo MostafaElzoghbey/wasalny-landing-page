@@ -590,7 +590,7 @@ export function FleetSection() {
           >
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
               {images.map((img, idx) => {
-                let offset = idx - currentImageIndex;
+                const offset = idx - currentImageIndex;
                 // Only show current (0) and next images (positive offset up to 2)
                 // Hide previous images (negative offset) to avoid conflict with right-side info panel
                 if (offset < 0 || offset > 2) return null;
