@@ -1,0 +1,10 @@
+# .coderabbit.yaml
+reviews:
+  # High-level summary of changes
+  high_level_summary: true
+  
+  # Auto-review settings
+  auto_review:
+    enabled: true
+    drafts: true   # <--- CRITICAL: Enables review for Draft PRs
+    base_branches: [".*"] # <--- CRITICAL: Reviews PRs merging into ANY branch (not just main)
