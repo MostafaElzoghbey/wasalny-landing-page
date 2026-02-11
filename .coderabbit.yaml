@@ -6,6 +6,6 @@ reviews:
   # Auto-review settings
   auto_review:
     enabled: true
-    drafts: true   # <--- CRITICAL: Enables review for Draft PRs
+    drafts: false   # Disable review for draft PRs
     base_branches: ["main"] # Restrict reviews to main branch
     auto_incremental_review: true # <--- Reviews every new commit automatically
