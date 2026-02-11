@@ -1,0 +1,11 @@
+# .coderabbit.yaml
+reviews:
+  # High-level summary of changes
+  high_level_summary: true
+  
+  # Auto-review settings
+  auto_review:
+    enabled: true
+    drafts: false   # Disable review for draft PRs
+    base_branches: ["main"] # Restrict reviews to main branch
+    auto_incremental_review: true # <--- Reviews every new commit automatically
