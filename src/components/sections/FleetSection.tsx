@@ -285,6 +285,16 @@ const CarouselCard = ({
   );
 };
 
+/**
+ * Render the fleet gallery section with category selector, informational panel, carousel, and lightbox.
+ *
+ * The section displays selectable vehicle categories, updates category-specific info and colors,
+ * provides an auto-rotating, swipe- and keyboard-navigable image carousel, and opens a fullscreen
+ * lightbox for the active image. It also includes animated micro-interactions for the info cards
+ * and entrance/scroll-triggered animations for the carousel.
+ *
+ * @returns The JSX element for the fleet section containing category controls, the info panel, image carousel, and lightbox.
+ */
 export function FleetSection() {
   const [activeCategory, setActiveCategory] = useState<CarCategory>('sedan');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
