@@ -367,8 +367,8 @@ export function FleetSection() {
     <section id="fleet" ref={containerRef} className="section-padding relative overflow-hidden bg-gray-50 dark:bg-gray-950 min-h-screen flex flex-col justify-center">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-100 via-gray-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-black opacity-80" />
       <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] bg-[size:60px_60px] bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)]" />
-      <div className={cn("absolute top-1/4 left-0 w-[500px] h-[500px] bg-gradient-to-br rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} />
-      <div className={cn("absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} style={{ animationDelay: '2s' }} />
+      <div className={cn("absolute top-1/4 -left-64 w-[500px] h-[500px] bg-gradient-to-br rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} />
+      <div className={cn("absolute bottom-0 -right-64 w-[500px] h-[500px] bg-gradient-to-tl rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} style={{ animationDelay: '2s' }} />
 
       <div className="section-container relative z-10 w-full text-right" dir="rtl">
         <div className="flex flex-col items-center mb-12 lg:mb-20">
