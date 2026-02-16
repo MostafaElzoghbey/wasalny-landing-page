@@ -1,40 +1,45 @@
 <!doctype html>
 <html lang="ar" dir="rtl" class="light">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="/assets/images/logo/WhatsApp Image 2026-01-10 at 10.21.56 PM (2).jpeg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="وصلني - خدمة نقل الركاب من دمياط إلى القاهرة والمطار. سيارات حديثة ومريحة وأسعار مناسبة." />
-    <meta name="keywords" content="نقل ركاب, دمياط, القاهرة, المطار, وصلني, تاكسي, سيارات" />
-    <title>وصلني - خدمة نقل الركاب</title>
-    <!-- Preload Arabic font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Theme script to prevent FOUC - runs before React -->
-    <script>
-      (function() {
-        const THEME_KEY = 'wasalny-theme';
-        const storedTheme = localStorage.getItem(THEME_KEY);
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        let isDark = false;
-        if (storedTheme === 'dark') {
-          isDark = true;
-        } else if (storedTheme === 'light') {
-          isDark = false;
-        } else {
-          // system or no stored theme
-          isDark = systemDark;
-        }
-        
-        document.documentElement.classList.remove('light', 'dark');
-        document.documentElement.classList.add(isDark ? 'dark' : 'light');
-      })();
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/jpeg" href="/assets/images/logo/logo.jpeg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="وصلني - خدمة نقل الركاب من دمياط إلى القاهرة والمطار. سيارات حديثة ومريحة وأسعار مناسبة." />
+  <meta name="keywords" content="نقل ركاب, دمياط, القاهرة, المطار, وصلني, تاكسي, سيارات" />
+  <title>وصلني - خدمة نقل الركاب</title>
+  <!-- Preload Arabic font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <!-- Theme script to prevent FOUC - runs before React -->
+  <script>
+    (function () {
+      const THEME_KEY = 'wasalny-theme';
+      const storedTheme = localStorage.getItem(THEME_KEY);
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      let isDark = false;
+      if (storedTheme === 'dark') {
+        isDark = true;
+      } else if (storedTheme === 'light') {
+        isDark = false;
+      } else {
+        // system or no stored theme
+        isDark = systemDark;
+      }
+
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(isDark ? 'dark' : 'light');
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

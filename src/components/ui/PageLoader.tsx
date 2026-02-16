@@ -34,7 +34,7 @@ export function PageLoader({ onComplete, minDuration = 2000 }: PageLoaderProps) 
     });
 
     // Logo entrance
-    tl.fromTo(logoRef.current, 
+    tl.fromTo(logoRef.current,
       { scale: 0, rotation: -180, opacity: 0 },
       { scale: 1, rotation: 0, opacity: 1, duration: 0.8, ease: "back.out(1.7)" }
     );
@@ -87,7 +87,7 @@ export function PageLoader({ onComplete, minDuration = 2000 }: PageLoaderProps) 
       <img
         ref={logoRef}
         src={logoImage}
-        alt="وصلني"
+        alt="شعار وصلني ترافيل - Wasalny Travel Logo"
         className="w-32 h-32 rounded-3xl object-cover shadow-2xl shadow-black/30 mb-6"
         style={{ opacity: 0 }}
       />
