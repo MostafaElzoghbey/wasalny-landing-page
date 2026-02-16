@@ -51,7 +51,7 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
                     "item": {
                         "@type": "Product",
                         "name": car.nameAr,
-                        "description": car.description,
+                        "description": car.seoDescription || car.description,
                         "image": `https://wasalny-travel.com${car.images[0]}`
                     }
                 }))
