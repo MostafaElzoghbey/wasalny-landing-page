@@ -19,7 +19,7 @@ export function HeroSection() {
   const badgeRef = useRef<HTMLDivElement>(null);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const carImageRef = useRef<HTMLImageElement>(null);
+  const carImageRef = useRef<HTMLDivElement>(null);
   const circle1Ref = useRef<HTMLDivElement>(null);
   const circle2Ref = useRef<HTMLDivElement>(null);
 
@@ -225,13 +225,14 @@ export function HeroSection() {
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-500/20 to-transparent rounded-3xl blur-2xl transform scale-95" />
 
                 {/* Car Image */}
-                <OptimizedImage
-                  ref={carImageRef}
-                  src={carImages.family_cruiser[2]}
-                  alt="تأجير سيارات عائلية فخمة في دمياط - وصلني ترافيل"
-                  className="w-full h-auto rounded-3xl shadow-2xl cursor-pointer"
-                  priority
-                />
+                <div ref={carImageRef} className="cursor-pointer">
+                  <OptimizedImage
+                    src={carImages.family_cruiser[2]}
+                    alt="تأجير سيارات عائلية فخمة في دمياط - وصلني ترافيل"
+                    className="w-full h-auto rounded-3xl shadow-2xl"
+                    priority
+                  />
+                </div>
               </div>
             </div>
 

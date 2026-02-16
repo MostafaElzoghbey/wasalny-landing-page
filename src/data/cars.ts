@@ -66,7 +66,6 @@ export const carImages = {
     '/assets/images/cars/family_cruiser/nissan-qashqai-interior-trunk.jpeg',
     '/assets/images/cars/family_cruiser/dongfeng-glory-580-interior-seats.jpeg',
     '/assets/images/cars/family_cruiser/mitsubishi-xpander-rental-damietta-rear-silver-2.jpeg',
-    '/assets/images/cars/family_cruiser/jeep-renegade-rental-damietta-front-red-2.jpeg',
     '/assets/images/cars/family_cruiser/mitsubishi-xpander-rental-damietta-doors-open-grey.jpeg',
     '/assets/images/cars/family_cruiser/toyota-rush-rental-damietta-roof-rack-wheelchair.jpeg',
   ],
@@ -110,7 +109,7 @@ export const cars: Car[] = [
     passengers: 4,
     images: carImages.sedan,
     imageAlts: carImages.sedan.map(path => {
-      const name = path.split('/').pop()?.split('-rental')[0].replace(/-/g, ' ') || 'Sedan';
+      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'Sedan';
       return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
     }),
     features: ['تكييف متطور', 'مقاعد مريحة', 'شحن USB', 'شاشة لمس في أغلب الفئات'],
@@ -126,7 +125,7 @@ export const cars: Car[] = [
     passengers: 4,
     images: carImages.suv,
     imageAlts: carImages.suv.map(path => {
-      const name = path.split('/').pop()?.split('-rental')[0].replace(/-/g, ' ') || 'SUV';
+      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'SUV';
       return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
     }),
     features: ['دفع قوي', 'سقف بانوراما', 'مساحة تخزين واسعة', 'أمان عالي'],
@@ -142,7 +141,7 @@ export const cars: Car[] = [
     passengers: 7,
     images: carImages.family_cruiser,
     imageAlts: carImages.family_cruiser.map(path => {
-      const name = path.split('/').pop()?.split('-rental')[0].replace(/-/g, ' ') || 'Family Car';
+      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'Family Car';
       return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
     }),
     features: ['7 مقاعد كاملة', 'تكييف مركزي', 'مساحة هائلة للحقائب', 'ثبات عالي'],
@@ -158,7 +157,7 @@ export const cars: Car[] = [
     passengers: 13,
     images: carImages.minibus,
     imageAlts: carImages.minibus.map(path => {
-      const name = path.split('/').pop()?.split('-rental')[0].replace(/-/g, ' ') || 'Minibus';
+      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'Minibus';
       return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
     }),
     features: ['13 راكب', 'كراسي VIP جلد', 'خصوصية تامة', 'تكييف مركزي'],
