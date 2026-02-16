@@ -97,6 +97,13 @@ export const mockupImages = [
 
 export const logoImage = '/assets/images/logo/logo.jpeg';
 
+function generateImageAlts(paths: string[], fallback: string): string[] {
+  return paths.map(path => {
+    const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || fallback;
+    return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
+  });
+}
+
 export const cars: Car[] = [
   {
     id: 'sedan-collection',
@@ -108,10 +115,7 @@ export const cars: Car[] = [
     seoDescription: 'تأجير سيارات سيدان في دمياط - تشكيلة واسعة تشمل تويوتا كورولا، هيونداي إلنترا، فيات تيبو، وغيرها.',
     passengers: 4,
     images: carImages.sedan,
-    imageAlts: carImages.sedan.map(path => {
-      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'Sedan';
-      return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
-    }),
+    imageAlts: generateImageAlts(carImages.sedan, 'Sedan'),
     features: ['تكييف متطور', 'مقاعد مريحة', 'شحن USB', 'شاشة لمس في أغلب الفئات'],
   },
   {
@@ -124,10 +128,7 @@ export const cars: Car[] = [
     seoDescription: 'تأجير سيارات SUV في دمياط - جيب رينيجيد، رينو كادجار، هيونداي توسان، إم جي ZS، والمزيد.',
     passengers: 4,
     images: carImages.suv,
-    imageAlts: carImages.suv.map(path => {
-      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'SUV';
-      return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
-    }),
+    imageAlts: generateImageAlts(carImages.suv, 'SUV'),
     features: ['دفع قوي', 'سقف بانوراما', 'مساحة تخزين واسعة', 'أمان عالي'],
   },
   {
@@ -140,10 +141,7 @@ export const cars: Car[] = [
     seoDescription: 'أفضل السيارات العائلية 7 راكب في دمياط - ميتسوبيشي إكسباندر، تويوتا راش، مرسيدس V-Class، وغيرها.',
     passengers: 7,
     images: carImages.family_cruiser,
-    imageAlts: carImages.family_cruiser.map(path => {
-      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'Family Car';
-      return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
-    }),
+    imageAlts: generateImageAlts(carImages.family_cruiser, 'Family Car'),
     features: ['7 مقاعد كاملة', 'تكييف مركزي', 'مساحة هائلة للحقائب', 'ثبات عالي'],
   },
   {
@@ -156,10 +154,7 @@ export const cars: Car[] = [
     seoDescription: 'تأجير ميني باص في دمياط - تويوتا هاي إيس جرانفيا VIP للمجموعات السياحية والشركات.',
     passengers: 13,
     images: carImages.minibus,
-    imageAlts: carImages.minibus.map(path => {
-      const name = path.split('/').pop()?.replace(/\.\w+$/, '').split('-rental')[0].replace(/-/g, ' ') || 'Minibus';
-      return `${name.charAt(0).toUpperCase() + name.slice(1)} rental Damietta`;
-    }),
+    imageAlts: generateImageAlts(carImages.minibus, 'Minibus'),
     features: ['13 راكب', 'كراسي VIP جلد', 'خصوصية تامة', 'تكييف مركزي'],
   },
 ];
