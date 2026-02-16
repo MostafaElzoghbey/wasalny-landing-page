@@ -140,8 +140,6 @@ async function processImage(file, stats, bar) {
             }
         }
 
-        stats.processed++;
-
         // ====================================================================
         // STEP 2: Generate responsive variants (640px, 1024px, 1920px)
         // ====================================================================
@@ -177,6 +175,8 @@ async function processImage(file, stats, bar) {
                 fs.unlinkSync(tempResized);
             }
         }
+
+        stats.processed++;
 
     } catch (error) {
         // Clean up any temp files on error
