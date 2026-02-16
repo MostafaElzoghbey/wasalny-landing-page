@@ -5,8 +5,10 @@ export interface Car {
   category: 'sedan' | 'suv' | 'family_cruiser' | 'minibus';
   categoryAr: string;
   description: string;
+  seoDescription?: string;
   passengers: number;
   images: string[];
+  imageAlts?: string[];
   features: string[];
 }
 

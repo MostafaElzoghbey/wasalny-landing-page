@@ -16,6 +16,9 @@ import {
   PricingCalculator,
 } from '@/components/sections';
 
+import { JsonLd } from '@/components/SEO/JsonLd';
+import { cars } from '@/data/cars';
+
 // Import GSAP config to register plugins
 import '@/lib/gsap';
 
@@ -24,6 +27,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <JsonLd cars={cars} />
       {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
       <SmoothScrollProvider>
         <div className="min-h-screen">
