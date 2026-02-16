@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase, Car, Truck, Bus, UsersRound, Play, Pause } from 'lucide-react';
+import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase, Car, Truck, Bus, UsersRound, Heart, Play, Pause } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { cars, carCategories } from '@/data/cars';
@@ -10,13 +10,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus';
+type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
 
 const categoryColors: Record<CarCategory, { primary: string; accent: string }> = {
   sedan: { primary: 'from-blue-500/15', accent: 'to-cyan-500/10' },
   suv: { primary: 'from-emerald-500/15', accent: 'to-teal-500/10' },
   family_cruiser: { primary: 'from-purple-500/15', accent: 'to-pink-500/10' },
   minibus: { primary: 'from-orange-500/15', accent: 'to-amber-500/10' },
+  wedding: { primary: 'from-rose-500/15', accent: 'to-pink-500/10' },
 };
 
 const iconMap = {
@@ -24,6 +25,7 @@ const iconMap = {
   Truck: Truck,
   Bus: Bus,
   UsersRound: UsersRound,
+  Heart: Heart,
 };
 
 interface LightboxProps {

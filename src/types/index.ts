@@ -2,7 +2,7 @@ export interface Car {
   id: string;
   name: string;
   nameAr: string;
-  category: 'sedan' | 'suv' | 'family_cruiser' | 'minibus';
+  category: 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
   categoryAr: string;
   description: string;
   seoDescription?: string;

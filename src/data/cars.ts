@@ -73,6 +73,21 @@ export const carImages = {
     '/assets/images/cars/minibus/toyota-hiace-granvia-rental-damietta-front-white.jpeg',
     '/assets/images/cars/minibus/toyota-hiace-granvia-interior-seats.jpeg',
   ],
+  wedding: [
+    '/assets/images/cars/wedding/mercedes-e-class-rental-damietta-front-pink.jpeg',
+    '/assets/images/cars/wedding/chery-tiggo-8-pro-rental-damietta-front-white.jpeg',
+    '/assets/images/cars/wedding/toyota-corolla-rental-damietta-side-red.jpeg',
+    '/assets/images/cars/wedding/toyota-corolla-rental-damietta-side-black.jpeg',
+    '/assets/images/cars/wedding/vw-passat-rental-damietta-side-dark-blue.jpeg',
+    '/assets/images/cars/wedding/seat-toledo-rental-damietta-side-silver.jpeg',
+    '/assets/images/cars/wedding/nissan-juke-rental-damietta-front-black.jpeg',
+    '/assets/images/cars/wedding/hyundai-tucson-rental-damietta-side-white.jpeg',
+    '/assets/images/cars/wedding/mitsubishi-xpander-rental-damietta-side-silver.jpeg',
+    '/assets/images/cars/wedding/fiat-tipo-rental-damietta-front-grey.jpeg',
+    '/assets/images/cars/wedding/kia-soul-rental-damietta-side-white.jpeg',
+    '/assets/images/cars/wedding/hyundai-elantra-md-rental-damietta-side-white.jpeg',
+    '/assets/images/cars/wedding/nissan-sentra-rental-damietta-front-brown.jpeg',
+  ],
 };
 
 export const mockupImages = [
@@ -157,6 +172,19 @@ export const cars: Car[] = [
     imageAlts: generateImageAlts(carImages.minibus, 'Minibus'),
     features: ['13 راكب', 'كراسي VIP جلد', 'خصوصية تامة', 'تكييف مركزي'],
   },
+  {
+    id: 'wedding-collection',
+    name: 'Wedding Collection',
+    nameAr: 'ملاكي للزفاف',
+    category: 'wedding',
+    categoryAr: 'زفاف',
+    description: 'اجعل ليلة العمر لا تُنسى مع أسطول سيارات الزفاف الفاخرة — تزيين احترافي وسائق أنيق لاستقبال العروسين بأناقة تليق بالمناسبة',
+    seoDescription: 'تأجير سيارات زفاف مزينة في دمياط - مرسيدس، تويوتا، هيونداي وأكثر مع تزيين كامل وسائق محترف لليلة العمر.',
+    passengers: 4,
+    images: carImages.wedding,
+    imageAlts: generateImageAlts(carImages.wedding, 'Wedding Car'),
+    features: ['تزيين احترافي كامل', 'سائق بزي رسمي أنيق', 'استقبال العروسين بأناقة', 'تصوير حر مع السيارة'],
+  },
 ];
 
 export const carCategories = [
@@ -164,4 +192,5 @@ export const carCategories = [
   { id: 'suv', nameAr: 'دفع رباعي', icon: 'Truck' },
   { id: 'family_cruiser', nameAr: 'عائلية', icon: 'Bus' },
   { id: 'minibus', nameAr: 'ميني باص', icon: 'UsersRound' },
+  { id: 'wedding', nameAr: 'زفاف', icon: 'Heart' },
 ] as const;
