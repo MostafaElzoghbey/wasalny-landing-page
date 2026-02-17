@@ -62,15 +62,15 @@ function Lightbox({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-2xl"
       onClick={onClose}
     >
-      <button onClick={onClose} className="absolute top-6 right-6 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110">
+      <button onClick={onClose} className="absolute top-6 right-6 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
         <X className="w-8 h-8" />
       </button>
 
-      <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10">
+      <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
         <ChevronRight className="w-8 h-8" />
       </button>
 
-      <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10">
+      <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
         <ChevronLeft className="w-8 h-8" />
       </button>
 

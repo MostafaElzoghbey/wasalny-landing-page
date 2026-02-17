@@ -471,7 +471,7 @@ export function FleetSection() {
             </div>
 
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20">
-              <button onClick={prevImage} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors" aria-label="الصورة السابقة">
+              <button onClick={prevImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
                 <ChevronRight className="w-6 h-6" />
               </button>
               <div className="flex items-center gap-4 min-w-[120px]">
@@ -480,11 +480,11 @@ export function FleetSection() {
                 </div>
                 <span className="text-sm font-mono text-gray-500 dark:text-gray-400">{currentImageIndex + 1}/{images.length}</span>
               </div>
-              <button onClick={nextImage} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors" aria-label="الصورة التالية">
+              <button onClick={nextImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة التالية">
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-2" />
-              <button onClick={() => setIsPaused(!isPaused)} className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400">
+              <button onClick={() => setIsPaused(!isPaused)} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                 {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               </button>
             </div>
