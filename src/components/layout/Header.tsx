@@ -241,10 +241,10 @@ export function Header() {
         scaleX: 1,
         ease: "none",
         scrollTrigger: {
-          trigger: "body",
-          start: "top top",
-          end: "bottom bottom",
           scrub: 0,
+          start: 0,
+          end: "max",
+          invalidateOnRefresh: true,
         }
       });
     }
