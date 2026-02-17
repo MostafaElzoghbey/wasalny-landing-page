@@ -118,8 +118,10 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
   useEffect(() => {
     if (isOpen) {
       animateIn();
+    } else {
+      animateOut();
     }
-  }, [isOpen, animateIn]);
+  }, [isOpen, animateIn, animateOut]);
 
   const handleClose = () => {
     animateOut();
