@@ -1,7 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import gsap, { ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import { contactInfo } from '@/data/content';
 
@@ -39,7 +37,7 @@ export function FloatingCTA() {
   useGSAP(() => {
     if (!containerRef.current) return;
 
-    gsap.to(containerRef.current, {
+    const tween = gsap.to(containerRef.current, {
       opacity: isVisible ? 1 : 0,
       y: isVisible ? 0 : 30,
       scale: isVisible ? 1 : 0.6,
@@ -47,13 +45,15 @@ export function FloatingCTA() {
       ease: isVisible ? 'back.out(1.7)' : 'power3.in',
       pointerEvents: isVisible ? 'auto' : 'none',
     });
+
+    return () => { tween.kill(); };
   }, { dependencies: [isVisible] });
 
   // Staggered button entrance
   useGSAP(() => {
     if (!waButtonRef.current || !fbButtonRef.current || !isVisible) return;
 
-    gsap.fromTo(
+    const tween = gsap.fromTo(
       [fbButtonRef.current, waButtonRef.current],
       { scale: 0, rotation: -15 },
       {
@@ -65,6 +65,8 @@ export function FloatingCTA() {
         overwrite: true,
       }
     );
+
+    return () => { tween.kill(); };
   }, { dependencies: [isVisible] });
 
   // WhatsApp breathing glow
@@ -73,13 +75,15 @@ export function FloatingCTA() {
 
     gsap.set(glowRef.current, { scale: 1, opacity: 0.4 });
 
-    gsap.to(glowRef.current, {
+    const tween = gsap.to(glowRef.current, {
       scale: 1.6,
       opacity: 0,
       duration: 2,
       repeat: -1,
       ease: 'sine.out',
     });
+
+    return () => { tween.kill(); };
   }, { dependencies: [isVisible] });
 
   // Hover effects with magnetic pull
@@ -98,7 +102,7 @@ export function FloatingCTA() {
       const handleMouseLeave = () => {
         gsap.to(el, {
           scale: 1,
-          clearProps: 'boxShadow',
+          boxShadow: '0 0 0 rgba(0,0,0,0)',
           duration: 0.3,
           ease: 'power2.out',
         });

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import gsap, { animConfig, revealTrigger } from '../lib/gsap';
+import gsap, { animConfig, revealTrigger, rtlX } from '../lib/gsap';
 import { useGSAP } from '@gsap/react';
 import SplitType from 'split-type';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -86,7 +86,7 @@ export const useTextReveal = (
     return () => {
       split.revert();
     };
-  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start] });
+  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start, from, to] });
 };
 
 export const useParallax = (
@@ -96,7 +96,7 @@ export const useParallax = (
   useGSAP(() => {
     if (!ref.current) return;
 
-    gsap.to(ref.current, {
+    const tween = gsap.to(ref.current, {
       scrollTrigger: {
         trigger: ref.current,
         start: "top bottom",
@@ -106,6 +106,11 @@ export const useParallax = (
       y: () => -speed * ScrollTrigger.maxScroll(window) * 0.1, // Simple parallax calc
       ease: "none"
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [speed] });
 };
 
@@ -126,7 +131,7 @@ export const useMagneticButton = (
       const x = (clientX - (left + width / 2)) * strength;
       const y = (clientY - (top + height / 2)) * strength;
 
-      xTo(x);
+      xTo(rtlX(x));
       yTo(y);
     };
 
@@ -207,12 +212,10 @@ export const useSectionReveal = (
   useGSAP(() => {
     if (!ref.current) return;
 
-    // Select all direct children or specific elements if needed
     const children = ref.current.children;
-
     if (children.length === 0) return;
 
-    gsap.from(children, {
+    const tween = gsap.from(children, {
       y: 20,
       opacity: 0,
       duration: 0.5,
@@ -220,10 +223,15 @@ export const useSectionReveal = (
       ease: animConfig.easeOut,
       scrollTrigger: {
         trigger: ref.current,
-        start: "top 90%", // Earlier trigger
+        start: "top 90%",
         toggleActions: "play none none reverse"
       }
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref });
 };
 
@@ -257,7 +265,7 @@ export const useScaleOnScroll = (
   useGSAP(() => {
     if (!ref.current) return;
 
-    gsap.fromTo(ref.current,
+    const tween = gsap.fromTo(ref.current,
       { scale: startScale, opacity: 0 },
       {
         scale: endScale,
@@ -270,6 +278,11 @@ export const useScaleOnScroll = (
         }
       }
     );
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [startScale, endScale] });
 };
 
@@ -395,7 +408,7 @@ export const useDrawPath = (
       strokeDashoffset: length
     });
 
-    gsap.to(path, {
+    const tween = gsap.to(path, {
       strokeDashoffset: 0,
       duration: scrub ? 1 : duration,
       ease: scrub ? "none" : "power2.inOut",
@@ -407,6 +420,11 @@ export const useDrawPath = (
         toggleActions: scrub ? undefined : "play none none reverse"
       }
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [duration, scrub] });
 };
 
@@ -425,7 +443,7 @@ export const useImageReveal = (
       bottom: { from: 'inset(0 0 100% 0)', to: 'inset(0 0 0% 0)' }
     };
 
-    gsap.fromTo(ref.current,
+    const tween = gsap.fromTo(ref.current,
       { clipPath: clips[direction].from },
       {
         clipPath: clips[direction].to,
@@ -438,5 +456,10 @@ export const useImageReveal = (
         }
       }
     );
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [direction] });
 };

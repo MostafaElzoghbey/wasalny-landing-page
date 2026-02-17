@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Menu, X, Phone } from 'lucide-react';
+import { FocusTrap } from 'focus-trap-react';
+import gsap, { useGSAP, rtlX } from '@/lib/gsap';
+import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Button } from '@/components/ui/Button';
 import { logoImage } from '@/data/cars';
 import { contactInfo } from '@/data/content';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
 import { useMagneticButton } from '@/hooks/useAnimations';
 
 const navLinks = [
@@ -19,9 +19,14 @@ const navLinks = [
   { href: '#contact', label: 'تواصل معنا' },
 ];
 
-import { FocusTrap } from 'focus-trap-react';
+interface MagneticNavLinkProps {
+  href: string;
+  label: string;
+  onClick: (href: string) => void;
+  isActive?: boolean;
+}
 
-const MagneticNavLink = ({ href, label, onClick, isActive }: { href: string, label: string, onClick: (href: string) => void, isActive?: boolean }) => {
+function MagneticNavLink({ href, label, onClick, isActive }: MagneticNavLinkProps) {
   const ref = useRef<HTMLButtonElement>(null);
   useMagneticButton(ref);
 
@@ -29,12 +34,17 @@ const MagneticNavLink = ({ href, label, onClick, isActive }: { href: string, lab
     <button
       ref={ref}
       onClick={() => onClick(href)}
-      className={`font-medium transition-colors px-2 py-1 ${isActive ? "text-primary-600 dark:text-primary-400" : "text-[hsl(var(--foreground))] hover:text-primary-600 dark:hover:text-primary-400"}`}
+      className={cn(
+        'font-medium transition-colors px-2 py-1',
+        isActive
+          ? 'text-primary-600 dark:text-primary-400'
+          : 'text-[hsl(var(--foreground))] hover:text-primary-600 dark:hover:text-primary-400'
+      )}
     >
       {label}
     </button>
   );
-};
+}
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -43,7 +53,7 @@ interface MobileMenuProps {
   id: string; // Add ID for ARIA controls
 }
 
-const MobileMenu = ({ isOpen, onClose, onNavClick, id }: MobileMenuProps) => {
+function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -67,7 +77,7 @@ const MobileMenu = ({ isOpen, onClose, onNavClick, id }: MobileMenuProps) => {
     // Stagger nav links
     const navButtons = panelRef.current.querySelectorAll('.nav-link-item');
     gsap.fromTo(navButtons,
-      { opacity: 0, x: -20 },
+      { opacity: 0, x: rtlX(-20) },
       { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out', delay: 0.1 }
     );
 
@@ -168,7 +178,7 @@ const MobileMenu = ({ isOpen, onClose, onNavClick, id }: MobileMenuProps) => {
           </div>
         </nav>
       </div>
-    </FocusTrap >
+    </FocusTrap>
   );
 };
 
@@ -206,14 +216,16 @@ export function Header() {
 
   // Header entrance animation
   useGSAP(() => {
-    gsap.fromTo(headerRef.current,
+    if (!headerRef.current) return;
+
+    const entranceTween = gsap.fromTo(headerRef.current,
       { y: -100 },
       { y: 0, duration: 0.5, ease: 'power2.out' }
     );
 
-    // Scroll Progress
+    let progressTween: gsap.core.Tween | undefined;
     if (progressRef.current) {
-      gsap.to(progressRef.current, {
+      progressTween = gsap.to(progressRef.current, {
         scaleX: 1,
         ease: "none",
         scrollTrigger: {
@@ -224,6 +236,12 @@ export function Header() {
         }
       });
     }
+
+    return () => {
+      entranceTween.kill();
+      progressTween?.kill();
+      progressTween?.scrollTrigger?.kill();
+    };
   }, {});
 
   // Scroll-triggered header shrink
@@ -251,6 +269,11 @@ export function Header() {
         ease: "none"
       }, 0);
     }
+
+    return () => {
+      tl.scrollTrigger?.kill();
+      tl.kill();
+    };
   }, { scope: headerRef });
 
   // Logo hover effect

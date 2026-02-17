@@ -23,11 +23,13 @@ import { cars } from '@/data/cars';
 import '@/lib/gsap';
 
 // Loading fallback component
-const SectionLoader = () => (
-  <div className="min-h-[50vh] flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-    <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-  </div>
-);
+function SectionLoader() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -44,10 +46,20 @@ function App() {
             <ServicesSection />
             <Suspense fallback={<SectionLoader />}>
               <FleetSection />
+            </Suspense>
+            <Suspense fallback={<SectionLoader />}>
               <AppShowcaseSection />
+            </Suspense>
+            <Suspense fallback={<SectionLoader />}>
               <RoutesSection />
+            </Suspense>
+            <Suspense fallback={<SectionLoader />}>
               <PricingCalculator />
+            </Suspense>
+            <Suspense fallback={<SectionLoader />}>
               <FeaturesSection />
+            </Suspense>
+            <Suspense fallback={<SectionLoader />}>
               <CTASection />
             </Suspense>
           </main>

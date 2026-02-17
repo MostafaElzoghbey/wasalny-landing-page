@@ -2,11 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { mockupImages } from '@/data/cars';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import gsap, { useGSAP } from '@/lib/gsap';
 
 // High-density content: Use ALL images in both rows
 // Row 2 is reversed for variety
@@ -18,31 +14,29 @@ const row2Items = [...mockupImages].reverse();
 const row1Loop = [...row1Items, ...row1Items, ...row1Items];
 const row2Loop = [...row2Items, ...row2Items, ...row2Items];
 
-/** Fullscreen Lightbox */
-function Lightbox({
-  images,
-  currentIndex,
-  onClose,
-  onPrev,
-  onNext,
-}: {
+interface LightboxProps {
   images: string[];
   currentIndex: number;
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
-}) {
+}
+
+/** Fullscreen Lightbox */
+function Lightbox({ images, currentIndex, onClose, onPrev, onNext }: LightboxProps) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
   useGSAP(() => {
     if (!backdropRef.current) return;
-    gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+    const tween = gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+    return () => { tween.kill(); };
   }, {});
 
   useGSAP(() => {
     if (!imageRef.current) return;
-    gsap.fromTo(imageRef.current, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.4)' });
+    const tween = gsap.fromTo(imageRef.current, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.4)' });
+    return () => { tween.kill(); };
   }, { dependencies: [currentIndex] });
 
   // Keyboard navigation
@@ -62,15 +56,15 @@ function Lightbox({
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-2xl"
       onClick={onClose}
     >
-      <button onClick={onClose} className="absolute top-6 right-6 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      <button aria-label="إغلاق" onClick={onClose} className="absolute top-6 right-6 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
         <X className="w-8 h-8" />
       </button>
 
-      <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      <button aria-label="الصورة السابقة" onClick={(e) => { e.stopPropagation(); onPrev(); }} className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
         <ChevronRight className="w-8 h-8" />
       </button>
 
-      <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+      <button aria-label="الصورة التالية" onClick={(e) => { e.stopPropagation(); onNext(); }} className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
         <ChevronLeft className="w-8 h-8" />
       </button>
 
@@ -98,42 +92,18 @@ export function AppShowcaseSection() {
 
   useGSAP(() => {
     if (!containerRef.current) return;
-    gsap.fromTo(containerRef.current, { y: 60, opacity: 0 }, {
+    const tween = gsap.fromTo(containerRef.current, { y: 60, opacity: 0 }, {
       y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
       scrollTrigger: { trigger: containerRef.current, start: 'top 85%', once: true }
     });
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, {});
 
   return (
     <>
-      <style>{`
-        @keyframes scroll-ltr {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.3333%); }
-        }
-        @keyframes scroll-rtl {
-          0% { transform: translateX(-33.3333%); }
-          100% { transform: translateX(0); }
-        }
-        .marquee-track {
-          display: flex;
-          gap: 1rem;
-          width: max-content;
-          will-change: transform;
-          /* Ensure LTR for consistent math regardless of page direction */
-          direction: ltr !important;
-        }
-        .animate-scroll-ltr {
-          animation: scroll-ltr 60s linear infinite;
-        }
-        .animate-scroll-rtl {
-          animation: scroll-rtl 60s linear infinite;
-        }
-        .marquee-container:hover .marquee-track {
-          animation-play-state: paused;
-        }
-      `}</style>
-
       <section className="section-padding relative overflow-hidden bg-gradient-to-br from-primary-950 via-primary-900 to-primary-950">
         {/* Ambient background glows */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
