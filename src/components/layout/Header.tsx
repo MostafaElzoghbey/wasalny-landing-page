@@ -193,12 +193,14 @@ export function Header() {
 
   useEffect(() => {
     let ticking = false;
+    let rafId: number | null = null;
 
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
 
-      requestAnimationFrame(() => {
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
         const currentPos = window.scrollY + 100;
 
         let current = '';
@@ -216,7 +218,10 @@ export function Header() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Header entrance animation

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import gsap, { ScrollTrigger, useGSAP, animConfig, revealTrigger } from '@/lib/gsap';
 import SplitType from 'split-type';
+import gsap, { ScrollTrigger, useGSAP, animConfig, revealTrigger } from '@/lib/gsap';
 
 interface TextRevealOptions {
   type?: 'lines' | 'words' | 'chars';
