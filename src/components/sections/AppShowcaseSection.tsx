@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { mockupImages } from '@/data/cars';
 import gsap from 'gsap';
@@ -8,191 +8,188 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function AppShowcaseSection() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const sectionRef = useRef<HTMLElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mainImageRef = useRef<HTMLDivElement>(null);
-  const thumbnailsRef = useRef<HTMLDivElement>(null);
-  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+// High-density content: Use ALL images in both rows
+// Row 2 is reversed for variety
+const row1Items = [...mockupImages];
+const row2Items = [...mockupImages].reverse();
 
-  // Use all mockup images for better showcase
-  const images = mockupImages;
+// Triple buffer: Original | Duplicate | Triplicate
+// Moving from 0% to -33.33% will be perfectly seamless
+const row1Loop = [...row1Items, ...row1Items, ...row1Items];
+const row2Loop = [...row2Items, ...row2Items, ...row2Items];
 
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
-  }, [images.length]);
+/** Fullscreen Lightbox */
+function Lightbox({
+  images,
+  currentIndex,
+  onClose,
+  onPrev,
+  onNext,
+}: {
+  images: string[];
+  currentIndex: number;
+  onClose: () => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-  }, [images.length]);
-
-  // Auto-play that continues during scroll
-  useEffect(() => {
-    const startAutoPlay = () => {
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-      autoPlayRef.current = setInterval(nextSlide, 2500); // Faster: 2.5 seconds
-    };
-
-    startAutoPlay();
-    
-    return () => {
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
-    };
-  }, [nextSlide]);
-
-  // Entrance animations
   useGSAP(() => {
-    if (!containerRef.current) return;
-
-    const ctx = gsap.context(() => {
-      // Main container fade in
-      gsap.fromTo(
-        containerRef.current,
-        { y: 40, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.5,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: 'top 90%',
-            once: true,
-          },
-        }
-      );
-
-      // Thumbnails stagger in
-      if (thumbnailsRef.current) {
-        const thumbs = thumbnailsRef.current.querySelectorAll('.thumb-item');
-        gsap.fromTo(
-          thumbs,
-          { scale: 0.8, opacity: 0 },
-          {
-            scale: 1,
-            opacity: 1,
-            duration: 0.3,
-            stagger: 0.05,
-            ease: 'back.out(1.7)',
-            scrollTrigger: {
-              trigger: thumbnailsRef.current,
-              start: 'top 95%',
-              once: true,
-            },
-          }
-        );
-      }
-    }, sectionRef);
-
-    return () => ctx.revert();
+    if (!backdropRef.current) return;
+    gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3 });
   }, {});
 
-  // Image transition animation
   useGSAP(() => {
-    if (!mainImageRef.current) return;
-
-    gsap.fromTo(
-      mainImageRef.current,
-      { opacity: 0.5, scale: 1.02 },
-      { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' }
-    );
+    if (!imageRef.current) return;
+    gsap.fromTo(imageRef.current, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.4)' });
   }, { dependencies: [currentIndex] });
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') onPrev();
+      if (e.key === 'ArrowLeft') onNext();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose, onPrev, onNext]);
+
   return (
-    <section
-      ref={sectionRef}
-      className="section-padding relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900"
+    <div
+      ref={backdropRef}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-2xl"
+      onClick={onClose}
     >
-      {/* Background Effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent-500/20 rounded-full blur-3xl" />
+      <button onClick={onClose} className="absolute top-6 right-6 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110">
+        <X className="w-8 h-8" />
+      </button>
+
+      <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="absolute right-4 md:right-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10">
+        <ChevronRight className="w-8 h-8" />
+      </button>
+
+      <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 p-4 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all hover:scale-110 z-10">
+        <ChevronLeft className="w-8 h-8" />
+      </button>
+
+      <img ref={imageRef} src={images[currentIndex]} alt="هوية وصلني" className="max-w-[95vw] max-h-[85vh] object-contain rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
+
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 px-6 py-2 bg-white/10 backdrop-blur-md rounded-full text-white font-bold tracking-widest">
+        {currentIndex + 1} / {images.length}
       </div>
+    </div>
+  );
+}
 
-      <div className="section-container relative z-10">
-        <SectionHeading
-          title="صور من خدماتنا"
-          subtitle="لمحة عن سياراتنا وخدماتنا المميزة"
-          className="text-white [&_h2]:text-white [&_p]:text-primary-200"
-        />
+export function AppShowcaseSection() {
+  const [lightbox, setLightbox] = useState<{ index: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-        {/* Main Carousel */}
-        <div ref={containerRef} className="relative max-w-5xl mx-auto">
-          {/* Main Image Container - Adaptive to image content */}
-          <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-primary-800 to-primary-900">
-            <div ref={mainImageRef} className="relative flex items-center justify-center p-4 md:p-6">
-              <img
-                src={images[currentIndex]}
-                alt={`عرض ${currentIndex + 1}`}
-                className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-2xl shadow-lg"
-              />
-            </div>
+  const openLightbox = useCallback((src: string) => {
+    const idx = mockupImages.indexOf(src);
+    if (idx !== -1) setLightbox({ index: idx });
+  }, []);
 
-            {/* Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-primary-900/60 via-transparent to-transparent rounded-3xl pointer-events-none" />
+  const closeLightbox = useCallback(() => setLightbox(null), []);
+  const nextImage = useCallback(() => setLightbox(p => p ? { index: (p.index + 1) % mockupImages.length } : null), []);
+  const prevImage = useCallback(() => setLightbox(p => p ? { index: (p.index - 1 + mockupImages.length) % mockupImages.length } : null), []);
 
-            {/* Navigation Arrows */}
-            <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/15 hover:bg-white/30 rounded-full text-white backdrop-blur-sm transition-all duration-150 hover:scale-110 active:scale-95"
-              onClick={prevSlide}
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
+  useGSAP(() => {
+    if (!containerRef.current) return;
+    gsap.fromTo(containerRef.current, { y: 60, opacity: 0 }, {
+      y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+      scrollTrigger: { trigger: containerRef.current, start: 'top 85%', once: true }
+    });
+  }, {});
 
-            <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/15 hover:bg-white/30 rounded-full text-white backdrop-blur-sm transition-all duration-150 hover:scale-110 active:scale-95"
-              onClick={nextSlide}
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
+  return (
+    <>
+      <style>{`
+        @keyframes scroll-ltr {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-33.3333%); }
+        }
+        @keyframes scroll-rtl {
+          0% { transform: translateX(-33.3333%); }
+          100% { transform: translateX(0); }
+        }
+        .marquee-track {
+          display: flex;
+          gap: 1rem;
+          width: max-content;
+          will-change: transform;
+          /* Ensure LTR for consistent math regardless of page direction */
+          direction: ltr !important;
+        }
+        .animate-scroll-ltr {
+          animation: scroll-ltr 60s linear infinite;
+        }
+        .animate-scroll-rtl {
+          animation: scroll-rtl 60s linear infinite;
+        }
+        .marquee-container:hover .marquee-track {
+          animation-play-state: paused;
+        }
+      `}</style>
 
-            {/* Image Counter */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/40 backdrop-blur-sm rounded-full text-white text-sm font-medium">
-              {currentIndex + 1} / {images.length}
-            </div>
+      <section className="section-padding relative overflow-hidden bg-gradient-to-br from-primary-950 via-primary-900 to-primary-950">
+        {/* Ambient background glows */}
+        <div className="absolute inset-0 pointer-events-none opacity-40">
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary-500/20 rounded-full blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-500/10 rounded-full blur-[120px]" />
+        </div>
+
+        <div className="relative z-10 w-full">
+          <div className="section-container mb-12">
+            <SectionHeading
+              title="هوية وصلني"
+              subtitle="علامتنا التجارية وهويتنا البصرية التي تعكس احترافية خدماتنا"
+              className="text-white [&_h2]:text-white [&_p]:text-primary-200"
+            />
           </div>
 
-          {/* Thumbnails Strip */}
-          <div
-            ref={thumbnailsRef}
-            className="flex justify-center gap-2 sm:gap-3 mt-6 flex-wrap px-4"
-          >
-            {images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`thumb-item relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden transition-all duration-150 ${
-                  index === currentIndex
-                    ? 'ring-2 ring-white ring-offset-2 ring-offset-primary-900 scale-110 shadow-lg'
-                    : 'opacity-50 hover:opacity-90 hover:scale-105'
-                }`}
-              >
-                <img
-                  src={image}
-                  alt={`صورة مصغرة ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+          <div ref={containerRef} className="space-y-6 md:space-y-10 w-full overflow-hidden" dir="ltr">
+            {/* Row 1 - LTR */}
+            <div className="marquee-container relative cursor-pointer overflow-hidden">
+              <div className="marquee-track animate-scroll-ltr">
+                {row1Loop.map((src, i) => (
+                  <div key={`r1-${i}`} onClick={() => openLightbox(src)} className="group relative w-[240px] sm:w-[380px] md:w-[440px] h-[160px] sm:h-[220px] md:h-[260px] flex-shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:z-10">
+                    <img src={src} alt="Wasalny Brand" className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700" loading="eager" />
+                    <div className="absolute inset-0 bg-primary-900/5 group-hover:bg-transparent transition-colors duration-500" />
+                    <div className="absolute inset-0 border border-white/5 group-hover:border-white/20 rounded-2xl sm:rounded-3xl transition-colors duration-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          {/* Progress Bar */}
-          <div className="flex justify-center gap-1.5 mt-6">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`h-1.5 rounded-full transition-all duration-200 ${
-                  index === currentIndex
-                    ? 'w-8 bg-white'
-                    : 'w-1.5 bg-white/30 hover:bg-white/50'
-                }`}
-              />
-            ))}
+            {/* Row 2 - RTL */}
+            <div className="marquee-container relative cursor-pointer overflow-hidden">
+              <div className="marquee-track animate-scroll-rtl">
+                {row2Loop.map((src, i) => (
+                  <div key={`r2-${i}`} onClick={() => openLightbox(src)} className="group relative w-[240px] sm:w-[380px] md:w-[440px] h-[160px] sm:h-[220px] md:h-[260px] flex-shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:z-10">
+                    <img src={src} alt="Wasalny Brand" className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700" loading="eager" />
+                    <div className="absolute inset-0 bg-primary-900/5 group-hover:bg-transparent transition-colors duration-500" />
+                    <div className="absolute inset-0 border border-white/5 group-hover:border-white/20 rounded-2xl sm:rounded-3xl transition-colors duration-500" />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+
+      {lightbox && (
+        <Lightbox
+          images={mockupImages}
+          currentIndex={lightbox.index}
+          onClose={closeLightbox}
+          onPrev={prevImage}
+          onNext={nextImage}
+        />
+      )}
+    </>
   );
 }

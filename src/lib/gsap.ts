@@ -31,14 +31,14 @@ export const animConfig = {
   easeInOut: "power2.inOut",
   elastic: "elastic.out(1, 0.3)",
   expo: "expo.out",
-  
+
   // Stagger defaults
   stagger: {
     fast: 0.05,
     medium: 0.1,
     slow: 0.2
   },
-  
+
   // Duration defaults
   duration: {
     fast: 0.3,
