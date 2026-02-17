@@ -247,6 +247,7 @@ export function FleetSection() {
   const card2Ref = useRef<HTMLDivElement>(null);
   const icon2Ref = useRef<SVGSVGElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const tablistRef = useRef<HTMLDivElement>(null);
   // Touch refs
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -343,7 +344,69 @@ export function FleetSection() {
     return () => {
       cleanups.forEach(fn => fn());
     };
-  }, { scope: infoRef });
+  }, { scope: infoRef, dependencies: [activeCategory] });
+
+  useGSAP(() => {
+    if (!tablistRef.current) return;
+
+    const buttons = tablistRef.current.querySelectorAll('button[role="tab"]');
+    const cleanups: (() => void)[] = [];
+
+    buttons.forEach((button) => {
+      const icon = button.querySelector('svg');
+      const text = button.querySelector('span');
+
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to(button, {
+        y: -6,
+        scale: 1.12,
+        boxShadow: '0 15px 35px -6px rgba(37, 99, 235, 0.85)',
+        duration: 0.08,
+        ease: 'power2.out'
+      }, 0);
+
+      if (icon) {
+        tl.to(icon, {
+          scale: 1.35,
+          rotation: 18,
+          duration: 0.08,
+          ease: 'power2.out'
+        }, 0);
+      }
+
+      if (text) {
+        tl.to(text, {
+          x: 6,
+          duration: 0.08,
+          ease: 'power2.out'
+        }, 0);
+      }
+
+      const onEnter = () => {
+        if (button.getAttribute('aria-selected') !== 'true') {
+          tl.play();
+        }
+      };
+
+      const onLeave = () => {
+        tl.reverse();
+      };
+
+      button.addEventListener('mouseenter', onEnter);
+      button.addEventListener('mouseleave', onLeave);
+
+      cleanups.push(() => {
+        button.removeEventListener('mouseenter', onEnter);
+        button.removeEventListener('mouseleave', onLeave);
+        tl.kill();
+      });
+    });
+
+    return () => {
+      cleanups.forEach(fn => fn());
+    };
+  }, { scope: tablistRef });
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchEndX.current = 0;
@@ -373,7 +436,7 @@ export function FleetSection() {
       <div className="section-container relative z-10 w-full text-right" dir="rtl">
         <div className="flex flex-col items-center mb-12 lg:mb-20">
           <SectionHeading title="أسطولنا المميز" subtitle="نجمع بين الفخامة والراحة في كل رحلة" className="mb-8" />
-          <div className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-white/20 shadow-xl" role="tablist">
+          <div ref={tablistRef} className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-white/20 shadow-xl" role="tablist">
             {carCategories.map((cat) => {
               const IconComponent = iconMap[cat.icon as keyof typeof iconMap];
               return (
