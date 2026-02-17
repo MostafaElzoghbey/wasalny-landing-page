@@ -19,7 +19,7 @@ const navLinks = [
   { href: '#contact', label: 'تواصل معنا' },
 ];
 
-import FocusTrap from 'focus-trap-react';
+import { FocusTrap } from 'focus-trap-react';
 
 const MagneticNavLink = ({ href, label, onClick, isActive }: { href: string, label: string, onClick: (href: string) => void, isActive?: boolean }) => {
   const ref = useRef<HTMLButtonElement>(null);

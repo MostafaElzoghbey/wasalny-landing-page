@@ -5,10 +5,8 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { FloatingCTA } from '@/components/ui/FloatingCTA';
-import {
-  HeroSection,
-  ServicesSection,
-} from '@/components/sections';
+import { HeroSection } from '@/components/sections/HeroSection';
+import { ServicesSection } from '@/components/sections/ServicesSection';
 
 // Lazy load below-the-fold sections for better initial performance
 const FleetSection = lazy(() => import('@/components/sections/FleetSection').then(module => ({ default: module.FleetSection })));
