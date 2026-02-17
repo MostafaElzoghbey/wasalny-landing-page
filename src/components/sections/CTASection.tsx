@@ -4,8 +4,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
 import { contactInfo } from '@/data/content';
 import { useMagneticButton, useBatchReveal } from '@/hooks/useAnimations';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
+import gsap, { useGSAP, rtlX } from '@/lib/gsap';
 
 const MagneticWrapper = ({ children }: { children: React.ReactNode }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -50,7 +49,7 @@ export function CTASection() {
   const [cardsRef] = useBatchReveal({
     selector: '.contact-card',
     interval: 0.2,
-    from: { opacity: 0, x: -50 },
+    from: { opacity: 0, x: rtlX(-50) },
     to: { opacity: 1, x: 0 }
   });
 

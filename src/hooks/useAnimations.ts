@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import gsap, { ScrollTrigger, useGSAP, animConfig, revealTrigger, rtlX } from '@/lib/gsap';
+import gsap, { ScrollTrigger, useGSAP, animConfig, revealTrigger } from '@/lib/gsap';
 import SplitType from 'split-type';
 
 interface TextRevealOptions {
@@ -29,6 +29,8 @@ export const useTextReveal = (
   } = options;
 
   const actualType = splitType || type;
+  const fromKey = JSON.stringify(from);
+  const toKey = JSON.stringify(to);
 
   useGSAP(() => {
     if (!ref.current) return;
@@ -88,7 +90,7 @@ export const useTextReveal = (
       anim?.kill();
       split.revert();
     };
-  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start] });
+  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start, fromKey, toKey] });
 };
 
 export const useParallax = (
@@ -133,7 +135,7 @@ export const useMagneticButton = (
       const x = (clientX - (left + width / 2)) * strength;
       const y = (clientY - (top + height / 2)) * strength;
 
-      xTo(rtlX(x));
+      xTo(x);
       yTo(y);
     };
 
@@ -371,30 +373,31 @@ export const useBatchReveal = (
   // Backwards compatibility for stagger vs interval
   const actualStagger = stagger !== undefined ? stagger : interval;
 
+  const fromKey = JSON.stringify(from);
+  const toKey = JSON.stringify(to);
+
   useGSAP(() => {
     if (!containerRef.current) return;
 
     const items = containerRef.current.querySelectorAll(selector);
     if (items.length === 0) return;
 
-    // Always use fromTo to ensure proper initial AND final states
-    // This prevents issues where CSS classes might set conflicting initial states
     const tween = gsap.fromTo(items,
       {
         y: y,
         opacity: 0,
-        clearProps: 'transform', // Clear any CSS transform classes
         ...from
       },
       {
         y: 0,
         opacity: 1,
-        duration: 0.4, // Faster duration
-        stagger: actualStagger * 0.7, // Faster stagger
+        clearProps: 'transform',
+        duration: 0.4,
+        stagger: actualStagger * 0.7,
         ease: animConfig.easeOut,
         scrollTrigger: {
           trigger: containerRef.current,
-          start: "top 90%", // Trigger earlier (was 80%)
+          start: "top 90%",
           toggleActions: "play none none reverse"
         },
         ...to
@@ -405,7 +408,7 @@ export const useBatchReveal = (
       tween.scrollTrigger?.kill();
       tween.kill();
     };
-  }, { scope: containerRef, dependencies: [selector, actualStagger, y] });
+  }, { scope: containerRef, dependencies: [selector, actualStagger, y, fromKey, toKey] });
 
   return [containerRef];
 };

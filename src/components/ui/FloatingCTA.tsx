@@ -75,7 +75,8 @@ export function FloatingCTA() {
 
     gsap.set(glowRef.current, { scale: 1, opacity: 0.4 });
 
-    const tween = gsap.to(glowRef.current, {
+    let tween: gsap.core.Tween | undefined;
+    tween = gsap.to(glowRef.current, {
       scale: 1.6,
       opacity: 0,
       duration: 2,
@@ -83,7 +84,7 @@ export function FloatingCTA() {
       ease: 'sine.out',
     });
 
-    return () => { tween.kill(); };
+    return () => { tween?.kill(); };
   }, { dependencies: [isVisible] });
 
   // Hover effects with magnetic pull
@@ -102,9 +103,10 @@ export function FloatingCTA() {
       const handleMouseLeave = () => {
         gsap.to(el, {
           scale: 1,
-          clearProps: 'boxShadow',
+          boxShadow: '0 0 0 rgba(0,0,0,0)',
           duration: 0.3,
           ease: 'power2.out',
+          onComplete: () => { gsap.set(el, { clearProps: 'boxShadow' }); },
         });
       };
 
@@ -142,7 +144,7 @@ export function FloatingCTA() {
         rel="noopener noreferrer"
         aria-label="تابعنا على فيسبوك"
         className={cn(
-          "flex items-center justify-center w-[52px] h-[52px] rounded-full",
+          "flex items-center justify-center w-14 h-14 rounded-full",
           "bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl",
           "border border-white/40 dark:border-gray-600/40",
           "shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_15px_rgba(0,0,0,0.3)]",

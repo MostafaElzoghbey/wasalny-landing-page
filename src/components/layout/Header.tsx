@@ -192,20 +192,27 @@ export function Header() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
 
-      // Update Active Section
-      const currentPos = window.scrollY + 100; // Offset for header
+      requestAnimationFrame(() => {
+        const currentPos = window.scrollY + 100;
 
-      let current = '';
-      for (const link of navLinks) {
-        const sectionId = link.href.substring(1);
-        const element = document.getElementById(sectionId);
-        if (element && currentPos >= element.offsetTop && currentPos < (element.offsetTop + element.offsetHeight)) {
-          current = '#' + sectionId;
+        let current = '';
+        for (const link of navLinks) {
+          const sectionId = link.href.substring(1);
+          const element = document.getElementById(sectionId);
+          if (element && currentPos >= element.offsetTop && currentPos < (element.offsetTop + element.offsetHeight)) {
+            current = '#' + sectionId;
+          }
         }
-      }
-      if (current) setActiveSection(current);
+        if (current) setActiveSection(current);
+
+        ticking = false;
+      });
     };
 
     window.addEventListener('scroll', handleScroll);
