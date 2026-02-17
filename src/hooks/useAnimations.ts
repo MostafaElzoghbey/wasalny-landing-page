@@ -1,8 +1,6 @@
 import { useState, useRef } from 'react';
-import gsap, { animConfig, revealTrigger } from '../lib/gsap';
-import { useGSAP } from '@gsap/react';
 import SplitType from 'split-type';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import gsap, { ScrollTrigger, useGSAP, animConfig, revealTrigger } from '@/lib/gsap';
 
 interface TextRevealOptions {
   type?: 'lines' | 'words' | 'chars';
@@ -16,12 +14,12 @@ interface TextRevealOptions {
 }
 
 export const useTextReveal = (
-  ref: React.RefObject<HTMLElement | null>, 
+  ref: React.RefObject<HTMLElement | null>,
   options: TextRevealOptions = {}
 ) => {
-  const { 
-    type = 'words', 
-    stagger = 0.05, 
+  const {
+    type = 'words',
+    stagger = 0.05,
     delay = 0,
     duration = 0.5, // Faster default
     start = "top 92%", // Earlier trigger
@@ -31,72 +29,78 @@ export const useTextReveal = (
   } = options;
 
   const actualType = splitType || type;
+  const fromKey = JSON.stringify(from);
+  const toKey = JSON.stringify(to);
 
   useGSAP(() => {
     if (!ref.current) return;
 
     // Use SplitType to split text
     const split = new SplitType(ref.current, { types: actualType });
-    
+
     // Select the elements to animate based on type
-    const elements = actualType === 'chars' ? split.chars : 
-                    actualType === 'words' ? split.words : 
-                    split.lines;
+    const elements = actualType === 'chars' ? split.chars :
+      actualType === 'words' ? split.words :
+        split.lines;
 
     if (!elements || elements.length === 0) return;
 
+    let anim: gsap.core.Tween | undefined;
+
     if (from || to) {
-        gsap.fromTo(elements, 
-            {
-                y: 20,
-                opacity: 0,
-                ...from
-            },
-            {
-                y: 0,
-                opacity: 1,
-                duration: duration,
-                stagger: stagger,
-                ease: animConfig.easeOut,
-                delay: delay,
-                scrollTrigger: {
-                    trigger: ref.current,
-                    start: start,
-                    toggleActions: "play none none reverse"
-                },
-                ...to
-            }
-        );
-    } else {
-        gsap.from(elements, {
+      anim = gsap.fromTo(elements,
+        {
+          y: 20,
+          opacity: 0,
+          ...from
+        },
+        {
+          y: 0,
+          opacity: 1,
+          duration: duration,
+          stagger: stagger,
+          ease: animConfig.easeOut,
+          delay: delay,
           scrollTrigger: {
             trigger: ref.current,
             start: start,
             toggleActions: "play none none reverse"
           },
-          y: 20,
-          opacity: 0,
-          duration: duration,
-          stagger: stagger,
-          ease: animConfig.easeOut,
-          delay: delay
-        });
+          ...to
+        }
+      );
+    } else {
+      anim = gsap.from(elements, {
+        scrollTrigger: {
+          trigger: ref.current,
+          start: start,
+          toggleActions: "play none none reverse"
+        },
+        y: 20,
+        opacity: 0,
+        duration: duration,
+        stagger: stagger,
+        ease: animConfig.easeOut,
+        delay: delay
+      });
     }
 
     return () => {
+      anim?.scrollTrigger?.kill();
+      anim?.kill();
       split.revert();
     };
-  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start] });
+  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start, fromKey, toKey] });
 };
 
 export const useParallax = (
-  ref: React.RefObject<HTMLElement | null>, 
+  ref: React.RefObject<HTMLElement | null>,
   speed: number = 0.5
 ) => {
   useGSAP(() => {
     if (!ref.current) return;
 
-    gsap.to(ref.current, {
+    const tween = gsap.to(ref.current, {
       scrollTrigger: {
         trigger: ref.current,
         start: "top bottom",
@@ -106,6 +110,11 @@ export const useParallax = (
       y: () => -speed * ScrollTrigger.maxScroll(window) * 0.1, // Simple parallax calc
       ease: "none"
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [speed] });
 };
 
@@ -125,7 +134,7 @@ export const useMagneticButton = (
       const { left, top, width, height } = el.getBoundingClientRect();
       const x = (clientX - (left + width / 2)) * strength;
       const y = (clientY - (top + height / 2)) * strength;
-      
+
       xTo(x);
       yTo(y);
     };
@@ -151,7 +160,7 @@ export const useScrollProgress = (ref: React.RefObject<HTMLElement | null>) => {
   useGSAP(() => {
     if (!ref.current) return;
 
-    ScrollTrigger.create({
+    const trigger = ScrollTrigger.create({
       trigger: ref.current,
       start: "top top",
       end: "bottom bottom",
@@ -159,6 +168,10 @@ export const useScrollProgress = (ref: React.RefObject<HTMLElement | null>) => {
         setProgress(self.progress);
       }
     });
+
+    return () => {
+      trigger.kill();
+    };
   }, { scope: ref });
 
   return progress;
@@ -184,7 +197,7 @@ export const useCounterAnimation = (
     const { duration = 2, delay = 0, prefix = '', suffix = '', ease = "power2.out", scrollTrigger } = options;
     const obj = { value: 0 };
 
-    gsap.to(obj, {
+    const tween = gsap.to(obj, {
       value: endValue,
       duration: duration,
       delay: delay,
@@ -196,6 +209,11 @@ export const useCounterAnimation = (
         }
       }
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [endValue] });
 };
 
@@ -206,13 +224,11 @@ export const useSectionReveal = (
 ) => {
   useGSAP(() => {
     if (!ref.current) return;
-    
-    // Select all direct children or specific elements if needed
+
     const children = ref.current.children;
-    
     if (children.length === 0) return;
 
-    gsap.from(children, {
+    const tween = gsap.from(children, {
       y: 20,
       opacity: 0,
       duration: 0.5,
@@ -220,10 +236,15 @@ export const useSectionReveal = (
       ease: animConfig.easeOut,
       scrollTrigger: {
         trigger: ref.current,
-        start: "top 90%", // Earlier trigger
+        start: "top 90%",
         toggleActions: "play none none reverse"
       }
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref });
 };
 
@@ -237,13 +258,17 @@ export const useFloatingAnimation = (
   useGSAP(() => {
     if (!ref.current) return;
 
-    gsap.to(ref.current, {
+    const tween = gsap.to(ref.current, {
       y: -amplitude,
       duration: duration,
       ease: "sine.inOut",
       repeat: -1,
       yoyo: true
     });
+
+    return () => {
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [amplitude, duration] });
 };
 
@@ -257,7 +282,7 @@ export const useScaleOnScroll = (
   useGSAP(() => {
     if (!ref.current) return;
 
-    gsap.fromTo(ref.current, 
+    const tween = gsap.fromTo(ref.current,
       { scale: startScale, opacity: 0 },
       {
         scale: endScale,
@@ -270,6 +295,11 @@ export const useScaleOnScroll = (
         }
       }
     );
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [startScale, endScale] });
 };
 
@@ -281,21 +311,21 @@ interface TiltOptions {
 
 // Hook for 3D tilt effect on cards
 export const useTiltEffect = (
-    ref: React.RefObject<HTMLElement | null>,
-    options: TiltOptions = {}
+  ref: React.RefObject<HTMLElement | null>,
+  options: TiltOptions = {}
 ) => {
   const { max = 15, speed = 400 } = options;
 
   useGSAP(() => {
     if (!ref.current) return;
-    
+
     const el = ref.current;
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       const { left, top, width, height } = el.getBoundingClientRect();
       const x = (e.clientX - left) / width - 0.5;
       const y = (e.clientY - top) / height - 0.5;
-      
+
       gsap.to(el, {
         rotationY: x * max,
         rotationX: -y * max,
@@ -304,7 +334,7 @@ export const useTiltEffect = (
         ease: "power2.out"
       });
     };
-    
+
     const handleMouseLeave = () => {
       gsap.to(el, {
         rotationY: 0,
@@ -313,10 +343,10 @@ export const useTiltEffect = (
         ease: "power2.out"
       });
     };
-    
+
     el.addEventListener("mousemove", handleMouseMove);
     el.addEventListener("mouseleave", handleMouseLeave);
-    
+
     return () => {
       el.removeEventListener("mousemove", handleMouseMove);
       el.removeEventListener("mouseleave", handleMouseLeave);
@@ -342,37 +372,43 @@ export const useBatchReveal = (
 
   // Backwards compatibility for stagger vs interval
   const actualStagger = stagger !== undefined ? stagger : interval;
-  
+
+  const fromKey = JSON.stringify(from);
+  const toKey = JSON.stringify(to);
+
   useGSAP(() => {
     if (!containerRef.current) return;
-    
+
     const items = containerRef.current.querySelectorAll(selector);
     if (items.length === 0) return;
-    
-    // Always use fromTo to ensure proper initial AND final states
-    // This prevents issues where CSS classes might set conflicting initial states
-    gsap.fromTo(items, 
-        {
-            y: y,
-            opacity: 0,
-            clearProps: 'transform', // Clear any CSS transform classes
-            ...from
+
+    const tween = gsap.fromTo(items,
+      {
+        y: y,
+        opacity: 0,
+        ...from
+      },
+      {
+        y: 0,
+        opacity: 1,
+        clearProps: 'transform',
+        duration: 0.4,
+        stagger: actualStagger * 0.7,
+        ease: animConfig.easeOut,
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 90%",
+          toggleActions: "play none none reverse"
         },
-        {
-            y: 0,
-            opacity: 1,
-            duration: 0.4, // Faster duration
-            stagger: actualStagger * 0.7, // Faster stagger
-            ease: animConfig.easeOut,
-            scrollTrigger: {
-                trigger: containerRef.current,
-                start: "top 90%", // Trigger earlier (was 80%)
-                toggleActions: "play none none reverse"
-            },
-            ...to
-        }
+        ...to
+      }
     );
-  }, { scope: containerRef, dependencies: [selector, actualStagger, y] });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
+  }, { scope: containerRef, dependencies: [selector, actualStagger, y, fromKey, toKey] });
 
   return [containerRef];
 };
@@ -386,16 +422,16 @@ export const useDrawPath = (
 
   useGSAP(() => {
     if (!ref.current) return;
-    
+
     const path = ref.current;
     const length = path.getTotalLength();
-    
+
     gsap.set(path, {
       strokeDasharray: length,
       strokeDashoffset: length
     });
-    
-    gsap.to(path, {
+
+    const tween = gsap.to(path, {
       strokeDashoffset: 0,
       duration: scrub ? 1 : duration,
       ease: scrub ? "none" : "power2.inOut",
@@ -407,6 +443,11 @@ export const useDrawPath = (
         toggleActions: scrub ? undefined : "play none none reverse"
       }
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [duration, scrub] });
 };
 
@@ -417,15 +458,15 @@ export const useImageReveal = (
 ) => {
   useGSAP(() => {
     if (!ref.current) return;
-    
+
     const clips = {
       left: { from: 'inset(0 100% 0 0)', to: 'inset(0 0% 0 0)' },
       right: { from: 'inset(0 0 0 100%)', to: 'inset(0 0 0 0%)' },
       top: { from: 'inset(100% 0 0 0)', to: 'inset(0% 0 0 0)' },
       bottom: { from: 'inset(0 0 100% 0)', to: 'inset(0 0 0% 0)' }
     };
-    
-    gsap.fromTo(ref.current,
+
+    const tween = gsap.fromTo(ref.current,
       { clipPath: clips[direction].from },
       {
         clipPath: clips[direction].to,
@@ -438,5 +479,10 @@ export const useImageReveal = (
         }
       }
     );
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [direction] });
 };

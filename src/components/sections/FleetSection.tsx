@@ -247,6 +247,7 @@ export function FleetSection() {
   const card2Ref = useRef<HTMLDivElement>(null);
   const icon2Ref = useRef<SVGSVGElement>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const tablistRef = useRef<HTMLDivElement>(null);
   // Touch refs
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -343,7 +344,69 @@ export function FleetSection() {
     return () => {
       cleanups.forEach(fn => fn());
     };
-  }, { scope: infoRef });
+  }, { scope: infoRef, dependencies: [activeCategory] });
+
+  useGSAP(() => {
+    if (!tablistRef.current) return;
+
+    const buttons = tablistRef.current.querySelectorAll('button[role="tab"]');
+    const cleanups: (() => void)[] = [];
+
+    buttons.forEach((button) => {
+      const icon = button.querySelector('svg');
+      const text = button.querySelector('span');
+
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to(button, {
+        y: -6,
+        scale: 1.12,
+        boxShadow: '0 15px 35px -6px rgba(37, 99, 235, 0.85)',
+        duration: 0.08,
+        ease: 'power2.out'
+      }, 0);
+
+      if (icon) {
+        tl.to(icon, {
+          scale: 1.35,
+          rotation: 18,
+          duration: 0.08,
+          ease: 'power2.out'
+        }, 0);
+      }
+
+      if (text) {
+        tl.to(text, {
+          x: 6,
+          duration: 0.08,
+          ease: 'power2.out'
+        }, 0);
+      }
+
+      const onEnter = () => {
+        if (button.getAttribute('aria-selected') !== 'true') {
+          tl.play();
+        }
+      };
+
+      const onLeave = () => {
+        tl.reverse();
+      };
+
+      button.addEventListener('mouseenter', onEnter);
+      button.addEventListener('mouseleave', onLeave);
+
+      cleanups.push(() => {
+        button.removeEventListener('mouseenter', onEnter);
+        button.removeEventListener('mouseleave', onLeave);
+        tl.kill();
+      });
+    });
+
+    return () => {
+      cleanups.forEach(fn => fn());
+    };
+  }, { scope: tablistRef });
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchEndX.current = 0;
@@ -367,13 +430,13 @@ export function FleetSection() {
     <section id="fleet" ref={containerRef} className="section-padding relative overflow-hidden bg-gray-50 dark:bg-gray-950 min-h-screen flex flex-col justify-center">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-100 via-gray-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-black opacity-80" />
       <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] bg-[size:60px_60px] bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)]" />
-      <div className={cn("absolute top-1/4 left-0 w-[500px] h-[500px] bg-gradient-to-br rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} />
-      <div className={cn("absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-tl rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} style={{ animationDelay: '2s' }} />
+      <div className={cn("absolute top-1/4 -left-64 w-[500px] h-[500px] bg-gradient-to-br rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} />
+      <div className={cn("absolute bottom-0 -right-64 w-[500px] h-[500px] bg-gradient-to-tl rounded-full blur-[100px] animate-pulse transition-colors duration-1000 animation-delay-2000", currentColors.primary, currentColors.accent)} />
 
       <div className="section-container relative z-10 w-full text-right" dir="rtl">
         <div className="flex flex-col items-center mb-12 lg:mb-20">
           <SectionHeading title="أسطولنا المميز" subtitle="نجمع بين الفخامة والراحة في كل رحلة" className="mb-8" />
-          <div className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-white/20 shadow-xl" role="tablist">
+          <div ref={tablistRef} className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-white/20 shadow-xl" role="tablist">
             {carCategories.map((cat) => {
               const IconComponent = iconMap[cat.icon as keyof typeof iconMap];
               return (
@@ -471,7 +534,7 @@ export function FleetSection() {
             </div>
 
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20">
-              <button onClick={prevImage} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors" aria-label="الصورة السابقة">
+              <button onClick={prevImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
                 <ChevronRight className="w-6 h-6" />
               </button>
               <div className="flex items-center gap-4 min-w-[120px]">
@@ -480,11 +543,11 @@ export function FleetSection() {
                 </div>
                 <span className="text-sm font-mono text-gray-500 dark:text-gray-400">{currentImageIndex + 1}/{images.length}</span>
               </div>
-              <button onClick={nextImage} className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors" aria-label="الصورة التالية">
+              <button onClick={nextImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة التالية">
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-2" />
-              <button onClick={() => setIsPaused(!isPaused)} className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400">
+              <button onClick={() => setIsPaused(!isPaused)} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                 {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               </button>
             </div>
