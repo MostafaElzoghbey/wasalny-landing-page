@@ -9,9 +9,20 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
         "@context": "https://schema.org",
         "@type": "CarRental",
         "name": "Wasalny Travel - وصلني ترافيل",
-        "image": "https://wasalny-travel.com/assets/images/logo/logo.jpeg",
+        "image": "https://wasalny.pages.dev/assets/images/logo/logo.jpeg",
         "description": "Premium car rental and passenger transport services in Damietta, Cairo, and Airports. Modern fleet of Sedans, SUVs, and Minibuses.",
-        "url": "https://wasalny-travel.com",
+        "url": "https://wasalny.pages.dev",
+        "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://wasalny.pages.dev"
+                }
+            ]
+        },
         "telephone": "+201005656117",
         "address": {
             "@type": "PostalAddress",
@@ -26,6 +37,21 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
             "latitude": "31.4175",
             "longitude": "31.8144"
         },
+        "priceRange": "$$",
+        "areaServed": [
+            {
+                "@type": "City",
+                "name": "Damietta"
+            },
+            {
+                "@type": "City",
+                "name": "Cairo"
+            },
+            {
+                "@type": "Place",
+                "name": "Cairo International Airport"
+            }
+        ],
         "openingHoursSpecification": {
             "@type": "OpeningHoursSpecification",
             "dayOfWeek": [
@@ -52,9 +78,61 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
                         "@type": "Product",
                         "name": car.nameAr,
                         "description": car.seoDescription || car.description,
-                        "image": `https://wasalny-travel.com${car.images[0]}`
+                        "image": `https://wasalny.pages.dev${car.images[0]}`
                     }
                 }))
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "3000",
+            "bestRating": "5",
+            "worstRating": "1"
+        },
+        "mainEntity": {
+            "@type": "FAQPage",
+            "mainEntity": [
+                {
+                    "@type": "Question",
+                    "name": "كيف يمكنني حجز رحلة؟",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "يمكنك حجز رحلتك بسهولة عن طريق الاتصال بنا مباشرة أو التواصل معنا عبر واتساب. فريق خدمة العملاء متاح على مدار الساعة لتنسيق رحلتك."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "ما هي أسعار الرحلات من دمياط للقاهرة؟",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "نقدم أسعاراً تنافسية تبدأ من أسعار اقتصادية للسيارات السيدان وتختلف حسب نوع السيارة (SUV، ميكروباص) والوجهة (القاهرة، المطار). تواصل معنا للحصول على عرض سعر دقيق لرحلتك."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "هل توفرون خدمة استقبال من المطار؟",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "نعم، نوفر خدمة استقبال من مطار القاهرة الدولي. سيكون السائق في انتظارك في صالة الوصول لضمان تجربة مريحة وسلسة."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "ما هي أنواع السيارات المتاحة لديكم؟",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "لدينا أسطول متنوع يشمل سيارات سيدان حديثة (تويوتا، كيا)، سيارات عائلية (SUV)، وميكروباصات حديثة (HiAce) للمجموعات، بالإضافة إلى سيارات ليموزين للمناسبات الخاصة."
+                    }
+                },
+                {
+                    "@type": "Question",
+                    "name": "هل يمكن حجز سيارة عائلية للسفر؟",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "بالتأكيد! نوفر سيارات عائلية واسعة ومريحة (مثل كيا كرنفال وتويوتا هايس) لضمان راحة جميع أفراد العائلة مع مساحة كافية للأمتعة."
+                    }
+                }
+            ]
         }
     };
 

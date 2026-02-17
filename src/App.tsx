@@ -15,6 +15,7 @@ const FeaturesSection = lazy(() => import('@/components/sections/FeaturesSection
 const AppShowcaseSection = lazy(() => import('@/components/sections/AppShowcaseSection').then(module => ({ default: module.AppShowcaseSection })));
 const CTASection = lazy(() => import('@/components/sections/CTASection').then(module => ({ default: module.CTASection })));
 const PricingCalculator = lazy(() => import('@/components/sections/PricingCalculator').then(module => ({ default: module.PricingCalculator })));
+const FAQSection = lazy(() => import('@/components/sections/FAQSection').then(module => ({ default: module.FAQSection })));
 
 import { JsonLd } from '@/components/SEO/JsonLd';
 import { cars } from '@/data/cars';
@@ -58,6 +59,9 @@ function App() {
             </Suspense>
             <Suspense fallback={<SectionLoader />}>
               <FeaturesSection />
+            </Suspense>
+            <Suspense fallback={<SectionLoader />}>
+              <FAQSection />
             </Suspense>
             <Suspense fallback={<SectionLoader />}>
               <CTASection />
