@@ -109,11 +109,11 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
     if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') animateOut();
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen, animateOut]);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -124,12 +124,12 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
   }, [isOpen, animateIn, animateOut]);
 
   const handleClose = () => {
-    animateOut();
+    onClose();
   };
 
   const handleNavClick = (href: string) => {
     onNavClick(href);
-    animateOut();
+    onClose();
   };
 
   if (!isOpen && !isVisible) return null;
@@ -219,9 +219,9 @@ export function Header() {
     };
 
     handleScroll();
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true } as AddEventListenerOptions);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll, { passive: true } as EventListenerOptions);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
