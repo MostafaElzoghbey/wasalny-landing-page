@@ -102,7 +102,7 @@ export function FloatingCTA() {
       const handleMouseLeave = () => {
         gsap.to(el, {
           scale: 1,
-          boxShadow: '0 0 0 rgba(0,0,0,0)',
+          clearProps: 'boxShadow',
           duration: 0.3,
           ease: 'power2.out',
         });

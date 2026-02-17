@@ -1,8 +1,6 @@
 import { useState, useRef } from 'react';
-import gsap, { animConfig, revealTrigger, rtlX } from '../lib/gsap';
-import { useGSAP } from '@gsap/react';
+import gsap, { ScrollTrigger, useGSAP, animConfig, revealTrigger, rtlX } from '@/lib/gsap';
 import SplitType from 'split-type';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 interface TextRevealOptions {
   type?: 'lines' | 'words' | 'chars';
@@ -45,8 +43,10 @@ export const useTextReveal = (
 
     if (!elements || elements.length === 0) return;
 
+    let anim: gsap.core.Tween | undefined;
+
     if (from || to) {
-      gsap.fromTo(elements,
+      anim = gsap.fromTo(elements,
         {
           y: 20,
           opacity: 0,
@@ -68,7 +68,7 @@ export const useTextReveal = (
         }
       );
     } else {
-      gsap.from(elements, {
+      anim = gsap.from(elements, {
         scrollTrigger: {
           trigger: ref.current,
           start: start,
@@ -84,9 +84,11 @@ export const useTextReveal = (
     }
 
     return () => {
+      anim?.scrollTrigger?.kill();
+      anim?.kill();
       split.revert();
     };
-  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start, from, to] });
+  }, { scope: ref, dependencies: [actualType, stagger, delay, duration, start] });
 };
 
 export const useParallax = (
@@ -156,7 +158,7 @@ export const useScrollProgress = (ref: React.RefObject<HTMLElement | null>) => {
   useGSAP(() => {
     if (!ref.current) return;
 
-    ScrollTrigger.create({
+    const trigger = ScrollTrigger.create({
       trigger: ref.current,
       start: "top top",
       end: "bottom bottom",
@@ -164,6 +166,10 @@ export const useScrollProgress = (ref: React.RefObject<HTMLElement | null>) => {
         setProgress(self.progress);
       }
     });
+
+    return () => {
+      trigger.kill();
+    };
   }, { scope: ref });
 
   return progress;
@@ -189,7 +195,7 @@ export const useCounterAnimation = (
     const { duration = 2, delay = 0, prefix = '', suffix = '', ease = "power2.out", scrollTrigger } = options;
     const obj = { value: 0 };
 
-    gsap.to(obj, {
+    const tween = gsap.to(obj, {
       value: endValue,
       duration: duration,
       delay: delay,
@@ -201,6 +207,11 @@ export const useCounterAnimation = (
         }
       }
     });
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [endValue] });
 };
 
@@ -245,13 +256,17 @@ export const useFloatingAnimation = (
   useGSAP(() => {
     if (!ref.current) return;
 
-    gsap.to(ref.current, {
+    const tween = gsap.to(ref.current, {
       y: -amplitude,
       duration: duration,
       ease: "sine.inOut",
       repeat: -1,
       yoyo: true
     });
+
+    return () => {
+      tween.kill();
+    };
   }, { scope: ref, dependencies: [amplitude, duration] });
 };
 
@@ -364,7 +379,7 @@ export const useBatchReveal = (
 
     // Always use fromTo to ensure proper initial AND final states
     // This prevents issues where CSS classes might set conflicting initial states
-    gsap.fromTo(items,
+    const tween = gsap.fromTo(items,
       {
         y: y,
         opacity: 0,
@@ -385,6 +400,11 @@ export const useBatchReveal = (
         ...to
       }
     );
+
+    return () => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    };
   }, { scope: containerRef, dependencies: [selector, actualStagger, y] });
 
   return [containerRef];

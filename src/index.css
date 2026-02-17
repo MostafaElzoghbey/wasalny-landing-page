@@ -149,13 +149,10 @@
     @apply border-[hsl(var(--border))];
   }
 
+  /* Global scrolling & scrollbar */
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
-  }
-
-  /* Global custom scrollbar */
-  html {
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary-500) transparent;
   }
