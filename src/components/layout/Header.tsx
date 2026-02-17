@@ -83,17 +83,6 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
 
   }, []);
 
-  // Handle Escape key separately so the listener is properly cleaned up
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
-
   const animateOut = useCallback(() => {
     if (!backdropRef.current || !panelRef.current) return;
 
@@ -115,6 +104,16 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
       }
     });
   }, [onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') animateOut();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isOpen, animateOut]);
 
   useEffect(() => {
     if (isOpen) {
@@ -180,7 +179,7 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
       </div>
     </FocusTrap>
   );
-};
+}
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
