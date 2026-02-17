@@ -172,6 +172,8 @@ const MobileMenu = ({ isOpen, onClose, onNavClick, id }: MobileMenuProps) => {
   );
 };
 
+gsap.registerPlugin(ScrollTrigger);
+
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
@@ -180,8 +182,6 @@ export function Header() {
   const progressRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLAnchorElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  gsap.registerPlugin(ScrollTrigger);
 
   useEffect(() => {
     const handleScroll = () => {
