@@ -49,8 +49,8 @@ function Lightbox({
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') onPrev();
-      if (e.key === 'ArrowLeft') onNext();
+      if (e.key === 'ArrowRight') onNext();
+      if (e.key === 'ArrowLeft') onPrev();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -156,7 +156,7 @@ export function AppShowcaseSection() {
               <div className="marquee-track animate-scroll-ltr">
                 {row1Loop.map((src, i) => (
                   <div key={`r1-${i}`} onClick={() => openLightbox(src)} className="group relative w-[240px] sm:w-[380px] md:w-[440px] h-[160px] sm:h-[220px] md:h-[260px] flex-shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:z-10">
-                    <img src={src} alt="Wasalny Brand" className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700" loading="eager" />
+                    <img src={src} alt="Wasalny Brand" className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700" />
                     <div className="absolute inset-0 bg-primary-900/5 group-hover:bg-transparent transition-colors duration-500" />
                     <div className="absolute inset-0 border border-white/5 group-hover:border-white/20 rounded-2xl sm:rounded-3xl transition-colors duration-500" />
                   </div>
@@ -169,7 +169,7 @@ export function AppShowcaseSection() {
               <div className="marquee-track animate-scroll-rtl">
                 {row2Loop.map((src, i) => (
                   <div key={`r2-${i}`} onClick={() => openLightbox(src)} className="group relative w-[240px] sm:w-[380px] md:w-[440px] h-[160px] sm:h-[220px] md:h-[260px] flex-shrink-0 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:z-10">
-                    <img src={src} alt="Wasalny Brand" className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700" loading="eager" />
+                    <img src={src} alt="Wasalny Brand" className="w-full h-full object-cover grayscale-[0.1] group-hover:grayscale-0 transition-all duration-700" />
                     <div className="absolute inset-0 bg-primary-900/5 group-hover:bg-transparent transition-colors duration-500" />
                     <div className="absolute inset-0 border border-white/5 group-hover:border-white/20 rounded-2xl sm:rounded-3xl transition-colors duration-500" />
                   </div>

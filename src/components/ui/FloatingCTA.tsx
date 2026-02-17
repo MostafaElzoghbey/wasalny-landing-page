@@ -86,11 +86,11 @@ export function FloatingCTA() {
   useGSAP(() => {
     if (!waButtonRef.current || !fbButtonRef.current) return;
 
-    [waButtonRef.current, fbButtonRef.current].forEach(el => {
+    const setupHover = (el: HTMLAnchorElement, hoverShadow: string) => {
       const handleMouseEnter = () => {
         gsap.to(el, {
           scale: 1.15,
-          boxShadow: '0 8px 30px rgba(37, 211, 102, 0.35)',
+          boxShadow: hoverShadow,
           duration: 0.3,
           ease: 'power2.out',
         });
@@ -98,7 +98,7 @@ export function FloatingCTA() {
       const handleMouseLeave = () => {
         gsap.to(el, {
           scale: 1,
-          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
+          clearProps: 'boxShadow',
           duration: 0.3,
           ease: 'power2.out',
         });
@@ -111,7 +111,15 @@ export function FloatingCTA() {
         el.removeEventListener('mouseenter', handleMouseEnter);
         el.removeEventListener('mouseleave', handleMouseLeave);
       };
-    });
+    };
+
+    const cleanupWa = setupHover(waButtonRef.current, '0 8px 30px rgba(37, 211, 102, 0.35)');
+    const cleanupFb = setupHover(fbButtonRef.current, '0 8px 30px rgba(24, 119, 242, 0.35)');
+
+    return () => {
+      cleanupWa?.();
+      cleanupFb?.();
+    };
   }, {});
 
   const whatsappLink = `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('السلام عليكم، أريد حجز رحلة')}`;

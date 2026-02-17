@@ -71,14 +71,18 @@ const MobileMenu = ({ isOpen, onClose, onNavClick, id }: MobileMenuProps) => {
       { opacity: 1, x: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out', delay: 0.1 }
     );
 
-    // Handle Escape key
+  }, []);
+
+  // Handle Escape key separately so the listener is properly cleaned up
+  useEffect(() => {
+    if (!isOpen) return;
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
-
-  }, [onClose]); // Include onClose in dependencies
+  }, [isOpen, onClose]);
 
   const animateOut = useCallback(() => {
     if (!backdropRef.current || !panelRef.current) return;
