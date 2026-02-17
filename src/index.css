@@ -171,19 +171,16 @@
   html::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, var(--color-primary-400), var(--color-primary-600));
     border-radius: 3px;
-    transition: background 0.3s ease;
   }
 
   html::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--color-primary-300), var(--color-primary-500));
   }
 
-  .dark html::-webkit-scrollbar-thumb,
   .dark::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, var(--color-primary-500), var(--color-primary-700));
   }
 
-  .dark html::-webkit-scrollbar-thumb:hover,
   .dark::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--color-primary-400), var(--color-primary-600));
   }
