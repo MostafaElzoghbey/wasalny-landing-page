@@ -99,6 +99,6 @@ export const contactInfo = {
   phone: '01005656117',
   whatsapp: '201005656117',
   email: 'info@wasalny.eg',
-  address: 'دمياط، مصر',
+  address: 'قهوة حكاوي، شارع وزير، قسم دمياط',
   facebook: 'https://www.facebook.com/damitta.wasalny/?locale=ar_AR',
 };

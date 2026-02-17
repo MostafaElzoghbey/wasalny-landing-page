@@ -8,25 +8,18 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
     const structuredData = {
         "@context": "https://schema.org",
         "@type": "CarRental",
-        "name": "Wasalny Travel - وصلني ترافيل",
+        "name": "مكتب وصلني في دمياط (Wasalny Office)",
         "image": "https://wasalny.pages.dev/assets/images/logo/logo.jpeg",
         "description": "Premium car rental and passenger transport services in Damietta, Cairo, and Airports. Modern fleet of Sedans, SUVs, and Minibuses.",
         "url": "https://wasalny.pages.dev",
-        "breadcrumb": {
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-                {
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "Home",
-                    "item": "https://wasalny.pages.dev"
-                }
-            ]
-        },
+        "sameAs": [
+            "https://share.google/qCkiUoMQSmVUzxSly",
+            "https://www.facebook.com/profile.php?id=100054619677322"
+        ],
         "telephone": "+201005656117",
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "Damietta",
+            "streetAddress": "قهوة حكاوي، شارع وزير، قسم دمياط",
             "addressLocality": "Damietta",
             "addressRegion": "Damietta",
             "postalCode": "34511",
@@ -84,8 +77,8 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
         },
         "aggregateRating": {
             "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "reviewCount": "3000",
+            "ratingValue": "5.0",
+            "reviewCount": "5",
             "bestRating": "5",
             "worstRating": "1"
         },
