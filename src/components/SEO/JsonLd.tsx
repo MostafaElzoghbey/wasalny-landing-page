@@ -62,30 +62,40 @@ export function JsonLd({ cars }: JsonLdProps) {
                     "opens": "00:00",
                     "closes": "23:59"
                 },
-                "hasOfferCatalog": {
-                    "@type": "OfferCatalog",
-                    "name": "Car Rental Fleet",
-                    "itemListElement": cars
-                        .filter(car =>
-                            Array.isArray(car.images) &&
-                            car.images.length > 0 &&
-                            typeof car.images[0] === 'string' &&
-                            car.images[0].trim().length > 0
-                        )
-                        .map((car, index) => {
-                            const firstImage = car.images[0].trim();
-                            return {
-                                "@type": "ListItem",
-                                "position": index + 1,
-                                "item": {
-                                    "@type": "Product",
-                                    "name": car.nameAr,
-                                    "description": car.seoDescription || car.description,
-                                    "image": `https://wasalny.pages.dev${firstImage.startsWith('/') ? '' : '/'}${firstImage}`
-                                }
-                            };
-                        })
-                }
+                ...(cars.filter(car =>
+                    Array.isArray(car.images) &&
+                    car.images.length > 0 &&
+                    typeof car.images[0] === 'string' &&
+                    car.images[0].trim().length > 0
+                ).length > 0 ? {
+                    "hasOfferCatalog": {
+                        "@type": "OfferCatalog",
+                        "name": "Car Rental Fleet",
+                        "itemListElement": cars
+                            .filter(car =>
+                                Array.isArray(car.images) &&
+                                car.images.length > 0 &&
+                                typeof car.images[0] === 'string' &&
+                                car.images[0].trim().length > 0
+                            )
+                            .map((car, index) => {
+                                const firstImage = car.images[0].trim();
+                                const imageUrl = /^https?:\/\//i.test(firstImage)
+                                    ? firstImage
+                                    : `https://wasalny.pages.dev${firstImage.startsWith('/') ? '' : '/'}${firstImage}`;
+                                return {
+                                    "@type": "ListItem",
+                                    "position": index + 1,
+                                    "item": {
+                                        "@type": "Product",
+                                        "name": car.nameAr,
+                                        "description": car.seoDescription || car.description,
+                                        "image": imageUrl
+                                    }
+                                };
+                            })
+                    }
+                } : {})
             },
             {
                 "@type": "FAQPage",

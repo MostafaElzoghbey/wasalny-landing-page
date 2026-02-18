@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Phone, Mail, MapPin, Heart } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
@@ -118,6 +118,7 @@ const FooterNavLink = ({ label, onClick }: FooterNavLinkProps) => {
 };
 
 export function Footer() {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const [columnsRef] = useBatchReveal({ selector: '.footer-column', interval: 0.1 });
   const copyrightRef = useRef<HTMLDivElement>(null);
@@ -209,7 +210,7 @@ export function Footer() {
                     label={link.label}
                     onClick={() => {
                       if (window.location.pathname !== '/') {
-                        window.location.href = `/${link.href}`;
+                        navigate('/' + link.href);
                         return;
                       }
                       handleNavClick(link.href);

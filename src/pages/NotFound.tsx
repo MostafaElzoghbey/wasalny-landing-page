@@ -16,6 +16,9 @@ export function NotFound({
         document.title = title;
 
         let meta = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
+        const created = !meta;
+        const previousContent = meta?.content;
+
         if (!meta) {
             meta = document.createElement('meta');
             meta.name = 'robots';
@@ -24,8 +27,11 @@ export function NotFound({
         meta.content = 'noindex';
 
         return () => {
-            if (meta) {
-                meta.content = 'index,follow';
+            if (!meta) return;
+            if (created) {
+                meta.remove();
+            } else if (previousContent !== undefined) {
+                meta.content = previousContent;
             }
         };
     }, [title]);

@@ -51,10 +51,12 @@ function ScrollToTop() {
   const { lenis } = useLenis();
 
   useEffect(() => {
-    // Immediate scroll to top
-    window.scrollTo(0, 0);
-    if (lenis) {
-      lenis.scrollTo(0, { immediate: true });
+    // Immediate scroll to top only if no hash
+    if (!window.location.hash) {
+      window.scrollTo(0, 0);
+      if (lenis) {
+        lenis.scrollTo(0, { immediate: true });
+      }
     }
 
     let rafId: number | null = null;
@@ -99,6 +101,21 @@ function ScrollToTop() {
 }
 
 function HomePage() {
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const element = document.querySelector(hash);
+      if (element) {
+        // Delay slightly to ensure content is rendered/hydrated
+        const timer = setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [hash]);
+
   return (
     <main>
       <title>وصلني - خدمة نقل الركاب</title>

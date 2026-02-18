@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
@@ -12,32 +12,6 @@ export function RoutePage() {
     const { id } = useParams();
     const data = id ? routeData[id] : null;
     const containerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (!data) return;
-
-        document.title = data.metaTitle;
-
-        let desc = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-        if (!desc) {
-            desc = document.createElement('meta');
-            desc.name = 'description';
-            document.head.appendChild(desc);
-        }
-        desc.content = data.metaDescription;
-
-        let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
-        if (!canonical) {
-            canonical = document.createElement('link');
-            canonical.rel = 'canonical';
-            document.head.appendChild(canonical);
-        }
-        canonical.href = `https://wasalny.pages.dev/routes/${id}`;
-
-        return () => {
-            // Optional: reset or handle clean up if needed
-        };
-    }, [id, data]);
 
     useGSAP(() => {
         if (!data || !containerRef.current) return;
@@ -61,6 +35,9 @@ export function RoutePage() {
 
     return (
         <>
+            <title>{data.metaTitle}</title>
+            <meta name="description" content={data.metaDescription} />
+            <link rel="canonical" href={`https://wasalny.pages.dev/routes/${id}`} />
 
             <div ref={containerRef} className="min-h-screen pt-20 pb-12 bg-gray-50 dark:bg-gray-950">
                 <div className="section-container">
@@ -141,8 +118,8 @@ export function RoutePage() {
                                     src={data.heroImage}
                                     alt={data.title}
                                     className="w-full h-full object-cover"
-                                    width="1280"
-                                    height="720"
+                                    width={1280}
+                                    height={720}
                                     loading="eager"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
