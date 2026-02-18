@@ -154,6 +154,8 @@ export function CarouselCard(props: CarouselCardProps) {
   const blur = Math.abs(props.offset) * 4;
 
   useGSAP(() => {
+    if (!cardRef.current) return;
+
     gsap.to(cardRef.current, {
       xPercent: xOffset,
       yPercent: -50,
@@ -166,7 +168,7 @@ export function CarouselCard(props: CarouselCardProps) {
       ease: 'power3.out',
       overwrite: true
     });
-  }, { dependencies: [props.offset] });
+  }, { scope: cardRef, dependencies: [props.offset] });
 
   return (
     <div

@@ -76,7 +76,7 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
                 style={{
                     width: width && typeof width === 'number'
                         ? `${width}px`
-                        : (width ?? (aspectRatio ? '100%' : undefined)),
+                        : width,
                     height: height && typeof height === 'number' ? `${height}px` : height,
                     aspectRatio: aspectRatio
                 }}

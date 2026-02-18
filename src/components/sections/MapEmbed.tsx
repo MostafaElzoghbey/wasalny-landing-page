@@ -21,7 +21,7 @@ export function MapEmbed() {
                             className="w-full h-full border-0"
                             allowFullScreen
                             loading="lazy"
-                            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                            sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-forms allow-pointer-lock"
                             referrerPolicy="no-referrer-when-downgrade"
                             title="موقع مكتب وصلني"
                             aria-label="موقع مكتب وصلني على خرائط جوجل"
