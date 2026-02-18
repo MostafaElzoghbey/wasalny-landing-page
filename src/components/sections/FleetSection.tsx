@@ -139,29 +139,19 @@ interface CarouselCardProps {
   onClick: () => void;
   currentIndex: number;
   totalImages: number;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-const CarouselCard = ({
-  image,
-  alt,
-  isActive,
-  offset,
-  onClick,
-  currentIndex,
-  totalImages,
-  onMouseEnter,
-  onMouseLeave
-}: CarouselCardProps) => {
+export function CarouselCard(props: CarouselCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const xOffset = -50 + (offset * -65);
-  const zOffset = Math.abs(offset) * -300;
-  const rotateY = offset * -15;
-  const scale = Math.max(0, 1 - Math.abs(offset) * 0.15);
-  const opacity = Math.max(0, 1 - Math.abs(offset) * 0.4);
-  const blur = Math.abs(offset) * 4;
+  const xOffset = -50 + (props.offset * -65);
+  const zOffset = Math.abs(props.offset) * -300;
+  const rotateY = props.offset * -15;
+  const scale = Math.max(0, 1 - Math.abs(props.offset) * 0.15);
+  const opacity = Math.max(0, 1 - Math.abs(props.offset) * 0.4);
+  const blur = Math.abs(props.offset) * 4;
 
   useGSAP(() => {
     gsap.to(cardRef.current, {
@@ -176,41 +166,40 @@ const CarouselCard = ({
       ease: 'power3.out',
       overwrite: true
     });
-  }, { dependencies: [offset] });
+  }, { dependencies: [props.offset] });
 
   return (
     <div
       ref={cardRef}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onClick={props.onClick}
+      onMouseEnter={props.onMouseEnter}
+      onMouseLeave={props.onMouseLeave}
       className={cn(
         "absolute top-1/2 left-1/2 origin-center transition-colors duration-300 pointer-events-auto",
-        "max-w-[95%] max-h-[95%] aspect-video",
-        isActive ? "z-20 cursor-default" : "z-10 cursor-pointer hover:brightness-110"
+        "max-w-[95%] max-h-[95%] w-full aspect-video",
+        props.isActive ? "z-20 cursor-default" : "z-10 cursor-pointer hover:brightness-110"
       )}
       style={{
-        transformStyle: 'preserve-3d',
-        width: '100%'
+        transformStyle: 'preserve-3d'
       }}
     >
       <div className={cn(
         "relative w-full h-full rounded-2xl overflow-hidden shadow-2xl",
         "border border-white/20 dark:border-white/10",
-        isActive ? "shadow-primary-500/30 ring-1 ring-primary-500/20" : "shadow-black/40"
+        props.isActive ? "shadow-primary-500/30 ring-1 ring-primary-500/20" : "shadow-black/40"
       )}>
         <OptimizedImage
-          src={image}
-          alt={alt}
+          src={props.image}
+          alt={props.alt}
           className="w-full h-full"
           imgClassName="object-cover"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
         />
 
-        {isActive && (
+        {props.isActive && (
           <div className="absolute top-3 right-3 z-30 flex items-center gap-2 animate-in fade-in zoom-in duration-500 delay-300">
             <div className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-sm font-mono border border-white/20">
-              {currentIndex + 1}/{totalImages}
+              {props.currentIndex + 1}/{props.totalImages}
             </div>
             <div className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white border border-white/30 cursor-pointer hover:bg-white/30 transition-colors">
               <Maximize2 className="w-5 h-5" />
@@ -271,7 +260,7 @@ export function FleetSection() {
 
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    }, 4000);
+    }, 2000);
     return () => clearInterval(interval);
   }, [isHovering, lightboxOpen, isPaused, images.length]);
 

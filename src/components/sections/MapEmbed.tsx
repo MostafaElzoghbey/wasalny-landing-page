@@ -4,12 +4,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 export function MapEmbed() {
     const [isMapVisible, setIsMapVisible] = useState(false);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            setIsMapVisible(true);
-        }
-    };
+
 
     return (
         <section className="section-padding bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
@@ -26,7 +21,7 @@ export function MapEmbed() {
                             className="w-full h-full border-0"
                             allowFullScreen
                             loading="lazy"
-                            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
                             referrerPolicy="no-referrer-when-downgrade"
                             title="موقع مكتب وصلني"
                             aria-label="موقع مكتب وصلني على خرائط جوجل"
@@ -35,7 +30,6 @@ export function MapEmbed() {
                         <button
                             type="button"
                             onClick={() => setIsMapVisible(true)}
-                            onKeyDown={handleKeyDown}
                             className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 w-full h-full p-0 border-0 bg-transparent appearance-none text-right"
                             aria-label="اضغط لعرض الخريطة"
                         >

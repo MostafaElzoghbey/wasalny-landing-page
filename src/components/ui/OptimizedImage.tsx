@@ -74,7 +74,9 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
             <div
                 className={cn("relative overflow-hidden bg-gray-100 dark:bg-gray-800/50", className)}
                 style={{
-                    width: width && typeof width === 'number' ? `${width}px` : width,
+                    width: width && typeof width === 'number'
+                        ? `${width}px`
+                        : (width ?? (aspectRatio ? '100%' : undefined)),
                     height: height && typeof height === 'number' ? `${height}px` : height,
                     aspectRatio: aspectRatio
                 }}
