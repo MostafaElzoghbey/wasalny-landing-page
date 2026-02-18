@@ -131,6 +131,18 @@ const Lightbox = ({ selectedImage, images, imageAlts, currentIndex, onClose, onN
   );
 };
 
+interface CarouselCardProps {
+  image: string;
+  alt: string;
+  isActive: boolean;
+  offset: number;
+  onClick: () => void;
+  currentIndex: number;
+  totalImages: number;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}
+
 const CarouselCard = ({
   image,
   alt,
@@ -141,17 +153,7 @@ const CarouselCard = ({
   totalImages,
   onMouseEnter,
   onMouseLeave
-}: {
-  image: string;
-  alt: string;
-  isActive: boolean;
-  offset: number;
-  onClick: () => void;
-  currentIndex: number;
-  totalImages: number;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-}) => {
+}: CarouselCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
   const xOffset = -50 + (offset * -65);
@@ -184,13 +186,12 @@ const CarouselCard = ({
       onMouseLeave={onMouseLeave}
       className={cn(
         "absolute top-1/2 left-1/2 origin-center transition-colors duration-300 pointer-events-auto",
-        "max-w-[95%] max-h-[95%]",
+        "max-w-[95%] max-h-[95%] aspect-video",
         isActive ? "z-20 cursor-default" : "z-10 cursor-pointer hover:brightness-110"
       )}
       style={{
         transformStyle: 'preserve-3d',
-        width: '100%',
-        aspectRatio: '16/9'
+        width: '100%'
       }}
     >
       <div className={cn(
@@ -266,6 +267,8 @@ export function FleetSection() {
   // Auto-play
   useEffect(() => {
     if (isHovering || lightboxOpen || isPaused) return;
+    if (images.length === 0) return;
+
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
     }, 4000);
