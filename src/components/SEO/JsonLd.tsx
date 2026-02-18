@@ -5,7 +5,7 @@ interface JsonLdProps {
     cars: Car[];
 }
 
-export const JsonLd = ({ cars }: JsonLdProps) => {
+export function JsonLd({ cars }: JsonLdProps) {
     const structuredData = {
         "@context": "https://schema.org",
         "@graph": [

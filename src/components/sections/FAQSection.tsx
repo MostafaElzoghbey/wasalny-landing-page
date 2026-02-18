@@ -1,10 +1,12 @@
 import { useState, useRef, useId } from 'react';
 
+// Third-party
 import { Plus, Minus } from 'lucide-react';
-import gsap from 'gsap';
-
-import { SectionHeading } from '@/components/ui/SectionHeading';
 import { useGSAP } from '@gsap/react';
+
+// Local
+import gsap from '@/lib/gsap';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { cn } from '@/lib/utils';
 import { faqs } from '@/data/faqs';
 import type { Faq } from '@/types';
@@ -45,6 +47,14 @@ export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
             gsap.to(contentEl, { height: 0, duration: 0.3, ease: 'power2.in' });
             gsap.to(iconEl, { rotation: 0, duration: 0.3, ease: 'back.in(1.7)' });
         }
+
+        return () => {
+            gsap.killTweensOf(contentEl);
+            gsap.killTweensOf(iconEl);
+            if (contentEl.children[0]) {
+                gsap.killTweensOf(contentEl.children[0]);
+            }
+        };
     }, { dependencies: [isOpen] });
 
     return (

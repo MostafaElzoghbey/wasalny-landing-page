@@ -1,8 +1,10 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
+
+// Third-party
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 
-// Third-party
+// Local
 import { ScrollTrigger } from '@/lib/gsap';
 import '@/lib/gsap';
 
@@ -56,33 +58,34 @@ function ScrollToTop() {
       lenis.scrollTo(0, { immediate: true });
     }
 
-    let rafId1: number | null = null;
-    let rafId2: number | null = null;
+    let rafId: number | null = null;
     let resizeObserver: ResizeObserver | null = null;
+    let refreshScheduled = false;
 
-    const refresh = () => {
-      if (rafId1 !== null) cancelAnimationFrame(rafId1);
-      if (rafId2 !== null) cancelAnimationFrame(rafId2);
+    const scheduleRefresh = () => {
+      if (refreshScheduled) return;
+      refreshScheduled = true;
 
-      rafId1 = requestAnimationFrame(() => {
-        rafId2 = requestAnimationFrame(() => {
-          ScrollTrigger.refresh();
-        });
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        refreshScheduled = false;
+        ScrollTrigger.refresh();
       });
     };
 
     // Refresh on route change
-    refresh();
+    scheduleRefresh();
 
     // Refresh on body resize (content loading)
-    resizeObserver = new ResizeObserver(() => {
-      refresh();
-    });
-    resizeObserver.observe(document.body);
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        scheduleRefresh();
+      });
+      resizeObserver.observe(document.body);
+    }
 
     return () => {
-      if (rafId1 !== null) cancelAnimationFrame(rafId1);
-      if (rafId2 !== null) cancelAnimationFrame(rafId2);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       resizeObserver?.disconnect();
     };
   }, [pathname, lenis]);
@@ -137,7 +140,7 @@ function AppContent() {
   );
 }
 
-function App() {
+export function App() {
   return (
     <Router>
       <AppContent />

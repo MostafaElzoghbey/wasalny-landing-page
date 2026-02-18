@@ -243,7 +243,7 @@ export function Header() {
         scrollTrigger: {
           trigger: document.documentElement,
           start: 0,
-          end: () => document.documentElement.scrollHeight - window.innerHeight,
+          end: () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
           scrub: 0,
           invalidateOnRefresh: true,
         }

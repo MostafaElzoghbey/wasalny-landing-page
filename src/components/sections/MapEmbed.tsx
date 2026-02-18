@@ -17,7 +17,7 @@ export function MapEmbed() {
                         loading="lazy"
                         referrerPolicy="no-referrer-when-downgrade"
                         title="موقع مكتب وصلني"
-                        sandbox="allow-scripts allow-same-origin"
+                        sandbox="allow-scripts allow-same-origin allow-popups"
                         aria-label="موقع مكتب وصلني على خرائط جوجل"
                     />
                 </div>

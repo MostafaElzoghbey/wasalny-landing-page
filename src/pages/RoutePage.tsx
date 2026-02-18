@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { useParams, Navigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { MapPin, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
@@ -35,7 +35,28 @@ export function RoutePage() {
     // }, [id]);
 
     if (!data) {
-        return <Navigate to="/" replace />;
+        return (
+            <div className="min-h-screen flex items-center justify-center flex-col bg-gray-50 dark:bg-gray-950 p-4 text-center pt-20">
+                <Helmet>
+                    <title>الصفحة غير موجودة - وصلني</title>
+                    <meta name="robots" content="noindex" />
+                </Helmet>
+                <div className="bg-primary-50 dark:bg-primary-900/20 p-6 rounded-full mb-6">
+                    <MapPin className="w-16 h-16 text-primary-600 dark:text-primary-400 opacity-50" />
+                </div>
+                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-4">404</h1>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-md mx-auto">
+                    عذراً، هذا المسار غير موجود أو تم إزالته.
+                </p>
+                <Link
+                    to="/"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-primary-600 text-white rounded-xl hover:bg-primary-500 transition-colors font-bold shadow-lg shadow-primary-600/20"
+                >
+                    <ArrowRight className="w-5 h-5 flip-rtl" />
+                    العودة للرئيسية
+                </Link>
+            </div>
+        );
     }
 
     return (
