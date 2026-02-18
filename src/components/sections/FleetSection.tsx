@@ -131,15 +131,7 @@ const Lightbox = ({ selectedImage, images, imageAlts, currentIndex, onClose, onN
   );
 };
 
-const CarouselCard = ({
-  image,
-  alt,
-  isActive,
-  offset,
-  onClick,
-  currentIndex,
-  totalImages
-}: {
+interface CarouselCardProps {
   image: string;
   alt: string;
   isActive: boolean;
@@ -147,18 +139,23 @@ const CarouselCard = ({
   onClick: () => void;
   currentIndex: number;
   totalImages: number;
-}) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
+}
 
-  const xOffset = -50 + (offset * -65);
-  const zOffset = Math.abs(offset) * -300;
-  const rotateY = offset * -15;
-  const scale = Math.max(0, 1 - Math.abs(offset) * 0.15);
-  const opacity = Math.max(0, 1 - Math.abs(offset) * 0.4);
-  const blur = Math.abs(offset) * 4;
+export function CarouselCard(props: CarouselCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const xOffset = -50 + (props.offset * -65);
+  const zOffset = Math.abs(props.offset) * -300;
+  const rotateY = props.offset * -15;
+  const scale = Math.max(0, 1 - Math.abs(props.offset) * 0.15);
+  const opacity = Math.max(0, 1 - Math.abs(props.offset) * 0.4);
+  const blur = Math.abs(props.offset) * 4;
 
   useGSAP(() => {
+    if (!cardRef.current) return;
+
     gsap.to(cardRef.current, {
       xPercent: xOffset,
       yPercent: -50,
@@ -171,58 +168,40 @@ const CarouselCard = ({
       ease: 'power3.out',
       overwrite: true
     });
-  }, { dependencies: [offset] });
-
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
-  };
-
-  const getCardStyle = () => {
-    if (!imageDimensions) {
-      return { width: '100%', maxWidth: '100%', aspectRatio: '16/9' };
-    }
-    const { width, height } = imageDimensions;
-    const aspectRatio = width / height;
-    if (aspectRatio >= 1) {
-      return { width: '100%', maxWidth: '100%', aspectRatio: `${width}/${height}` };
-    } else {
-      return { height: '100%', maxHeight: '100%', aspectRatio: `${width}/${height}` };
-    }
-  };
+  }, { scope: cardRef, dependencies: [props.offset] });
 
   return (
     <div
       ref={cardRef}
-      onClick={onClick}
+      onClick={props.onClick}
+      onMouseEnter={props.onMouseEnter}
+      onMouseLeave={props.onMouseLeave}
       className={cn(
-        "absolute top-1/2 left-1/2 origin-center transition-colors duration-300",
-        "max-w-[95%] max-h-[95%]",
-        isActive ? "z-20 cursor-default" : "z-10 cursor-pointer hover:brightness-110"
+        "absolute top-1/2 left-1/2 origin-center transition-colors duration-300 pointer-events-auto",
+        "max-w-[95%] max-h-[95%] w-full aspect-video",
+        props.isActive ? "z-20 cursor-default" : "z-10 cursor-pointer hover:brightness-110"
       )}
       style={{
-        transformStyle: 'preserve-3d',
-        ...getCardStyle(),
+        transformStyle: 'preserve-3d'
       }}
     >
       <div className={cn(
         "relative w-full h-full rounded-2xl overflow-hidden shadow-2xl",
         "border border-white/20 dark:border-white/10",
-        isActive ? "shadow-primary-500/30 ring-1 ring-primary-500/20" : "shadow-black/40"
+        props.isActive ? "shadow-primary-500/30 ring-1 ring-primary-500/20" : "shadow-black/40"
       )}>
         <OptimizedImage
-          src={image}
-          alt={alt}
+          src={props.image}
+          alt={props.alt}
           className="w-full h-full"
           imgClassName="object-cover"
-          onLoad={handleImageLoad}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
         />
 
-        {isActive && (
+        {props.isActive && (
           <div className="absolute top-3 right-3 z-30 flex items-center gap-2 animate-in fade-in zoom-in duration-500 delay-300">
             <div className="px-3 py-1 bg-black/50 backdrop-blur-md rounded-full text-white text-sm font-mono border border-white/20">
-              {currentIndex + 1}/{totalImages}
+              {props.currentIndex + 1}/{props.totalImages}
             </div>
             <div className="p-2 bg-white/20 backdrop-blur-md rounded-full text-white border border-white/30 cursor-pointer hover:bg-white/30 transition-colors">
               <Maximize2 className="w-5 h-5" />
@@ -279,9 +258,11 @@ export function FleetSection() {
   // Auto-play
   useEffect(() => {
     if (isHovering || lightboxOpen || isPaused) return;
+    if (images.length === 0) return;
+
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    }, 1000);
+    }, 2000);
     return () => clearInterval(interval);
   }, [isHovering, lightboxOpen, isPaused, images.length]);
 
@@ -512,7 +493,7 @@ export function FleetSection() {
             </div>
           </div>
 
-          <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+          <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
               {Array.from({ length: Math.min(images.length, 3) }).map((_, i) => {
                 const idx = (currentImageIndex + i) % images.length;
@@ -528,12 +509,18 @@ export function FleetSection() {
                     onClick={() => handleCardClick(idx)}
                     currentIndex={currentImageIndex}
                     totalImages={images.length}
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
                   />
                 );
               })}
             </div>
 
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20">
+            <div
+              className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20 pointer-events-auto"
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+            >
               <button onClick={prevImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
                 <ChevronRight className="w-6 h-6" />
               </button>

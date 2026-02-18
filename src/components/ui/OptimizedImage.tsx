@@ -9,6 +9,7 @@ interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> 
     imgClassName?: string; // Applied directly to img
     width?: number | string;
     height?: number | string;
+    aspectRatio?: string; // CSS aspect-ratio property
     priority?: boolean;
     sizes?: string;
 }
@@ -22,6 +23,7 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
             imgClassName,
             width,
             height,
+            aspectRatio,
             priority = false,
             sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
             onLoad,
@@ -72,8 +74,11 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
             <div
                 className={cn("relative overflow-hidden bg-gray-100 dark:bg-gray-800/50", className)}
                 style={{
-                    width: width && typeof width === 'number' ? `${width}px` : width,
-                    height: height && typeof height === 'number' ? `${height}px` : height
+                    width: width && typeof width === 'number'
+                        ? `${width}px`
+                        : width,
+                    height: height && typeof height === 'number' ? `${height}px` : height,
+                    aspectRatio: aspectRatio
                 }}
             >
                 <picture>
