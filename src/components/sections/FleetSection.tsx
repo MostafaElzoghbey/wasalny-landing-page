@@ -190,7 +190,6 @@ const CarouselCard = ({
       style={{
         transformStyle: 'preserve-3d',
         width: '100%',
-        maxWidth: '100%',
         aspectRatio: '16/9'
       }}
     >
@@ -269,7 +268,7 @@ export function FleetSection() {
     if (isHovering || lightboxOpen || isPaused) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    }, 1000);
+    }, 4000);
     return () => clearInterval(interval);
   }, [isHovering, lightboxOpen, isPaused, images.length]);
 
@@ -500,7 +499,7 @@ export function FleetSection() {
             </div>
           </div>
 
-          <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8 pointer-events-none" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+          <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
               {Array.from({ length: Math.min(images.length, 3) }).map((_, i) => {
                 const idx = (currentImageIndex + i) % images.length;
