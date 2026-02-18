@@ -40,3 +40,22 @@ export interface Testimonial {
   content: string;
   rating: number;
 }
+
+export interface Faq {
+  question: string;
+  answer: string;
+}
+
+export interface RouteData {
+  id: string;
+  title: string;
+  description: string;
+  metaTitle: string;
+  metaDescription: string;
+  heroImage: string;
+  priceStart: string;
+  distance: string;
+  duration: string;
+  features: string[];
+  faqs: Faq[];
+}

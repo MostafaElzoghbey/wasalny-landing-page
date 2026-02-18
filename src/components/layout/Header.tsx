@@ -241,9 +241,10 @@ export function Header() {
         scaleX: 1,
         ease: "none",
         scrollTrigger: {
-          scrub: 0,
+          trigger: document.documentElement,
           start: 0,
-          end: "max",
+          end: () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight),
+          scrub: 0,
           invalidateOnRefresh: true,
         }
       });

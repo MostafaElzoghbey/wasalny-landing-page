@@ -1,18 +1,20 @@
 import { useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { MapPin, Clock, ArrowRight } from 'lucide-react';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { ScrollTrigger, rtlX } from '@/lib/gsap';
+
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { routes } from '@/data/content';
 import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 interface RouteCardProps {
   route: typeof routes[0];
 }
 
 const RouteCard = ({ route }: RouteCardProps) => {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const arrowRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
@@ -21,7 +23,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
     const card = cardRef.current;
 
     const handleMouseEnter = () => {
-      gsap.to(card, { x: -10, scale: 1.02, duration: 0.15, ease: 'power2.out' });
+      gsap.to(card, { x: rtlX(-10), scale: 1.02, duration: 0.15, ease: 'power2.out' });
     };
 
     const handleMouseLeave = () => {
@@ -34,6 +36,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
     return () => {
       card.removeEventListener('mouseenter', handleMouseEnter);
       card.removeEventListener('mouseleave', handleMouseLeave);
+      gsap.killTweensOf(card);
     };
   }, {});
 
@@ -42,7 +45,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
     if (!arrowRef.current) return;
 
     gsap.to(arrowRef.current, {
-      x: -5,
+      x: rtlX(-5),
       duration: 0.5,
       ease: 'sine.inOut',
       repeat: -1,
@@ -51,9 +54,10 @@ const RouteCard = ({ route }: RouteCardProps) => {
   }, {});
 
   return (
-    <div
+    <Link
+      to={`/routes/${route.id}`}
       ref={cardRef}
-      className="card flex items-center gap-6 cursor-pointer"
+      className="card flex items-center gap-6 cursor-pointer group"
     >
       {/* Icon */}
       <div className="flex-shrink-0 w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center group-hover:bg-primary-600 transition-colors duration-300">
@@ -89,7 +93,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
       >
         <ArrowRight className="w-6 h-6 text-primary-500 flip-rtl" />
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -246,31 +250,35 @@ export function RoutesSection() {
     const car = carRef.current;
     const pathLength = path.getTotalLength();
 
-    const animateCar = () => {
-      gsap.fromTo({ progress: 0 },
-        { progress: 0 },
-        {
-          progress: 1,
-          duration: 4,
-          ease: 'linear',
-          repeat: -1,
-          repeatDelay: 2,
-          onUpdate: function() {
-            const progress = this.targets()[0].progress;
-            const point = path.getPointAtLength(progress * pathLength);
-            gsap.set(car, { attr: { cx: point.x, cy: point.y } });
-          }
+    const tween = gsap.fromTo({ progress: 0 },
+      { progress: 0 },
+      {
+        progress: 1,
+        duration: 4,
+        ease: 'linear',
+        repeat: -1,
+        repeatDelay: 2,
+        paused: true,
+        onUpdate: function () {
+          const progress = this.targets()[0].progress;
+          const point = path.getPointAtLength(progress * pathLength);
+          gsap.set(car, { attr: { cx: point.x, cy: point.y } });
         }
-      );
-    };
+      }
+    );
 
     // Start animation after initial scroll trigger
-    ScrollTrigger.create({
+    const trigger = ScrollTrigger.create({
       trigger: path,
       start: 'top 85%',
-      onEnter: animateCar,
+      onEnter: () => tween.play(),
       once: true
     });
+
+    return () => {
+      tween.kill();
+      trigger.kill();
+    };
   }, []);
 
   return (
