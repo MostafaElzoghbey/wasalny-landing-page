@@ -18,8 +18,8 @@ export function MapEmbed() {
                         allowFullScreen
                         loading="lazy"
                         referrerPolicy="no-referrer-when-downgrade"
-                        title="Wasalny Office Location"
-                        aria-label="Wasalny Office Location Map"
+                        title="موقع مكتب وصلني"
+                        sandbox="allow-scripts allow-same-origin"
                     />
                 </div>
             </div>
