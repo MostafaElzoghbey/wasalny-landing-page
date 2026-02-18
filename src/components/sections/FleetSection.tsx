@@ -138,7 +138,9 @@ const CarouselCard = ({
   offset,
   onClick,
   currentIndex,
-  totalImages
+  totalImages,
+  onMouseEnter,
+  onMouseLeave
 }: {
   image: string;
   alt: string;
@@ -147,9 +149,10 @@ const CarouselCard = ({
   onClick: () => void;
   currentIndex: number;
   totalImages: number;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
   const xOffset = -50 + (offset * -65);
   const zOffset = Math.abs(offset) * -300;
@@ -173,36 +176,22 @@ const CarouselCard = ({
     });
   }, { dependencies: [offset] });
 
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
-  };
-
-  const getCardStyle = () => {
-    if (!imageDimensions) {
-      return { width: '100%', maxWidth: '100%', aspectRatio: '16/9' };
-    }
-    const { width, height } = imageDimensions;
-    const aspectRatio = width / height;
-    if (aspectRatio >= 1) {
-      return { width: '100%', maxWidth: '100%', aspectRatio: `${width}/${height}` };
-    } else {
-      return { height: '100%', maxHeight: '100%', aspectRatio: `${width}/${height}` };
-    }
-  };
-
   return (
     <div
       ref={cardRef}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
-        "absolute top-1/2 left-1/2 origin-center transition-colors duration-300",
+        "absolute top-1/2 left-1/2 origin-center transition-colors duration-300 pointer-events-auto",
         "max-w-[95%] max-h-[95%]",
         isActive ? "z-20 cursor-default" : "z-10 cursor-pointer hover:brightness-110"
       )}
       style={{
         transformStyle: 'preserve-3d',
-        ...getCardStyle(),
+        width: '100%',
+        maxWidth: '100%',
+        aspectRatio: '16/9'
       }}
     >
       <div className={cn(
@@ -215,7 +204,6 @@ const CarouselCard = ({
           alt={alt}
           className="w-full h-full"
           imgClassName="object-cover"
-          onLoad={handleImageLoad}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
         />
 
@@ -512,7 +500,7 @@ export function FleetSection() {
             </div>
           </div>
 
-          <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8" onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+          <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8 pointer-events-none" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
               {Array.from({ length: Math.min(images.length, 3) }).map((_, i) => {
                 const idx = (currentImageIndex + i) % images.length;
@@ -528,12 +516,18 @@ export function FleetSection() {
                     onClick={() => handleCardClick(idx)}
                     currentIndex={currentImageIndex}
                     totalImages={images.length}
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
                   />
                 );
               })}
             </div>
 
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20">
+            <div
+              className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20 pointer-events-auto"
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+            >
               <button onClick={prevImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
                 <ChevronRight className="w-6 h-6" />
               </button>
