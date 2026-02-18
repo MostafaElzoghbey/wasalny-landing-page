@@ -1,31 +1,53 @@
 import { useState, useRef, useId } from 'react';
+
 import { Plus, Minus } from 'lucide-react';
+import gsap from 'gsap';
+
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { useGSAP } from '@/lib/gsap';
-import gsap from 'gsap';
 import { cn } from '@/lib/utils';
 import { faqs } from '@/data/faqs';
+import type { Faq } from '@/types';
 
-const FAQItem = ({ item, isOpen, onClick, id }: { item: typeof faqs[0], isOpen: boolean, onClick: () => void, id: string }) => {
+interface FAQItemProps {
+    item: Faq;
+    isOpen: boolean;
+    onClick: () => void;
+    id: string;
+}
+
+export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
     const contentRef = useRef<HTMLDivElement>(null);
     const iconRef = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
-        if (isOpen) {
-            gsap.to(contentRef.current, { height: 'auto', duration: 0.3, ease: 'power2.out' });
-            gsap.to(iconRef.current, { rotation: 180, duration: 0.3, ease: 'back.out(1.7)' });
-            if (contentRef.current?.children[0]) {
-                gsap.fromTo(contentRef.current.children[0], { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, delay: 0.1 });
+        const contentEl = contentRef.current;
+        const iconEl = iconRef.current;
+
+        if (!contentEl || !iconEl) return;
+
+        const ctx = gsap.context(() => {
+            if (isOpen) {
+                gsap.to(contentEl, { height: 'auto', duration: 0.3, ease: 'power2.out' });
+                gsap.to(iconEl, { rotation: 180, duration: 0.3, ease: 'back.out(1.7)' });
+
+                const firstChild = contentEl.children[0];
+                if (firstChild) {
+                    gsap.fromTo(firstChild, { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, delay: 0.1 });
+                }
+            } else {
+                gsap.to(contentEl, { height: 0, duration: 0.3, ease: 'power2.in' });
+                gsap.to(iconEl, { rotation: 0, duration: 0.3, ease: 'back.in(1.7)' });
             }
-        } else {
-            gsap.to(contentRef.current, { height: 0, duration: 0.3, ease: 'power2.in' });
-            gsap.to(iconRef.current, { rotation: 0, duration: 0.3, ease: 'back.in(1.7)' });
-        }
+        });
+
+        return () => ctx.revert();
     }, { dependencies: [isOpen] });
 
     return (
         <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 transition-shadow hover:shadow-md">
             <button
+                id={`btn-${id}`}
                 onClick={onClick}
                 className="w-full flex items-center justify-between p-6 text-right focus:outline-none"
                 aria-expanded={isOpen}
@@ -51,7 +73,7 @@ const FAQItem = ({ item, isOpen, onClick, id }: { item: typeof faqs[0], isOpen: 
             </div>
         </div>
     );
-};
+}
 
 export function FAQSection() {
     const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -59,7 +81,9 @@ export function FAQSection() {
     const idPrefix = useId();
 
     useGSAP(() => {
-        gsap.from(".faq-item-anim", {
+        if (!containerRef.current) return;
+
+        const anim = gsap.from(".faq-item-anim", {
             y: 30,
             opacity: 0,
             stagger: 0.1,
@@ -71,6 +95,10 @@ export function FAQSection() {
                 once: true
             }
         });
+
+        return () => {
+            anim.kill();
+        };
     }, { scope: containerRef });
 
     return (

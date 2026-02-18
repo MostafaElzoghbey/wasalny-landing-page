@@ -1,16 +1,4 @@
-export interface RouteData {
-    id: string;
-    title: string;
-    description: string;
-    metaTitle: string;
-    metaDescription: string;
-    heroImage: string;
-    priceStart: string;
-    distance: string;
-    duration: string;
-    features: string[];
-    faqs: { question: string; answer: string }[];
-}
+import type { RouteData } from '@/types';
 
 export const routeData: Record<string, RouteData> = {
     'damietta-cairo': {

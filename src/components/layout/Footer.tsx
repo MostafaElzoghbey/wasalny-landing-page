@@ -1,11 +1,13 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+
 import { Phone, Mail, MapPin, Heart } from 'lucide-react';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+
 import { logoImage } from '@/data/cars';
 import { contactInfo, routes } from '@/data/content';
 import { useBatchReveal } from '@/hooks/useAnimations';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
 
 const quickLinks = [
   { label: 'الرئيسية', href: '#home' },
@@ -23,7 +25,7 @@ interface SocialLinkProps {
   "aria-label"?: string;
 }
 
-const SocialLink = ({ href, className, children, "aria-label": ariaLabel }: SocialLinkProps) => {
+export function SocialLink({ href, className, children, "aria-label": ariaLabel }: SocialLinkProps) {
   const linkRef = useRef<HTMLAnchorElement>(null);
 
   useGSAP(() => {
@@ -72,7 +74,7 @@ const SocialLink = ({ href, className, children, "aria-label": ariaLabel }: Soci
       {children}
     </a>
   );
-};
+}
 
 interface FooterNavLinkProps {
   label: string;

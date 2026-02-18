@@ -1,12 +1,13 @@
 import { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Clock, ArrowRight } from 'lucide-react';
-import { SectionHeading } from '@/components/ui/SectionHeading';
-import { routes } from '@/data/content';
-import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+import { SectionHeading } from '@/components/ui/SectionHeading';
+import { routes } from '@/data/content';
+import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
 
 interface RouteCardProps {
   route: typeof routes[0];

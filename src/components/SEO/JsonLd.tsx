@@ -34,6 +34,11 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
                     "longitude": "31.8144"
                 },
                 "priceRange": "$$",
+                "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.9",
+                    "reviewCount": "150"
+                },
                 "areaServed": [
                     {
                         "@type": "City",
@@ -62,7 +67,7 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
                     "opens": "00:00",
                     "closes": "23:59"
                 },
-                "makesOffer": {
+                "hasOfferCatalog": {
                     "@type": "OfferCatalog",
                     "name": "Car Rental Fleet",
                     "itemListElement": cars

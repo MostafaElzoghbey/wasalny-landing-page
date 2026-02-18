@@ -1,21 +1,30 @@
 import { useState, lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+
+// Third-party
+import { ScrollTrigger } from '@/lib/gsap';
+import '@/lib/gsap';
+
+// Context/Providers
 import { ThemeProvider } from '@/context/ThemeContext';
-import { SmoothScrollProvider } from '@/providers/SmoothScrollProvider';
+import { SmoothScrollProvider, useLenis } from '@/providers/SmoothScrollProvider';
+
+// Components
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { PageLoader } from '@/components/ui/PageLoader';
 import { FloatingCTA } from '@/components/ui/FloatingCTA';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { ServicesSection } from '@/components/sections/ServicesSection';
-import RoutePage from '@/pages/RoutePage';
-
 import { JsonLd } from '@/components/SEO/JsonLd';
+
+// Pages
+import { RoutePage } from '@/pages/RoutePage';
+import { NotFound } from '@/pages/NotFound';
+
+// Data
 import { cars } from '@/data/cars';
-import '@/lib/gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useLenis } from '@/providers/SmoothScrollProvider';
 
 // Lazy load below-the-fold sections
 const FleetSection = lazy(() => import('@/components/sections/FleetSection').then(module => ({ default: module.FleetSection })));
@@ -48,12 +57,14 @@ function ScrollToTop() {
     }
 
     // Refresh ScrollTrigger after layout update
-    // Small delay ensures DOM is ready
-    const timer = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 100);
+    // Use RAF to ensure DOM is ready
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
+    });
 
-    return () => clearTimeout(timer);
+    return () => cancelAnimationFrame(rafId);
   }, [pathname, lenis]);
 
   return null;
@@ -66,26 +77,14 @@ function HomePage() {
       <ServicesSection />
       <Suspense fallback={<SectionLoader />}>
         <FleetSection />
-      </Suspense>
-      <Suspense fallback={<SectionLoader />}>
         <AppShowcaseSection />
-      </Suspense>
-      <Suspense fallback={<SectionLoader />}>
         <RoutesSection />
-      </Suspense>
-      <Suspense fallback={<SectionLoader />}>
         <PricingCalculator />
       </Suspense>
       <Suspense fallback={<SectionLoader />}>
         <FeaturesSection />
-      </Suspense>
-      <Suspense fallback={<SectionLoader />}>
         <FAQSection />
-      </Suspense>
-      <Suspense fallback={<SectionLoader />}>
         <CTASection />
-      </Suspense>
-      <Suspense fallback={<SectionLoader />}>
         <MapEmbed />
       </Suspense>
     </main>
@@ -107,7 +106,7 @@ function AppContent() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/routes/:id" element={<RoutePage />} />
-              <Route path="*" element={<HomePage />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer />
             <FloatingCTA />

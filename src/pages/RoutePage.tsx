@@ -1,30 +1,38 @@
-import { useEffect } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useRef } from 'react';
+import { useParams, Navigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { routeData } from '@/data/routeData';
 import { MapPin, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+
+import { routeData } from '@/data/routeData';
 import { contactInfo } from '@/data/content';
 
-export default function RoutePage() {
+export function RoutePage() {
     const { id } = useParams();
     const data = id ? routeData[id] : null;
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
-        if (!data) return;
-        gsap.from('.route-content', {
+        if (!data || !containerRef.current) return;
+
+        const anim = gsap.from('.route-content', {
             y: 30,
             opacity: 0,
             duration: 0.8,
             stagger: 0.1,
             ease: 'power2.out'
         });
-    }, [id]);
 
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [id]);
+        return () => {
+            anim.kill();
+        };
+    }, { scope: containerRef, dependencies: [id] });
+
+    // Remove this useEffect - ScrollToTop component handles scroll reset
+    // useEffect(() => {
+    //     window.scrollTo(0, 0);
+    // }, [id]);
 
     if (!data) {
         return <Navigate to="/" replace />;
@@ -38,11 +46,11 @@ export default function RoutePage() {
                 <link rel="canonical" href={`https://wasalny.pages.dev/routes/${id}`} />
             </Helmet>
 
-            <div className="min-h-screen pt-20 pb-12 bg-gray-50 dark:bg-gray-950">
+            <div ref={containerRef} className="min-h-screen pt-20 pb-12 bg-gray-50 dark:bg-gray-950">
                 <div className="section-container">
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-8 route-content">
-                        <a href="/" className="hover:text-primary-600 transition-colors">الرئيسية</a>
+                        <Link to="/" className="hover:text-primary-600 transition-colors">الرئيسية</Link>
                         <ArrowRight className="w-4 h-4" />
                         <span className="text-gray-900 dark:text-white font-medium">{data.title}</span>
                     </div>
@@ -117,6 +125,9 @@ export default function RoutePage() {
                                     src={data.heroImage}
                                     alt={data.title}
                                     className="w-full h-full object-cover"
+                                    width="1280"
+                                    height="720"
+                                    loading="eager"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
                                     <div className="text-white">
