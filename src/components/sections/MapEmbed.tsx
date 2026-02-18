@@ -6,7 +6,7 @@ export function MapEmbed() {
             <div className="section-container">
                 <SectionHeading
                     title="موقعنا"
-                    subtitle="تفضل بزيارة مكتبنا في دمياط"
+                    subtitle="موقعنا في دمياط ويوجد لدينا توصيل لجميع انحاء دمياط و سفر خارج دمياط"
                     centered
                 />
                 <div className="w-full h-[400px] rounded-3xl overflow-hidden shadow-2xl grayscale hover:grayscale-0 transition-all duration-500">
