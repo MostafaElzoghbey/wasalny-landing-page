@@ -66,17 +66,25 @@ export function JsonLd({ cars }: JsonLdProps) {
                     "@type": "OfferCatalog",
                     "name": "Car Rental Fleet",
                     "itemListElement": cars
-                        .filter(car => Array.isArray(car.images) && car.images.length > 0)
-                        .map((car, index) => ({
-                            "@type": "ListItem",
-                            "position": index + 1,
-                            "item": {
-                                "@type": "Product",
-                                "name": car.nameAr,
-                                "description": car.seoDescription || car.description,
-                                "image": `https://wasalny.pages.dev${car.images[0].startsWith('/') ? '' : '/'}${car.images[0]}`
-                            }
-                        }))
+                        .filter(car =>
+                            Array.isArray(car.images) &&
+                            car.images.length > 0 &&
+                            typeof car.images[0] === 'string' &&
+                            car.images[0].trim().length > 0
+                        )
+                        .map((car, index) => {
+                            const firstImage = car.images[0].trim();
+                            return {
+                                "@type": "ListItem",
+                                "position": index + 1,
+                                "item": {
+                                    "@type": "Product",
+                                    "name": car.nameAr,
+                                    "description": car.seoDescription || car.description,
+                                    "image": `https://wasalny.pages.dev${firstImage.startsWith('/') ? '' : '/'}${firstImage}`
+                                }
+                            };
+                        })
                 }
             },
             {
@@ -99,4 +107,4 @@ export function JsonLd({ cars }: JsonLdProps) {
             dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/<\//g, '<\\/') }}
         />
     );
-};
+}

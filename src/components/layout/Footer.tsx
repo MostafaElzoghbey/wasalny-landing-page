@@ -207,7 +207,13 @@ export function Footer() {
                 <li key={link.href}>
                   <FooterNavLink
                     label={link.label}
-                    onClick={() => handleNavClick(link.href)}
+                    onClick={() => {
+                      if (window.location.pathname !== '/') {
+                        window.location.href = `/${link.href}`;
+                        return;
+                      }
+                      handleNavClick(link.href);
+                    }}
                   />
                 </li>
               ))}
