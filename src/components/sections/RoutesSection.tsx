@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { MapPin, Clock, ArrowRight } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { routes } from '@/data/content';
@@ -12,7 +13,7 @@ interface RouteCardProps {
 }
 
 const RouteCard = ({ route }: RouteCardProps) => {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const arrowRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
@@ -51,9 +52,10 @@ const RouteCard = ({ route }: RouteCardProps) => {
   }, {});
 
   return (
-    <div
+    <Link
+      to={`/routes/${route.id}`}
       ref={cardRef}
-      className="card flex items-center gap-6 cursor-pointer"
+      className="card flex items-center gap-6 cursor-pointer group"
     >
       {/* Icon */}
       <div className="flex-shrink-0 w-16 h-16 bg-primary-100 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center group-hover:bg-primary-600 transition-colors duration-300">
@@ -89,7 +91,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
       >
         <ArrowRight className="w-6 h-6 text-primary-500 flip-rtl" />
       </div>
-    </div>
+    </Link>
   );
 };
 
@@ -255,7 +257,7 @@ export function RoutesSection() {
           ease: 'linear',
           repeat: -1,
           repeatDelay: 2,
-          onUpdate: function() {
+          onUpdate: function () {
             const progress = this.targets()[0].progress;
             const point = path.getPointAtLength(progress * pathLength);
             gsap.set(car, { attr: { cx: point.x, cy: point.y } });

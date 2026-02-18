@@ -1,7 +1,8 @@
 import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Heart } from 'lucide-react';
 import { logoImage } from '@/data/cars';
-import { contactInfo } from '@/data/content';
+import { contactInfo, routes } from '@/data/content';
 import { useBatchReveal } from '@/hooks/useAnimations';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -13,13 +14,6 @@ const quickLinks = [
   { label: 'مساراتنا', href: '#routes' },
   { label: 'مميزاتنا', href: '#features' },
   { label: 'تواصل معنا', href: '#contact' },
-];
-
-const services = [
-  'نقل من دمياط للقاهرة',
-  'توصيل المطار',
-  'رحلات خاصة',
-  'سفر جماعي',
 ];
 
 interface SocialLinkProps {
@@ -218,16 +212,19 @@ export function Footer() {
             </ul>
           </nav>
 
-          {/* Services */}
+          {/* Popular Routes */}
           <div className="footer-column">
-            <h4 className="text-lg font-bold mb-6">خدماتنا</h4>
+            <h4 className="text-lg font-bold mb-6">مسارات شائعة</h4>
             <ul className="space-y-3">
-              {services.map((service, index) => (
-                <li key={index}>
-                  <span className="text-gray-400 flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
-                    {service}
-                  </span>
+              {routes.map((route) => (
+                <li key={route.id}>
+                  <Link
+                    to={`/routes/${route.id}`}
+                    className="text-gray-400 hover:text-white flex items-center gap-2 transition-colors group"
+                  >
+                    <span className="w-1.5 h-1.5 bg-primary-500 rounded-full group-hover:scale-125 transition-transform" />
+                    <span>{route.from} - {route.to}</span>
+                  </Link>
                 </li>
               ))}
             </ul>
