@@ -56,15 +56,35 @@ function ScrollToTop() {
       lenis.scrollTo(0, { immediate: true });
     }
 
-    // Refresh ScrollTrigger after layout update
-    // Use RAF to ensure DOM is ready
-    const rafId = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        ScrollTrigger.refresh();
-      });
-    });
+    let rafId1: number | null = null;
+    let rafId2: number | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
-    return () => cancelAnimationFrame(rafId);
+    const refresh = () => {
+      if (rafId1 !== null) cancelAnimationFrame(rafId1);
+      if (rafId2 !== null) cancelAnimationFrame(rafId2);
+
+      rafId1 = requestAnimationFrame(() => {
+        rafId2 = requestAnimationFrame(() => {
+          ScrollTrigger.refresh();
+        });
+      });
+    };
+
+    // Refresh on route change
+    refresh();
+
+    // Refresh on body resize (content loading)
+    resizeObserver = new ResizeObserver(() => {
+      refresh();
+    });
+    resizeObserver.observe(document.body);
+
+    return () => {
+      if (rafId1 !== null) cancelAnimationFrame(rafId1);
+      if (rafId2 !== null) cancelAnimationFrame(rafId2);
+      resizeObserver?.disconnect();
+    };
   }, [pathname, lenis]);
 
   return null;

@@ -4,7 +4,7 @@ import { Plus, Minus } from 'lucide-react';
 import gsap from 'gsap';
 
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { useGSAP } from '@/lib/gsap';
+import { useGSAP } from '@gsap/react';
 import { cn } from '@/lib/utils';
 import { faqs } from '@/data/faqs';
 import type { Faq } from '@/types';
@@ -26,22 +26,25 @@ export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
 
         if (!contentEl || !iconEl) return;
 
-        const ctx = gsap.context(() => {
-            if (isOpen) {
-                gsap.to(contentEl, { height: 'auto', duration: 0.3, ease: 'power2.out' });
-                gsap.to(iconEl, { rotation: 180, duration: 0.3, ease: 'back.out(1.7)' });
-
-                const firstChild = contentEl.children[0];
-                if (firstChild) {
-                    gsap.fromTo(firstChild, { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, delay: 0.1 });
+        if (isOpen) {
+            gsap.to(contentEl, {
+                height: 'auto',
+                duration: 0.3,
+                ease: 'power2.out',
+                onComplete: () => {
+                    gsap.set(contentEl, { height: 'auto' });
                 }
-            } else {
-                gsap.to(contentEl, { height: 0, duration: 0.3, ease: 'power2.in' });
-                gsap.to(iconEl, { rotation: 0, duration: 0.3, ease: 'back.in(1.7)' });
-            }
-        });
+            });
+            gsap.to(iconEl, { rotation: 180, duration: 0.3, ease: 'back.out(1.7)' });
 
-        return () => ctx.revert();
+            const firstChild = contentEl.children[0];
+            if (firstChild) {
+                gsap.fromTo(firstChild, { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, delay: 0.1 });
+            }
+        } else {
+            gsap.to(contentEl, { height: 0, duration: 0.3, ease: 'power2.in' });
+            gsap.to(iconEl, { rotation: 0, duration: 0.3, ease: 'back.in(1.7)' });
+        }
     }, { dependencies: [isOpen] });
 
     return (

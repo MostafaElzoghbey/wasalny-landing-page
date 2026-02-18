@@ -30,15 +30,10 @@ export const JsonLd = ({ cars }: JsonLdProps) => {
                 },
                 "geo": {
                     "@type": "GeoCoordinates",
-                    "latitude": "31.4175",
-                    "longitude": "31.8144"
+                    "latitude": 31.4175,
+                    "longitude": 31.8144
                 },
                 "priceRange": "$$",
-                "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": "4.9",
-                    "reviewCount": "150"
-                },
                 "areaServed": [
                     {
                         "@type": "City",
