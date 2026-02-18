@@ -61,6 +61,7 @@ export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
         <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 transition-shadow hover:shadow-md">
             <button
                 id={`btn-${id}`}
+                type="button"
                 onClick={onClick}
                 className="w-full flex items-center justify-between p-6 text-right focus:outline-none"
                 aria-expanded={isOpen}

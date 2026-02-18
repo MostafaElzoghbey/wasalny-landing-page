@@ -1,6 +1,5 @@
 import { useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { MapPin, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
@@ -37,10 +36,8 @@ export function RoutePage() {
     if (!data) {
         return (
             <div className="min-h-screen flex items-center justify-center flex-col bg-gray-50 dark:bg-gray-950 p-4 text-center pt-20">
-                <Helmet>
-                    <title>الصفحة غير موجودة - وصلني</title>
-                    <meta name="robots" content="noindex" />
-                </Helmet>
+                <title>الصفحة غير موجودة - وصلني</title>
+                <meta name="robots" content="noindex" />
                 <div className="bg-primary-50 dark:bg-primary-900/20 p-6 rounded-full mb-6">
                     <MapPin className="w-16 h-16 text-primary-600 dark:text-primary-400 opacity-50" />
                 </div>
@@ -61,11 +58,9 @@ export function RoutePage() {
 
     return (
         <>
-            <Helmet>
-                <title>{data.metaTitle}</title>
-                <meta name="description" content={data.metaDescription} />
-                <link rel="canonical" href={`https://wasalny.pages.dev/routes/${id}`} />
-            </Helmet>
+            <title>{data.metaTitle}</title>
+            <meta name="description" content={data.metaDescription} />
+            <link rel="canonical" href={`https://wasalny.pages.dev/routes/${id}`} />
 
             <div ref={containerRef} className="min-h-screen pt-20 pb-12 bg-gray-50 dark:bg-gray-950">
                 <div className="section-container">

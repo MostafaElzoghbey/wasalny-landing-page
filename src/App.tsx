@@ -2,7 +2,6 @@ import { useState, lazy, Suspense, useEffect } from 'react';
 
 // Third-party
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
 
 // Local
 import { ScrollTrigger } from '@/lib/gsap';
@@ -76,12 +75,18 @@ function ScrollToTop() {
     // Refresh on route change
     scheduleRefresh();
 
-    // Refresh on body resize (content loading)
+    // Refresh on resize (content loading) without risking body-observer loops
     if (typeof ResizeObserver !== 'undefined') {
+      let lastScrollHeight = document.documentElement.scrollHeight;
+
       resizeObserver = new ResizeObserver(() => {
+        const nextScrollHeight = document.documentElement.scrollHeight;
+        if (nextScrollHeight === lastScrollHeight) return;
+        lastScrollHeight = nextScrollHeight;
         scheduleRefresh();
       });
-      resizeObserver.observe(document.body);
+
+      resizeObserver.observe(document.documentElement);
     }
 
     return () => {
@@ -96,6 +101,12 @@ function ScrollToTop() {
 function HomePage() {
   return (
     <main>
+      <title>وصلني - خدمة نقل الركاب</title>
+      <meta
+        name="description"
+        content="وصلني - خدمة نقل الركاب من دمياط إلى القاهرة والمطار. سيارات حديثة ومريحة وأسعار مناسبة."
+      />
+      <link rel="canonical" href="https://wasalny.pages.dev/" />
       <HeroSection />
       <ServicesSection />
       <Suspense fallback={<SectionLoader />}>
@@ -119,23 +130,21 @@ function AppContent() {
 
   return (
     <ThemeProvider>
-      <HelmetProvider>
-        <JsonLd cars={cars} />
-        {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
-        <SmoothScrollProvider>
-          <ScrollToTop />
-          <div className="min-h-screen">
-            <Header />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/routes/:id" element={<RoutePage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Footer />
-            <FloatingCTA />
-          </div>
-        </SmoothScrollProvider>
-      </HelmetProvider>
+      <JsonLd cars={cars} />
+      {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
+      <SmoothScrollProvider>
+        <ScrollToTop />
+        <div className="min-h-screen">
+          <Header />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/routes/:id" element={<RoutePage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Footer />
+          <FloatingCTA />
+        </div>
+      </SmoothScrollProvider>
     </ThemeProvider>
   );
 }

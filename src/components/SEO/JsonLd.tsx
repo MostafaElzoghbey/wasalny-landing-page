@@ -66,7 +66,7 @@ export function JsonLd({ cars }: JsonLdProps) {
                     "@type": "OfferCatalog",
                     "name": "Car Rental Fleet",
                     "itemListElement": cars
-                        .filter(car => car.images?.length > 0)
+                        .filter(car => Array.isArray(car.images) && car.images.length > 0)
                         .map((car, index) => ({
                             "@type": "ListItem",
                             "position": index + 1,
@@ -74,7 +74,7 @@ export function JsonLd({ cars }: JsonLdProps) {
                                 "@type": "Product",
                                 "name": car.nameAr,
                                 "description": car.seoDescription || car.description,
-                                "image": `https://wasalny.pages.dev${car.images[0]}`
+                                "image": `https://wasalny.pages.dev${car.images[0].startsWith('/') ? '' : '/'}${car.images[0]}`
                             }
                         }))
                 }

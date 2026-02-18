@@ -258,6 +258,7 @@ export function RoutesSection() {
         ease: 'linear',
         repeat: -1,
         repeatDelay: 2,
+        paused: true,
         onUpdate: function () {
           const progress = this.targets()[0].progress;
           const point = path.getPointAtLength(progress * pathLength);
@@ -273,9 +274,6 @@ export function RoutesSection() {
       onEnter: () => tween.play(),
       once: true
     });
-
-    // Pause initially until triggered
-    tween.pause();
 
     return () => {
       tween.kill();
