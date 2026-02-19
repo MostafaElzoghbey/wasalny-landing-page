@@ -58,7 +58,7 @@ export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
     }, { dependencies: [isOpen] });
 
     return (
-        <div className="border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 transition-shadow hover:shadow-md">
+        <div className="border border-[hsl(var(--border))] rounded-2xl overflow-hidden bg-[hsl(var(--card))] transition-shadow hover:shadow-md">
             <button
                 id={`btn-${id}`}
                 type="button"
@@ -70,7 +70,7 @@ export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
                 <span className={cn("text-lg font-bold text-gray-900 dark:text-white transition-colors", isOpen && "text-primary-600 dark:text-primary-400")}>
                     {item.question}
                 </span>
-                <div ref={iconRef} className={cn("w-8 h-8 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-500 transition-colors", isOpen && "bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400")}>
+                <div ref={iconRef} className={cn("w-8 h-8 rounded-full flex items-center justify-center bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] transition-colors", isOpen && "bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400")}>
                     {isOpen ? <Minus className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                 </div>
             </button>
@@ -81,7 +81,7 @@ export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
                 role="region"
                 aria-labelledby={`btn-${id}`}
             >
-                <p className="p-6 pt-0 text-gray-600 dark:text-gray-400 leading-relaxed border-t border-gray-100 dark:border-gray-800">
+                <p className="p-6 pt-0 text-[hsl(var(--muted-foreground))] leading-relaxed border-t border-[hsl(var(--border))]">
                     {item.answer}
                 </p>
             </div>
@@ -116,9 +116,9 @@ export function FAQSection() {
     }, { scope: containerRef });
 
     return (
-        <section id="faq" ref={containerRef} className="section-padding relative overflow-hidden bg-gray-50 dark:bg-gray-950/50">
+        <section id="faq" ref={containerRef} className="section-padding relative overflow-hidden bg-[hsl(var(--section-alt))]">
             {/* Background Pattern */}
-            <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.2] dark:opacity-[0.05]" />
+            <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.08] dark:opacity-[0.05]" />
 
             <div className="section-container relative z-10 max-w-4xl mx-auto">
                 <SectionHeading

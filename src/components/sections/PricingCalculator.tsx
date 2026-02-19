@@ -20,10 +20,10 @@ export const PricingCalculator = () => {
     <section
       id="pricing"
       ref={containerRef}
-      className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 relative overflow-x-clip"
+      className="py-20 bg-gradient-to-b from-[hsl(var(--section-alt))] to-[hsl(var(--background))] relative overflow-x-clip"
     >
       {/* Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-800 to-transparent" />
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[hsl(var(--border))] to-transparent" />
       <div className="absolute -left-20 top-20 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute -right-20 bottom-20 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl opacity-50" />
 
@@ -37,7 +37,7 @@ export const PricingCalculator = () => {
           {/* Form Column */}
           <div className="lg:col-span-2 space-y-6 isolate">
             {/* Route Type Toggle */}
-            <div className="pricing-card bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+            <div className="pricing-card bg-[hsl(var(--card))] rounded-xl p-6 shadow-sm border border-[hsl(var(--border))] relative overflow-hidden">
               <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">نوع الرحلة</h3>
               <div className="grid grid-cols-2 gap-4">
                 <button
@@ -48,7 +48,7 @@ export const PricingCalculator = () => {
                     border-2 relative overflow-hidden group
                     ${pricing.state.routeType === 'travel'
                       ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/40 ring-2 ring-blue-600/20'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md'
+                      : 'bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] border-[hsl(var(--border))] hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md'
                     }
                   `}
                 >
@@ -63,7 +63,7 @@ export const PricingCalculator = () => {
                     border-2 relative overflow-hidden group
                     ${pricing.state.routeType === 'internal'
                       ? 'bg-blue-600 text-white border-blue-600 shadow-xl shadow-blue-600/40 ring-2 ring-blue-600/20'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md'
+                      : 'bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] border-[hsl(var(--border))] hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-md'
                     }
                   `}
                 >

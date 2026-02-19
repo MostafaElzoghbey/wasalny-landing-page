@@ -393,7 +393,7 @@ export const useBatchReveal = (
         opacity: 1,
         clearProps: 'transform',
         duration: 0.4,
-        stagger: actualStagger * 0.7,
+        stagger: actualStagger,
         ease: animConfig.easeOut,
         scrollTrigger: {
           trigger: containerRef.current,

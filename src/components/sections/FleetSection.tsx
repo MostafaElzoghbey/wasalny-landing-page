@@ -408,16 +408,16 @@ export function FleetSection() {
   };
 
   return (
-    <section id="fleet" ref={containerRef} className="section-padding relative overflow-hidden bg-gray-50 dark:bg-gray-950 min-h-screen flex flex-col justify-center">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-100 via-gray-50 to-white dark:from-gray-900 dark:via-gray-950 dark:to-black opacity-80" />
-      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] bg-[size:60px_60px] bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)]" />
+    <section id="fleet" ref={containerRef} className="section-padding relative overflow-hidden bg-[hsl(var(--section-alt))] min-h-screen flex flex-col justify-center">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[hsl(var(--muted))] via-[hsl(var(--section-alt))] to-[hsl(var(--background))] dark:from-gray-900 dark:via-gray-950 dark:to-black opacity-80" />
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] bg-[size:60px_60px] bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)]" />
       <div className={cn("absolute top-1/4 -left-64 w-[500px] h-[500px] bg-gradient-to-br rounded-full blur-[100px] animate-pulse transition-colors duration-1000", currentColors.primary, currentColors.accent)} />
       <div className={cn("absolute bottom-0 -right-64 w-[500px] h-[500px] bg-gradient-to-tl rounded-full blur-[100px] animate-pulse transition-colors duration-1000 animation-delay-2000", currentColors.primary, currentColors.accent)} />
 
       <div className="section-container relative z-10 w-full text-right" dir="rtl">
         <div className="flex flex-col items-center mb-12 lg:mb-20">
           <SectionHeading title="أسطولنا المميز" subtitle="نجمع بين الفخامة والراحة في كل رحلة" className="mb-8" />
-          <div ref={tablistRef} className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/40 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-white/20 shadow-xl" role="tablist">
+          <div ref={tablistRef} className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/60 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-[hsl(var(--border))] shadow-xl" role="tablist">
             {carCategories.map((cat) => {
               const IconComponent = iconMap[cat.icon as keyof typeof iconMap];
               return (
@@ -450,12 +450,12 @@ export function FleetSection() {
             </div>
 
             <div className="info-anim grid grid-cols-2 gap-4">
-              <div ref={card1Ref} className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm transition-shadow group cursor-pointer">
+              <div ref={card1Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Users ref={icon1Ref} className="w-8 h-8 text-primary-500 mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">سعة الركاب</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.passengers} أشخاص</p>
               </div>
-              <div ref={card2Ref} className="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm transition-shadow group cursor-pointer">
+              <div ref={card2Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Briefcase ref={icon2Ref} className="w-8 h-8 text-accent-500 mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">الفئة</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.categoryAr}</p>
@@ -469,7 +469,7 @@ export function FleetSection() {
               </h3>
               <ul className="grid grid-cols-1 gap-3">
                 {activeCar.features.map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800/80 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-200">
+                  <li key={i} className="flex items-center gap-3 text-[hsl(var(--foreground))] bg-[hsl(var(--card))] p-3 rounded-xl border border-[hsl(var(--border))] shadow-sm transition-all duration-200">
                     <div className="w-2 h-2 rounded-full bg-primary-500" />
                     {feature}
                   </li>
@@ -517,7 +517,7 @@ export function FleetSection() {
             </div>
 
             <div
-              className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-white/20 pointer-events-auto"
+              className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-[hsl(var(--card)/0.85)] backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-[hsl(var(--border))] pointer-events-auto"
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
             >

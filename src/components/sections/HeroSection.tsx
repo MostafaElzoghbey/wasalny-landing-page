@@ -132,15 +132,15 @@ export function HeroSection() {
       className="relative min-h-screen flex items-center overflow-hidden pt-32 lg:pt-24"
     >
       {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-bl from-primary-50 via-white to-primary-100 dark:from-gray-900 dark:via-gray-900 dark:to-primary-950/30" />
+      <div className="absolute inset-0 bg-gradient-to-bl from-primary-50/50 via-white to-primary-100/40 dark:from-gray-900 dark:via-gray-900 dark:to-primary-950/30" />
 
       {/* Animated Background Shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div ref={blob1Ref} className="absolute -top-40 -left-40 w-80 h-80 bg-primary-200/30 dark:bg-primary-500/10 rounded-full blur-3xl" />
-        <div ref={blob2Ref} className="absolute -bottom-40 -right-40 w-96 h-96 bg-accent-200/30 dark:bg-accent-500/10 rounded-full blur-3xl" />
+        <div ref={blob1Ref} className="absolute -top-40 -left-40 w-80 h-80 bg-primary-200/15 dark:bg-primary-500/10 rounded-full blur-3xl" />
+        <div ref={blob2Ref} className="absolute -bottom-40 -right-40 w-96 h-96 bg-accent-200/15 dark:bg-accent-500/10 rounded-full blur-3xl" />
         <div
           ref={blob3Ref}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-300/20 dark:bg-primary-600/5 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-300/10 dark:bg-primary-600/5 rounded-full blur-3xl"
         />
       </div>
 

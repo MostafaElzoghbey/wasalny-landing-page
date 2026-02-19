@@ -151,7 +151,7 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
         <nav
           id={id}
           ref={panelRef}
-          className="absolute top-20 left-4 right-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden opacity-0"
+          className="absolute top-20 left-4 right-4 bg-[hsl(var(--card))] rounded-2xl shadow-2xl overflow-hidden opacity-0"
           role="dialog"
           aria-modal="true"
           aria-label="قائمة التنقل"
@@ -161,7 +161,7 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
               <button
                 key={link.href}
                 onClick={() => handleNavClick(link.href)}
-                className="nav-link-item block w-full text-right py-3 px-4 text-lg font-medium text-[hsl(var(--foreground))] hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 rounded-xl transition-colors"
+                className="nav-link-item block w-full text-right py-3 px-4 text-lg font-medium text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] hover:text-primary-600 rounded-xl transition-colors"
               >
                 {link.label}
               </button>
@@ -365,7 +365,7 @@ export function Header() {
       >
         <div
           ref={bgRef}
-          className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg opacity-0 -z-10 transition-colors duration-300"
+          className="absolute inset-0 bg-[hsl(var(--card)/0.92)] backdrop-blur-lg shadow-lg opacity-0 -z-10 transition-colors duration-300"
         />
 
         <div className="section-container">
