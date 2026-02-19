@@ -87,7 +87,7 @@ export const VehiclePassengerCard = ({
           })}
         </div>
 
-        <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="pt-4 border-t border-[hsl(var(--border))]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Users className="w-4 h-4 text-gray-400" />
@@ -95,7 +95,7 @@ export const VehiclePassengerCard = ({
             </label>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center bg-[hsl(var(--muted))] rounded-lg p-1 border border-[hsl(var(--border))]">
                 <button
                   onClick={() => setPassengerCount(Math.max(1, passengerCount - 1))}
                   className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-white dark:hover:bg-gray-700 rounded-md transition-colors"

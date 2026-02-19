@@ -7,7 +7,7 @@ export function MapEmbed() {
 
 
     return (
-        <section className="section-padding bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+        <section className="section-padding bg-[hsl(var(--card))] border-t border-[hsl(var(--border))]">
             <div className="section-container">
                 <SectionHeading
                     title="موقعنا"
@@ -33,7 +33,7 @@ export function MapEmbed() {
                             className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 w-full h-full p-0 border-0 bg-transparent appearance-none text-right"
                             aria-label="اضغط لعرض الخريطة"
                         >
-                            <div className="bg-white dark:bg-gray-900 p-4 rounded-full shadow-lg mb-4 pointer-events-none mx-auto">
+                            <div className="bg-[hsl(var(--card))] p-4 rounded-full shadow-lg mb-4 pointer-events-none mx-auto">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600 dark:text-primary-500">
                                     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                                     <circle cx="12" cy="10" r="3" />

@@ -37,7 +37,7 @@ export function NotFound({
     }, [title]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center flex-col bg-gray-50 dark:bg-gray-950 p-4 text-center">
+        <div className="min-h-screen flex items-center justify-center flex-col bg-[hsl(var(--section-alt))] p-4 text-center">
             <h1 className="text-6xl font-bold text-primary-600 mb-4">404</h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">{message}</p>
             {showHomeLink && (

@@ -29,7 +29,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
   return (
     <div className="bg-[hsl(var(--card))] backdrop-blur-md rounded-2xl shadow-xl border border-[hsl(var(--border))] overflow-hidden">
       {/* Header */}
-      <div className="p-6 bg-gradient-to-br from-primary/5 to-transparent border-b border-gray-100 dark:border-gray-800">
+      <div className="p-6 bg-gradient-to-br from-primary/5 to-transparent border-b border-[hsl(var(--border))]">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           ملخص السعر
           {details.isRoundTrip && (

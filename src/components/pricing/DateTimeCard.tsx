@@ -51,7 +51,7 @@ export const DateTimeCard = ({
               min={new Date().toISOString().split('T')[0]} // Min today
               value={formatDateForInput(tripDate)}
               onChange={(e) => setTripDate(new Date(e.target.value))}
-              className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark]"
+              className="w-full p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark]"
             />
           </div>
           <div className="space-y-2">
@@ -63,13 +63,13 @@ export const DateTimeCard = ({
               type="time"
               value={tripTime}
               onChange={(e) => setTripTime(e.target.value)}
-              className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark]"
+              className="w-full p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark]"
             />
           </div>
         </div>
 
         {showRoundTripToggle && (
-          <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
+          <div className="p-4 bg-[hsl(var(--muted))] rounded-xl border border-[hsl(var(--border))]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-full transition-colors ${isRoundTrip ? 'bg-primary/20 text-primary' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>

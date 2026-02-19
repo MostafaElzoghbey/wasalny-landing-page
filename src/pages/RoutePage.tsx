@@ -39,7 +39,7 @@ export function RoutePage() {
             <meta name="description" content={data.metaDescription} />
             <link rel="canonical" href={`https://wasalny.pages.dev/routes/${id}`} />
 
-            <div ref={containerRef} className="min-h-screen pt-20 pb-12 bg-gray-50 dark:bg-gray-950">
+            <div ref={containerRef} className="min-h-screen pt-20 pb-12 bg-[hsl(var(--section-alt))]">
                 <div className="section-container">
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-8 route-content">
@@ -62,7 +62,7 @@ export function RoutePage() {
 
                             {/* Key Stats */}
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3">
+                                <div className="bg-[hsl(var(--card))] p-4 rounded-2xl border border-[hsl(var(--border))] shadow-sm flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600">
                                         <Clock className="w-5 h-5" />
                                     </div>
@@ -71,7 +71,7 @@ export function RoutePage() {
                                         <p className="font-bold text-gray-900 dark:text-white">{data.duration}</p>
                                     </div>
                                 </div>
-                                <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3">
+                                <div className="bg-[hsl(var(--card))] p-4 rounded-2xl border border-[hsl(var(--border))] shadow-sm flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600">
                                         <MapPin className="w-5 h-5" />
                                     </div>
@@ -97,11 +97,11 @@ export function RoutePage() {
 
                             {/* Specific FAQs */}
                             {data.faqs.length > 0 && (
-                                <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                                <div className="space-y-4 pt-4 border-t border-[hsl(var(--border))]">
                                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">أسئلة شائعة عن هذا الخط</h3>
                                     <div className="space-y-4">
                                         {data.faqs.map((faq, idx) => (
-                                            <div key={idx} className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                                            <div key={idx} className="bg-[hsl(var(--card))] p-4 rounded-xl border border-[hsl(var(--border))]">
                                                 <p className="font-bold text-gray-900 dark:text-white mb-2">{faq.question}</p>
                                                 <p className="text-sm text-gray-600 dark:text-gray-400">{faq.answer}</p>
                                             </div>
@@ -130,7 +130,7 @@ export function RoutePage() {
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl text-center">
+                            <div className="bg-[hsl(var(--card))] p-6 rounded-3xl border border-[hsl(var(--border))] shadow-xl text-center">
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">احجز رحلتك الآن</h3>
                                 <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">تواصل معنا لحجز سيارة خاصة لهذا المسار. متاحين 24 ساعة.</p>
                                 <div className="space-y-3">
