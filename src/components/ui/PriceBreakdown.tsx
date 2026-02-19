@@ -13,8 +13,8 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
 }) => {
   if (!result) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-800 h-full flex flex-col justify-center items-center text-center opacity-60">
-        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+      <div className="bg-[hsl(var(--card))] rounded-2xl shadow-xl p-6 border border-[hsl(var(--border))] h-full flex flex-col justify-center items-center text-center opacity-60">
+        <div className="w-16 h-16 bg-[hsl(var(--muted))] rounded-full flex items-center justify-center mb-4">
           <Info className="w-8 h-8 text-gray-400" />
         </div>
         <p className="text-gray-500 dark:text-gray-400">
@@ -27,7 +27,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
   const { breakdown, details, warnings } = result;
 
   return (
-    <div className="bg-white dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div className="bg-[hsl(var(--card))] backdrop-blur-md rounded-2xl shadow-xl border border-[hsl(var(--border))] overflow-hidden">
       {/* Header */}
       <div className="p-6 bg-gradient-to-br from-primary/5 to-transparent border-b border-gray-100 dark:border-gray-800">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -81,7 +81,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
           </div>
         )}
 
-        <div className="border-t-2 border-gray-100 dark:border-gray-800 my-4"></div>
+        <div className="border-t-2 border-[hsl(var(--border))] my-4"></div>
 
         {/* Total Price & CTA */}
         <div className="space-y-4">
@@ -99,8 +99,8 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
             className={`
               flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold text-lg
               transition-all duration-300 transform hover:-translate-y-1 active:scale-95
-              ${warnings.length > 0 
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none' 
+              ${warnings.length > 0
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none'
                 : 'bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg shadow-green-500/20'
               }
             `}
@@ -108,7 +108,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
             <MessageCircle className="w-6 h-6" />
             تأكيد الحجز عبر واتساب
           </a>
-          
+
           <p className="text-xs text-center text-gray-400">
             * السعر نهائي وشامل جميع الرسوم
           </p>

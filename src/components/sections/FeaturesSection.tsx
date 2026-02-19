@@ -62,7 +62,7 @@ const features = [
 
 function GSAPCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
   const elementRef = useRef<HTMLSpanElement>(null);
-  
+
   useCounterAnimation(elementRef, value, {
     duration: 2.5,
     ease: "power2.out",
@@ -206,8 +206,8 @@ export function FeaturesSection() {
   return (
     <section id="features" className="section-padding relative overflow-hidden">
       {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-50/30 to-transparent dark:via-primary-950/10" />
-      
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-50/15 to-transparent dark:via-primary-950/10" />
+
       <div className="section-container relative z-10">
         <SectionHeading
           title="لماذا وصلني؟"

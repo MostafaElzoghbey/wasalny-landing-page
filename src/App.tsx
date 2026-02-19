@@ -39,7 +39,7 @@ const MapEmbed = lazy(() => import('@/components/sections/MapEmbed').then(module
 
 function SectionLoader() {
   return (
-    <div className="min-h-[50vh] flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-[50vh] flex items-center justify-center bg-[hsl(var(--section-alt))]">
       <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );

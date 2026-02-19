@@ -101,14 +101,14 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   return (
     <div
       ref={cardRef}
-      className="relative h-full text-center cursor-pointer rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 p-6 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_40px_-8px_rgba(59,130,246,0.2)] dark:hover:shadow-[0_12px_40px_-8px_rgba(59,130,246,0.3)] transition-all duration-300 overflow-hidden"
+      className="relative h-full text-center cursor-pointer rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 shadow-[0_1px_2px_hsl(var(--shadow-color)/0.04),0_4px_12px_hsl(var(--shadow-color)/0.06)] hover:shadow-[0_8px_30px_hsl(var(--shadow-color)/0.1)] dark:shadow-[0_4px_16px_hsl(var(--shadow-color)/0.2)] dark:hover:shadow-[0_12px_32px_hsl(var(--shadow-color)/0.3)] transition-all duration-300 overflow-hidden"
     >
       {/* Subtle gradient border accent on top */}
       <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-l ${service.color} opacity-80`} />
-      
+
       {/* Background gradient glow on hover */}
       <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500`} />
-      
+
       {/* Icon Container */}
       <div
         ref={iconContainerRef}
@@ -137,8 +137,8 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
 };
 
 export function ServicesSection() {
-  const [gridRef] = useBatchReveal({ 
-    selector: '.service-card', 
+  const [gridRef] = useBatchReveal({
+    selector: '.service-card',
     interval: 0.15,
     from: { opacity: 0, y: 50, rotateX: 10 },
     to: { opacity: 1, y: 0, rotateX: 0 }
@@ -147,9 +147,9 @@ export function ServicesSection() {
   return (
     <section id="services" className="section-padding relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[hsl(var(--muted))]/30" />
+      <div className="absolute inset-0 bg-[hsl(var(--section-alt))]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_50%)]" />
-      
+
       <div className="section-container relative z-10">
         <SectionHeading
           title="خدماتنا"

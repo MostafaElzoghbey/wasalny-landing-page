@@ -47,7 +47,7 @@ export const CustomSelect = ({
   }, []);
 
   // Filter options based on search
-  const filteredOptions = options.filter(option => 
+  const filteredOptions = options.filter(option =>
     option.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -61,7 +61,7 @@ export const CustomSelect = ({
       }, 50);
     }
     if (!isOpen) {
-      setSearchQuery(''); 
+      setSearchQuery('');
     }
   }, [isOpen, searchable]);
 
@@ -78,45 +78,45 @@ export const CustomSelect = ({
           {label}
         </label>
       )}
-      
+
       <div className="relative">
         <button
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={`
-            w-full p-3 pl-10 pr-10 text-right rounded-lg border bg-gray-50 dark:bg-gray-800 
-            text-gray-900 dark:text-white transition-all outline-none relative
+            w-full p-3 pl-10 pr-10 text-right rounded-lg border bg-[hsl(var(--input))]
+            text-[hsl(var(--foreground))] transition-all outline-none relative
             ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-300 dark:hover:border-gray-600'}
-            ${isOpen ? 'ring-2 ring-primary/20 border-primary' : 'border-gray-200 dark:border-gray-700'}
+            ${isOpen ? 'ring-2 ring-primary/20 border-primary' : 'border-[hsl(var(--border))]'}
           `}
         >
           <span className={`block truncate ${!selectedOption ? 'text-gray-400' : ''}`}>
             {selectedOption ? selectedOption.name : placeholder}
           </span>
-          
+
           {/* Icon Positioned Absolute Left */}
           {icon && (
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
               {icon}
             </div>
           )}
-          
+
           {/* Chevron Positioned Absolute Right (for RTL relevance, commonly left if strict RTL but UI usually puts chevron at end) */}
-          <ChevronDown 
+          <ChevronDown
             className={`
               absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-transform duration-200
               ${isOpen ? 'rotate-180' : ''}
-            `} 
+            `}
           />
         </button>
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top">
-            
+          <div className="absolute z-50 w-full mt-1 bg-[hsl(var(--card))] rounded-lg shadow-lg border border-[hsl(var(--border))] py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top">
+
             {searchable && (
-              <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+              <div className="p-2 border-b border-[hsl(var(--border))]">
                 <div className="relative">
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -125,14 +125,14 @@ export const CustomSelect = ({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="بحث..."
-                    className="w-full p-2 pr-9 pl-3 text-sm rounded-md bg-gray-50 dark:bg-gray-900 border-none focus:ring-1 focus:ring-primary text-right"
+                    className="w-full p-2 pr-9 pl-3 text-sm rounded-md bg-[hsl(var(--input))] border-none focus:ring-1 focus:ring-primary text-right"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </div>
             )}
-            
-            <div 
+
+            <div
               className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700 overscroll-contain"
               onWheel={(e) => e.stopPropagation()}
             >
@@ -143,8 +143,8 @@ export const CustomSelect = ({
                     onClick={() => handleSelect(option.id)}
                     className={`
                       w-full text-right p-3 text-sm flex items-center justify-between group transition-colors
-                      ${value === option.id 
-                        ? 'bg-primary/5 text-primary' 
+                      ${value === option.id
+                        ? 'bg-primary/5 text-primary'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                       }
                     `}

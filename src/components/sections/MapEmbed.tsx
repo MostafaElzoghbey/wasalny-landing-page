@@ -11,7 +11,7 @@ export function MapEmbed() {
             <div className="section-container">
                 <SectionHeading
                     title="موقعنا"
-                    subtitle="موقعنا في دمياط ويوجد لدينا توصيل لجميع انحاء دمياط و سفر خارج دمياط"
+                    subtitle="موقعنا في دمياط ويوجد لدينا توصيل لجميع أنحاء دمياط و سفر خارج دمياط"
                     centered
                 />
                 <div className="w-full h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-gray-100 dark:bg-gray-800 relative group">

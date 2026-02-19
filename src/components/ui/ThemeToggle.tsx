@@ -10,13 +10,13 @@ const themes = [
   { id: 'system', icon: Monitor, label: 'تلقائي' },
 ] as const;
 
-function ThemeButton({ 
-  Icon, 
-  isActive, 
-  onClick 
-}: { 
-  Icon: typeof Sun; 
-  isActive: boolean; 
+function ThemeButton({
+  Icon,
+  isActive,
+  onClick
+}: {
+  Icon: typeof Sun;
+  isActive: boolean;
   onClick: () => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -24,7 +24,7 @@ function ThemeButton({
 
   useEffect(() => {
     if (!indicatorRef.current) return;
-    
+
     if (isActive) {
       gsap.to(indicatorRef.current, {
         opacity: 1,
@@ -88,7 +88,7 @@ function ThemeButton({
     >
       <div
         ref={indicatorRef}
-        className="absolute inset-0 bg-white dark:bg-gray-700 rounded-lg shadow-sm"
+        className="absolute inset-0 bg-[hsl(var(--surface-elevated))] rounded-lg shadow-sm"
         style={{ opacity: isActive ? 1 : 0, transform: isActive ? 'scale(1)' : 'scale(0.8)' }}
       />
       <Icon className="relative z-10 w-5 h-5" />
@@ -100,7 +100,7 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+    <div className="flex items-center gap-1 p-1 rounded-xl bg-[hsl(var(--muted))]">
       {themes.map(({ id, icon: Icon }) => (
         <ThemeButton
           key={id}

@@ -282,7 +282,7 @@ export function RoutesSection() {
   }, []);
 
   return (
-    <section id="routes" className="section-padding relative overflow-hidden bg-[hsl(var(--muted))]/30">
+    <section id="routes" className="section-padding relative overflow-hidden bg-[hsl(var(--section-alt))]">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5 dark:opacity-10">
         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -305,7 +305,7 @@ export function RoutesSection() {
             ref={mapContainerRef}
             className="relative order-2 lg:order-1"
           >
-            <div className="relative bg-gradient-to-br from-primary-100 to-primary-50 dark:from-primary-900/30 dark:to-primary-950/20 rounded-3xl p-8 shadow-xl">
+            <div className="relative bg-gradient-to-br from-primary-100/60 to-primary-50/40 dark:from-primary-900/30 dark:to-primary-950/20 rounded-3xl p-8 shadow-xl">
               {/* Simplified Egypt Map SVG */}
               <svg
                 viewBox="0 0 400 500"
