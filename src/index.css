@@ -122,20 +122,20 @@
 /* Base Layer */
 @layer base {
   :root {
-    /* Light theme semantic tokens – neutral, no blue tint */
-    --background: 0 0% 98%;
+    /* Light theme – softer, reduced glare (avoids pure white) */
+    --background: 0 0% 96.5%;
     --foreground: 224 71% 4%;
-    --card: 0 0% 100%;
+    --card: 0 0% 99%;
     --card-foreground: 224 71% 4%;
-    --muted: 220 14.3% 95.5%;
+    --muted: 220 14.3% 93.5%;
     --muted-foreground: 220 8.9% 46%;
-    --border: 220 13% 91%;
+    --border: 220 13% 88%;
     --ring: 221.2 83.2% 53.3%;
 
     /* Extended semantic tokens */
-    --surface-elevated: 0 0% 100%;
-    --section-alt: 220 14% 96%;
-    --input: 220 14.3% 95.5%;
+    --surface-elevated: 0 0% 99%;
+    --section-alt: 220 14% 94.5%;
+    --input: 220 14.3% 93.5%;
     --shadow-color: 220 20% 30%;
   }
 
@@ -335,13 +335,25 @@
 
   /* Marquee animation */
   @keyframes scroll-ltr {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-33.3333%); }
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-33.3333%);
+    }
   }
+
   @keyframes scroll-rtl {
-    0% { transform: translateX(-33.3333%); }
-    100% { transform: translateX(0); }
+    0% {
+      transform: translateX(-33.3333%);
+    }
+
+    100% {
+      transform: translateX(0);
+    }
   }
+
   .marquee-track {
     display: flex;
     gap: 1rem;
@@ -349,12 +361,15 @@
     will-change: transform;
     direction: ltr !important;
   }
+
   .animate-scroll-ltr {
     animation: scroll-ltr 60s linear infinite;
   }
+
   .animate-scroll-rtl {
     animation: scroll-rtl 60s linear infinite;
   }
+
   .marquee-container:hover .marquee-track {
     animation-play-state: paused;
   }
