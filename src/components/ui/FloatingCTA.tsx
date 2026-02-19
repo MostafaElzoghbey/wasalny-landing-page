@@ -147,7 +147,7 @@ export function FloatingCTA() {
           "flex items-center justify-center w-14 h-14 rounded-full",
           "bg-[hsl(var(--card)/0.85)] backdrop-blur-xl",
           "border border-[hsl(var(--border))]",
-          "shadow-[0_4px_15px_hsl(var(--shadow-color)/0.08)] dark:shadow-[0_4px_15px_hsl(var(--shadow-color)/0.2)]",
+          "shadow-[0_4px_15px_hsl(var(--shadow-color)/0.15)] dark:shadow-[0_4px_15px_hsl(var(--shadow-color)/0.2)]",
           "text-[#1877F2] hover:text-white hover:bg-[#1877F2]",
           "transition-colors duration-300",
           "transform-gpu"

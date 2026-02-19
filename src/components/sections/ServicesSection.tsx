@@ -101,7 +101,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   return (
     <div
       ref={cardRef}
-      className="relative h-full text-center cursor-pointer rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 shadow-[0_1px_2px_hsl(var(--shadow-color)/0.04),0_4px_12px_hsl(var(--shadow-color)/0.06)] hover:shadow-[0_8px_30px_hsl(var(--shadow-color)/0.1)] dark:shadow-[0_4px_16px_hsl(var(--shadow-color)/0.2)] dark:hover:shadow-[0_12px_32px_hsl(var(--shadow-color)/0.3)] transition-all duration-300 overflow-hidden"
+      className="relative h-full text-center cursor-pointer rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 shadow-[0_1px_3px_hsl(var(--shadow-color)/0.08),0_6px_16px_hsl(var(--shadow-color)/0.14)] hover:shadow-[0_12px_32px_hsl(var(--shadow-color)/0.18)] dark:shadow-[0_4px_16px_hsl(var(--shadow-color)/0.2)] dark:hover:shadow-[0_12px_32px_hsl(var(--shadow-color)/0.3)] transition-all duration-300 overflow-hidden"
     >
       {/* Subtle gradient border accent on top */}
       <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-l ${service.color} opacity-80`} />
