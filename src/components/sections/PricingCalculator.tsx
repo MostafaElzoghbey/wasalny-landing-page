@@ -20,7 +20,7 @@ export const PricingCalculator = () => {
     <section
       id="pricing"
       ref={containerRef}
-      className="py-20 bg-gradient-to-b from-[hsl(var(--section-alt))] to-[hsl(var(--background))] dark:from-gray-900 dark:to-gray-950 relative overflow-x-clip"
+      className="py-20 bg-gradient-to-b from-[hsl(var(--section-alt))] to-[hsl(var(--background))] relative overflow-x-clip"
     >
       {/* Decorative Elements */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[hsl(var(--border))] to-transparent" />

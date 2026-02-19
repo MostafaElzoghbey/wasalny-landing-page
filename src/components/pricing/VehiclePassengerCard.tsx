@@ -108,7 +108,7 @@ export const VehiclePassengerCard = ({
                   min={1}
                   max={15}
                   value={passengerCount}
-                  onChange={(e) => setPassengerCount(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setPassengerCount(Math.min(15, Math.max(1, parseInt(e.target.value) || 1)))}
                   className="w-12 text-center bg-transparent border-none focus:ring-0 font-semibold text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
                 <button
