@@ -16,8 +16,40 @@ const formatDateForInput = (date: Date | undefined) => {
   const localDate = new Date(date.getTime() - offset * 60 * 1000);
   try {
     return localDate.toISOString().split('T')[0];
-  } catch (e) {
+  } catch {
     return '';
+  }
+};
+
+/** Format a Date to a human-readable Arabic date string */
+const formatDateDisplay = (date: Date | undefined): string => {
+  if (!date || isNaN(date.getTime())) return 'اختر التاريخ';
+  try {
+    return date.toLocaleDateString('ar-EG', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return 'اختر التاريخ';
+  }
+};
+
+/** Format a time string (HH:mm) to a human-readable Arabic string */
+const formatTimeDisplay = (time: string): string => {
+  if (!time) return 'اختر الوقت';
+  try {
+    const [h, m] = time.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h, m);
+    return d.toLocaleTimeString('ar-EG', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch {
+    return 'اختر الوقت';
   }
 };
 
@@ -41,30 +73,61 @@ export const DateTimeCard = ({
 
       <div className="space-y-6 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Date Picker */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-400" />
               تاريخ الرحلة
             </label>
-            <input
-              type="date"
-              min={new Date().toISOString().split('T')[0]} // Min today
-              value={formatDateForInput(tripDate)}
-              onChange={(e) => setTripDate(new Date(e.target.value))}
-              className="w-full p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark]"
-            />
+            <div className="relative">
+              {/* Visible styled display */}
+              <div className="pointer-events-none absolute inset-0 flex items-center gap-3 px-4 z-10">
+                <div className="p-1.5 bg-primary/10 rounded-md">
+                  <Calendar className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-[hsl(var(--foreground))] font-medium text-sm truncate">
+                  {formatDateDisplay(tripDate)}
+                </span>
+              </div>
+              {/* Actual native input overlaid */}
+              <input
+                type="date"
+                lang="ar"
+                dir="rtl"
+                min={new Date().toISOString().split('T')[0]}
+                value={formatDateForInput(tripDate)}
+                onChange={(e) => setTripDate(new Date(e.target.value))}
+                className="date-time-input w-full h-12 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--input))] text-transparent cursor-pointer focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all hover:border-primary/30 dark:[color-scheme:dark]"
+              />
+            </div>
           </div>
+
+          {/* Time Picker */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Clock className="w-4 h-4 text-gray-400" />
               وقت الرحلة
             </label>
-            <input
-              type="time"
-              value={tripTime}
-              onChange={(e) => setTripTime(e.target.value)}
-              className="w-full p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:[color-scheme:dark]"
-            />
+            <div className="relative">
+              {/* Visible styled display */}
+              <div className="pointer-events-none absolute inset-0 flex items-center gap-3 px-4 z-10">
+                <div className="p-1.5 bg-accent-500/10 rounded-md">
+                  <Clock className="w-4 h-4 text-accent-500" />
+                </div>
+                <span className="text-[hsl(var(--foreground))] font-medium text-sm">
+                  {formatTimeDisplay(tripTime)}
+                </span>
+              </div>
+              {/* Actual native input overlaid */}
+              <input
+                type="time"
+                lang="ar"
+                dir="rtl"
+                value={tripTime}
+                onChange={(e) => setTripTime(e.target.value)}
+                className="date-time-input w-full h-12 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--input))] text-transparent cursor-pointer focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all hover:border-primary/30 dark:[color-scheme:dark]"
+              />
+            </div>
           </div>
         </div>
 
