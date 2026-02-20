@@ -7,6 +7,7 @@ import { contactInfo } from '@/data/content';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useTextReveal, useFloatingAnimation, useParallax } from '@/hooks/useAnimations';
+import { canHover } from '@/hooks/useHoverCapable';
 
 export function HeroSection() {
   const containerRef = useRef<HTMLElement>(null);
@@ -93,7 +94,7 @@ export function HeroSection() {
 
   // Car image hover effect
   useGSAP(() => {
-    if (!carImageRef.current) return;
+    if (!carImageRef.current || !canHover()) return;
 
     const el = carImageRef.current;
 

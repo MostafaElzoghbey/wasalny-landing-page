@@ -5,6 +5,7 @@ import { useCounterAnimation, useBatchReveal } from '@/hooks/useAnimations';
 import { stats } from '@/data/content';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { canHover } from '@/hooks/useHoverCapable';
 
 const iconMap = {
   shield: Shield,
@@ -85,7 +86,7 @@ const StatCard = ({ stat }: StatCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !canHover()) return;
 
     const card = cardRef.current;
 
@@ -129,7 +130,7 @@ const FeatureCard = ({ feature }: FeatureCardProps) => {
   const Icon = iconMap[feature.icon as keyof typeof iconMap];
 
   useGSAP(() => {
-    if (!cardRef.current || !iconRef.current) return;
+    if (!cardRef.current || !iconRef.current || !canHover()) return;
 
     const card = cardRef.current;
     const icon = iconRef.current;

@@ -4,6 +4,7 @@ import { MapPin, Clock, ArrowRight } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger, rtlX } from '@/lib/gsap';
+import { canHover } from '@/hooks/useHoverCapable';
 
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { routes } from '@/data/content';
@@ -18,7 +19,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
   const arrowRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !canHover()) return;
 
     const card = cardRef.current;
 

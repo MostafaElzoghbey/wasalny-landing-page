@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { canHover } from '@/hooks/useHoverCapable';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,13 +43,15 @@ interface LightboxProps {
 const Lightbox = ({ selectedImage, images, imageAlts, currentIndex, onClose, onNext, onPrev, onSelect }: LightboxProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const lightboxTouchStartX = useRef(0);
+  const lightboxTouchEndX = useRef(0);
 
   useEffect(() => {
     if (!selectedImage) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') onNext();
-      if (e.key === 'ArrowRight') onPrev();
+      if (e.key === 'ArrowLeft') onPrev();
+      if (e.key === 'ArrowRight') onNext();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -61,6 +64,22 @@ const Lightbox = ({ selectedImage, images, imageAlts, currentIndex, onClose, onN
     }
   }, { dependencies: [selectedImage] });
 
+  // RTL-aware touch swipe for lightbox
+  const handleLightboxTouchStart = (e: React.TouchEvent) => {
+    lightboxTouchEndX.current = 0;
+    lightboxTouchStartX.current = e.targetTouches[0].clientX;
+  };
+  const handleLightboxTouchMove = (e: React.TouchEvent) => {
+    lightboxTouchEndX.current = e.targetTouches[0].clientX;
+  };
+  const handleLightboxTouchEnd = () => {
+    if (!lightboxTouchStartX.current || !lightboxTouchEndX.current) return;
+    const distance = lightboxTouchStartX.current - lightboxTouchEndX.current;
+    // RTL: swipe left → previous, swipe right → next
+    if (distance > 50) onPrev();
+    if (distance < -50) onNext();
+  };
+
   if (!selectedImage) return null;
 
   return (
@@ -68,55 +87,58 @@ const Lightbox = ({ selectedImage, images, imageAlts, currentIndex, onClose, onN
       ref={overlayRef}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl"
       onClick={onClose}
+      onTouchStart={handleLightboxTouchStart}
+      onTouchMove={handleLightboxTouchMove}
+      onTouchEnd={handleLightboxTouchEnd}
       role="dialog"
       aria-modal="true"
       aria-label="معرض صور السيارة"
     >
       <button
-        className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-50 focus-visible:ring-2 focus-visible:ring-primary-500"
+        className="absolute top-4 right-4 md:top-6 md:right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-50 focus-visible:ring-2 focus-visible:ring-primary-500"
         onClick={onClose}
         aria-label="إغلاق"
       >
-        <X className="w-8 h-8" />
+        <X className="w-7 h-7 md:w-8 md:h-8" />
       </button>
       <button
-        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-4 bg-white/5 hover:bg-white/10 rounded-full text-white hidden md:flex focus-visible:ring-2 focus-visible:ring-primary-500"
-        onClick={(e) => { e.stopPropagation(); onPrev(); }}
-        aria-label="الصورة السابقة"
-      >
-        <ChevronRight className="w-8 h-8" />
-      </button>
-      <button
-        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-4 bg-white/5 hover:bg-white/10 rounded-full text-white hidden md:flex focus-visible:ring-2 focus-visible:ring-primary-500"
+        className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 p-2 md:p-4 bg-white/5 hover:bg-white/10 rounded-full text-white flex focus-visible:ring-2 focus-visible:ring-primary-500 z-30"
         onClick={(e) => { e.stopPropagation(); onNext(); }}
         aria-label="الصورة التالية"
       >
-        <ChevronLeft className="w-8 h-8" />
+        <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+      </button>
+      <button
+        className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 p-2 md:p-4 bg-white/5 hover:bg-white/10 rounded-full text-white flex focus-visible:ring-2 focus-visible:ring-primary-500 z-30"
+        onClick={(e) => { e.stopPropagation(); onPrev(); }}
+        aria-label="الصورة السابقة"
+      >
+        <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
       </button>
 
-      <div className="flex-1 flex items-center justify-center p-4 pb-0 max-w-7xl w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="flex-1 flex items-center justify-center p-2 md:p-4 pb-0 max-w-7xl w-full" onClick={(e) => e.stopPropagation()}>
         <OptimizedImage
           ref={imageRef}
           src={selectedImage}
           alt={imageAlts?.[currentIndex] || "Full view"}
-          className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl"
+          className="max-w-[95vw] max-h-[80vh] md:max-h-[85vh] object-contain rounded-lg shadow-2xl"
           imgClassName="object-contain"
           priority
         />
       </div>
 
-      <div className="text-white/80 font-mono text-sm bg-black/50 px-4 py-1 rounded-full my-3" onClick={(e) => e.stopPropagation()}>
+      <div className="text-white/80 font-mono text-sm bg-black/50 px-4 py-1 rounded-full my-2 md:my-3" onClick={(e) => e.stopPropagation()}>
         {currentIndex + 1} / {images.length}
       </div>
 
-      <div className="pb-6 px-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex gap-2 p-2 bg-black/50 backdrop-blur-md rounded-xl max-w-[90vw] overflow-x-auto scrollbar-hide">
+      <div className="pb-4 md:pb-6 px-2 md:px-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex gap-1.5 md:gap-2 p-1.5 md:p-2 bg-black/50 backdrop-blur-md rounded-xl max-w-[95vw] overflow-x-auto scrollbar-hide">
           {images.map((img, idx) => (
             <button
               key={idx}
               onClick={() => onSelect(idx)}
               className={cn(
-                "flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200",
+                "flex-shrink-0 w-14 h-10 md:w-16 md:h-12 rounded-lg overflow-hidden border-2 transition-all duration-200",
                 idx === currentIndex
                   ? "border-primary-500 ring-2 ring-primary-500/50"
                   : "border-transparent opacity-60 hover:opacity-100"
@@ -280,8 +302,8 @@ export function FleetSection() {
       const rect = containerRef.current?.getBoundingClientRect();
       const isVisible = rect && rect.top < window.innerHeight && rect.bottom > 0;
       if (!isVisible) return;
-      if (e.key === 'ArrowLeft') { e.preventDefault(); nextImage(); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); prevImage(); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); prevImage(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); nextImage(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -306,6 +328,7 @@ export function FleetSection() {
   }, { scope: containerRef });
 
   useGSAP(() => {
+    if (!canHover()) return; // Skip hover animations on touch devices
     const cards = [{ card: card1Ref.current, icon: icon1Ref.current }, { card: card2Ref.current, icon: icon2Ref.current }];
     const cleanups: (() => void)[] = [];
     cards.forEach(({ card, icon }) => {
@@ -328,7 +351,7 @@ export function FleetSection() {
   }, { scope: infoRef, dependencies: [activeCategory] });
 
   useGSAP(() => {
-    if (!tablistRef.current) return;
+    if (!tablistRef.current || !canHover()) return; // Skip hover animations on touch devices
 
     const buttons = tablistRef.current.querySelectorAll('button[role="tab"]');
     const cleanups: (() => void)[] = [];
@@ -399,8 +422,9 @@ export function FleetSection() {
   const handleTouchEnd = () => {
     if (!touchStartX.current || !touchEndX.current) return;
     const distance = touchStartX.current - touchEndX.current;
-    if (distance > 50) nextImage();
-    if (distance < -50) prevImage();
+    // RTL: swipe left (positive) → previous, swipe right (negative) → next
+    if (distance > 50) prevImage();
+    if (distance < -50) nextImage();
   };
 
   const handleCardClick = (index: number) => {
@@ -517,24 +541,24 @@ export function FleetSection() {
             </div>
 
             <div
-              className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-6 z-40 bg-[hsl(var(--card)/0.85)] backdrop-blur-md px-6 py-3 rounded-full shadow-lg border border-[hsl(var(--border))] pointer-events-auto"
+              className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 md:gap-6 z-40 bg-[hsl(var(--card)/0.85)] backdrop-blur-md px-3 md:px-6 py-2 md:py-3 rounded-full shadow-lg border border-[hsl(var(--border))] pointer-events-auto max-w-[calc(100vw-2rem)]"
               onMouseEnter={() => setIsHovering(true)}
               onMouseLeave={() => setIsHovering(false)}
             >
-              <button onClick={prevImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
-                <ChevronRight className="w-6 h-6" />
+              <button onClick={nextImage} className="p-2 md:p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة التالية">
+                <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
               </button>
-              <div className="flex items-center gap-4 min-w-[120px]">
-                <div className="relative w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-500 to-primary-600 transition-all duration-300" style={{ width: `${((currentImageIndex + 1) / images.length) * 100}%` }} />
+              <div className="flex items-center gap-2 md:gap-4 min-w-[80px] md:min-w-[120px]">
+                <div className="relative w-16 md:w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div className="absolute top-0 right-0 h-full bg-gradient-to-l from-primary-500 to-primary-600 transition-all duration-300" style={{ width: `${((currentImageIndex + 1) / images.length) * 100}%` }} />
                 </div>
-                <span className="text-sm font-mono text-gray-500 dark:text-gray-400">{currentImageIndex + 1}/{images.length}</span>
+                <span className="text-xs md:text-sm font-mono text-gray-500 dark:text-gray-400 whitespace-nowrap">{currentImageIndex + 1}/{images.length}</span>
               </div>
-              <button onClick={nextImage} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة التالية">
-                <ChevronLeft className="w-6 h-6" />
+              <button onClick={prevImage} className="p-2 md:p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
+                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
               </button>
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-2" />
-              <button onClick={() => setIsPaused(!isPaused)} className="p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+              <div className="w-px h-5 md:h-6 bg-gray-300 dark:bg-gray-700 hidden sm:block" />
+              <button onClick={() => setIsPaused(!isPaused)} className="p-2 md:p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 hidden sm:flex">
                 {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
               </button>
             </div>

@@ -4,6 +4,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { useBatchReveal, useTiltEffect } from '@/hooks/useAnimations';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import { canHover } from '@/hooks/useHoverCapable';
 
 const iconMap = {
   route: MapPin,
@@ -68,7 +69,7 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   const Icon = iconMap[service.icon as keyof typeof iconMap];
 
   useGSAP(() => {
-    if (!cardRef.current || !iconContainerRef.current || !lineRef.current) return;
+    if (!cardRef.current || !iconContainerRef.current || !lineRef.current || !canHover()) return;
 
     const card = cardRef.current;
     const iconContainer = iconContainerRef.current;

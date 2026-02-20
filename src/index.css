@@ -175,6 +175,7 @@
     scroll-padding-top: 5rem;
     scrollbar-width: thin;
     scrollbar-color: var(--color-primary-500) transparent;
+    scrollbar-gutter: stable;
   }
 
   html::-webkit-scrollbar {

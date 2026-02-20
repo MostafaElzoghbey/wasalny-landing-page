@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import gsap from '@/lib/gsap';
 import { useGSAP } from '@gsap/react';
 import { logoImage } from '@/data/cars';
@@ -60,15 +60,9 @@ export function PageLoader({ onComplete, minDuration = 2000 }: PageLoaderProps) 
 
   }, { scope: containerRef, dependencies: [minDuration] });
 
-  // Prevent scroll during loading
-  useEffect(() => {
-    if (!isComplete) {
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isComplete]);
+  // Note: We intentionally do NOT toggle body overflow here.
+  // The loader already uses position:fixed + z-[9999] which fully blocks interaction.
+  // Toggling overflow causes the scrollbar to appear/disappear, triggering a layout shift on desktop.
 
   if (isComplete) return null;
 

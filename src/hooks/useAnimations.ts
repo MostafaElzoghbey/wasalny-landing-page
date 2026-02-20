@@ -318,6 +318,8 @@ export const useTiltEffect = (
 
   useGSAP(() => {
     if (!ref.current) return;
+    // Skip tilt effect on touch-only devices (no mouse)
+    if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
     const el = ref.current;
 
