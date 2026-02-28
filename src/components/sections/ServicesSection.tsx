@@ -5,6 +5,7 @@ import { useBatchReveal, useTiltEffect } from '@/hooks/useAnimations';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { canHover } from '@/hooks/useHoverCapable';
+import { dispatchPricingPreset, type PricingPreset } from '@/utils/pricingEvents';
 
 const iconMap = {
   route: MapPin,
@@ -20,6 +21,7 @@ const services = [
     icon: 'route',
     color: 'from-blue-500 to-blue-600',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+    pricingPreset: { routeType: 'travel' as const, fromLocation: 'damietta', toLocation: 'new-cairo' },
   },
   {
     id: 'airport-transfer',
@@ -28,14 +30,16 @@ const services = [
     icon: 'plane',
     color: 'from-purple-500 to-purple-600',
     bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+    pricingPreset: { routeType: 'travel' as const, fromLocation: 'damietta', toLocation: 'cairo-airport' },
   },
   {
-    id: 'private-trips',
-    title: 'رحلات خاصة',
-    description: 'احجز سيارة خاصة لرحلتك مع سائق محترف ومدرب',
+    id: 'damietta-alexandria',
+    title: 'دمياط - اسكندرية',
+    description: 'رحلات مريحة وآمنة من دمياط إلى الإسكندرية والعكس بسيارات حديثة',
     icon: 'car',
     color: 'from-emerald-500 to-emerald-600',
     bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+    pricingPreset: { routeType: 'travel' as const, fromLocation: 'damietta', toLocation: 'alexandria' },
   },
   {
     id: 'internal-routes',
@@ -44,6 +48,7 @@ const services = [
     icon: 'route',
     color: 'from-orange-500 to-orange-600',
     bgColor: 'bg-orange-50 dark:bg-orange-900/20',
+    pricingPreset: { routeType: 'internal' as const },
   },
 ];
 
@@ -60,9 +65,10 @@ const TiltCard = ({ children, className = "" }: { children: React.ReactNode; cla
 
 interface ServiceCardProps {
   service: typeof services[0];
+  onClick: () => void;
 }
 
-const ServiceCard = ({ service }: ServiceCardProps) => {
+const ServiceCard = ({ service, onClick }: ServiceCardProps) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const iconContainerRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
@@ -102,6 +108,10 @@ const ServiceCard = ({ service }: ServiceCardProps) => {
   return (
     <div
       ref={cardRef}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
       className="relative h-full text-center cursor-pointer rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] p-6 shadow-[0_1px_3px_hsl(var(--shadow-color)/0.08),0_6px_16px_hsl(var(--shadow-color)/0.14)] hover:shadow-[0_12px_32px_hsl(var(--shadow-color)/0.18)] dark:shadow-[0_4px_16px_hsl(var(--shadow-color)/0.2)] dark:hover:shadow-[0_12px_32px_hsl(var(--shadow-color)/0.3)] transition-all duration-300 overflow-hidden"
     >
       {/* Subtle gradient border accent on top */}
@@ -166,7 +176,13 @@ export function ServicesSection() {
               key={service.id}
               className="service-card group h-full"
             >
-              <ServiceCard service={service} />
+              <ServiceCard
+                service={service}
+                onClick={() => {
+                  dispatchPricingPreset(service.pricingPreset as PricingPreset);
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              />
             </TiltCard>
           ))}
         </div>

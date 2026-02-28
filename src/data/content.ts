@@ -12,9 +12,9 @@ export const services = [
     icon: 'plane',
   },
   {
-    id: 'private-trips',
-    title: 'رحلات خاصة',
-    description: 'احجز سيارة خاصة لرحلتك مع سائق محترف',
+    id: 'damietta-alexandria',
+    title: 'دمياط - اسكندرية',
+    description: 'رحلات مريحة وآمنة من دمياط إلى الإسكندرية والعكس',
     icon: 'car',
   },
   {

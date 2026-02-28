@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   type VehicleCategory,
   type RouteType,
@@ -13,16 +13,17 @@ import {
   detectRouteType,
   type PriceCalculationResult,
 } from '../utils/pricingCalculator';
+import { subscribePricingPreset, type PricingPreset } from '@/utils/pricingEvents';
 
 export function usePricingCalculator() {
   // --- State ---
   const [routeType, setRouteType] = useState<RouteType>('travel');
   const [fromLocation, setFromLocation] = useState<string>('');
   const [toLocation, setToLocation] = useState<string>('');
-  
+
   const [vehicleCategory, setVehicleCategory] = useState<VehicleCategory>('sedan');
   const [passengerCount, setPassengerCountState] = useState<number>(2);
-  
+
   // Trip date/time (same day, no return selection)
   const [tripDate, setTripDateState] = useState<string>(() => {
     const tomorrow = new Date();
@@ -30,25 +31,32 @@ export function usePricingCalculator() {
     return tomorrow.toISOString().split('T')[0];
   });
   const [tripTime, setTripTimeState] = useState<string>('10:00');
-  
+
   // Round trip toggle (hidden for internal routes)
   const [isRoundTrip, setIsRoundTrip] = useState<boolean>(false);
-  
+
+  // Guard ref: when true, skip the routeType-change reset (preset is being applied)
+  const skipResetRef = useRef(false);
+
   // --- Derived State ---
-  
+
   // Available "From" locations based on route type
   const availableFromLocations = useMemo(() => {
     return getFromLocations(routeType);
   }, [routeType]);
-  
+
   // Available "To" locations based on route type and selected "from"
   const availableToLocations = useMemo(() => {
     if (!fromLocation) return [];
     return getToLocations(routeType, fromLocation);
   }, [routeType, fromLocation]);
 
-  // Reset selections when route type changes
+  // Reset selections when route type changes (skipped during preset application)
   useEffect(() => {
+    if (skipResetRef.current) {
+      skipResetRef.current = false;
+      return;
+    }
     setFromLocation('');
     setToLocation('');
     setIsRoundTrip(false);
@@ -103,11 +111,11 @@ export function usePricingCalculator() {
   // Validation
   const validationErrors = useMemo<string[]>(() => {
     const errors: string[] = [];
-    
+
     // Route validation
     if (!fromLocation) errors.push('يرجى اختيار مكان الانطلاق');
     else if (!toLocation) errors.push('يرجى اختيار الوجهة');
-    
+
     // Passenger validation
     const vehicleInfo = vehiclePricing.find(v => v.category === vehicleCategory);
     if (vehicleInfo) {
@@ -123,7 +131,7 @@ export function usePricingCalculator() {
   }, [fromLocation, toLocation, passengerCount, vehicleCategory]);
 
   // --- Persistence ---
-  
+
   // Load initial state
   useEffect(() => {
     try {
@@ -149,6 +157,21 @@ export function usePricingCalculator() {
     localStorage.setItem('wasalny_pricing_v2', JSON.stringify(stateToSave));
   }, [routeType, vehicleCategory, passengerCount]);
 
+  // --- Service Card Preset Listener ---
+  useEffect(() => {
+    return subscribePricingPreset((preset: PricingPreset) => {
+      // Set guard so the routeType-change effect doesn't wipe from/to
+      if (preset.routeType !== routeType) {
+        skipResetRef.current = true;
+      }
+      setRouteType(preset.routeType);
+      setFromLocation(preset.fromLocation ?? '');
+      setToLocation(preset.toLocation ?? '');
+      setIsRoundTrip(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // WhatsApp Link
   const whatsappLink = useMemo(() => {
     if (!calculationResult) return '';
@@ -157,7 +180,7 @@ export function usePricingCalculator() {
   }, [calculationResult]);
 
   // --- Handlers ---
-  
+
   const setPassengerCount = (count: number) => {
     setPassengerCountState(count);
     // Smart Vehicle Switch
