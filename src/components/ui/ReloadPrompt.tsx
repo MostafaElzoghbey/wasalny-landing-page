@@ -1,8 +1,13 @@
+import { useRef } from 'react';
+import { RefreshCw, X, Wifi } from 'lucide-react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { RefreshCw, X } from 'lucide-react';
+import gsap, { useGSAP } from '@/lib/gsap';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 
 export function ReloadPrompt() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const {
     offlineReady: [offlineReady, setOfflineReady],
     needRefresh: [needRefresh, setNeedRefresh],
@@ -20,42 +25,93 @@ export function ReloadPrompt() {
     },
   });
 
-  const close = () => {
+  const shouldShow = offlineReady || needRefresh;
+
+  useGSAP(() => {
+    if (!containerRef.current) return;
+
+    const tween = gsap.to(containerRef.current, {
+      y: shouldShow ? 0 : -100,
+      opacity: shouldShow ? 1 : 0,
+      pointerEvents: shouldShow ? 'auto' : 'none',
+      duration: 0.5,
+      ease: shouldShow ? 'back.out(1.4)' : 'power3.in',
+    });
+
+    return () => { tween.kill(); };
+  }, { dependencies: [shouldShow] });
+
+  const handleClose = () => {
     setOfflineReady(false);
     setNeedRefresh(false);
   };
 
-  if (!offlineReady && !needRefresh) return null;
-
   return (
-    <div className="fixed bottom-4 right-4 z-50 p-4 bg-[hsl(var(--card))] shadow-xl rounded-xl border border-[hsl(var(--border))] max-w-sm animate-slide-up flex flex-col gap-3">
-      <div className="text-sm text-[hsl(var(--foreground))] font-medium">
-        {offlineReady ? (
-          <span>التطبيق جاهز للعمل بدون إنترنت</span>
-        ) : (
-          <span>يوجد تحديث جديد متاح، انقر لتحديث التطبيق.</span>
-        )}
+    <div
+      ref={containerRef}
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      className={cn(
+        'fixed top-4 end-4 z-[60]',
+        'w-full max-w-sm',
+        '-translate-y-[100px] opacity-0 pointer-events-none',
+        'bg-[hsl(var(--card)/0.97)] backdrop-blur-xl',
+        'border border-[hsl(var(--border))]',
+        'rounded-2xl',
+        'shadow-[0_8px_32px_hsl(var(--shadow-color)/0.18)]',
+        'p-4'
+      )}
+    >
+      <div className="flex items-start gap-3">
+        {/* Icon */}
+        <div className={cn(
+          'shrink-0 w-10 h-10 rounded-xl flex items-center justify-center',
+          needRefresh
+            ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
+            : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+        )}>
+          {needRefresh ? (
+            <RefreshCw className="w-5 h-5" />
+          ) : (
+            <Wifi className="w-5 h-5" />
+          )}
+        </div>
+
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm text-[hsl(var(--foreground))]">
+            {needRefresh ? 'تحديث متاح' : 'وضع عدم الاتصال'}
+          </p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">
+            {needRefresh
+              ? 'يوجد إصدار جديد، انقر للتحديث'
+              : 'التطبيق يعمل بدون إنترنت الآن'}
+          </p>
+        </div>
+
+        {/* Close */}
+        <button
+          onClick={handleClose}
+          className="shrink-0 p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors"
+          aria-label="إغلاق"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
-      <div className="flex gap-2 justify-end">
-        {needRefresh && (
+
+      {needRefresh && (
+        <div className="mt-3 flex justify-end">
           <Button
             variant="primary"
             size="sm"
             icon={RefreshCw}
             onClick={() => updateServiceWorker(true)}
           >
-            تحديث
+            تحديث الآن
           </Button>
-        )}
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={X}
-          onClick={close}
-        >
-          إغلاق
-        </Button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
