@@ -1,10 +1,10 @@
 import { Car, AlertCircle, Users, CheckCircle2 } from 'lucide-react';
-import { vehiclePricing } from '@/data/pricing';
+import { vehiclePricing, type VehicleCategory } from '@/data/pricing';
 import { cars } from '@/data/cars';
 
 interface VehiclePassengerProps {
   vehicleCategory: string;
-  setVehicleCategory: (val: string) => void;
+  setVehicleCategory: (val: VehicleCategory) => void;
   passengerCount: number;
   setPassengerCount: (val: number) => void;
 }
