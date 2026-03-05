@@ -68,7 +68,7 @@ export interface BeforeInstallPromptChoice {
 export interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   readonly userChoice: Promise<BeforeInstallPromptChoice>;
-  prompt(): Promise<void>;
+  prompt(): Promise<BeforeInstallPromptChoice>;
 }
 
 declare global {
@@ -79,6 +79,10 @@ declare global {
 
 export interface PWAInstallButtonProps {
   readonly isMobile?: boolean;
+}
+
+export interface PWAInstallBannerProps {
+  readonly logoSrc: string;
 }
 
 export interface IOSInstallBannerProps {

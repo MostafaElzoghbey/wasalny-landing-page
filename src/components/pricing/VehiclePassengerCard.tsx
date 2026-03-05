@@ -1,6 +1,7 @@
 import { Car, AlertCircle, Users, CheckCircle2 } from 'lucide-react';
 import { vehiclePricing, type VehicleCategory } from '@/data/pricing';
 import { cars } from '@/data/cars';
+import { cn } from '@/lib/utils';
 
 interface VehiclePassengerProps {
   vehicleCategory: VehicleCategory;
@@ -47,13 +48,12 @@ export const VehiclePassengerCard = ({
                 onClick={() => setVehicleCategory(v.category)}
                 aria-pressed={isActive}
                 aria-label={v.categoryAr}
-                className={`
-                  cursor-pointer rounded-xl border transition-all duration-300 relative overflow-hidden group/card text-start
-                  ${isActive
+                className={cn(
+                  'cursor-pointer rounded-xl border transition-all duration-300 relative overflow-hidden group/card text-start',
+                  isActive
                     ? 'border-primary bg-primary/5 ring-1 ring-primary shadow-lg shadow-primary/10 scale-[1.02]'
                     : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-[hsl(var(--muted-foreground))] hover:shadow-md'
-                  }
-                `}
+                )}
               >
                 {isActive && (
                   <div className="absolute top-2 right-2 z-20 text-primary">
@@ -63,11 +63,14 @@ export const VehiclePassengerCard = ({
 
                 <div className="aspect-[16/10] bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                   {image ? (
-                    <img
-                      src={image}
-                      alt={v.categoryAr}
-                      className={`w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110 ${!isActive && 'grayscale opacity-80 group-hover/card:grayscale-0 group-hover/card:opacity-100'}`}
-                    />
+                      <img
+                        src={image}
+                        alt={v.categoryAr}
+                        className={cn(
+                          'w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-110',
+                          !isActive && 'grayscale opacity-80 group-hover/card:grayscale-0 group-hover/card:opacity-100'
+                        )}
+                      />
                   ) : (
                     <Car className="w-10 h-10 text-gray-400" />
                   )}

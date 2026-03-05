@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { cn } from '@/lib/utils';
 import { Check, Baby, Briefcase, Clock, UserCheck, MapPin, Car, Plane } from 'lucide-react';
 
 import type { ServiceOption, ServiceOptionIcon } from '@/types';
@@ -21,11 +21,11 @@ const iconMap: Record<ServiceOptionIcon, React.ElementType> = {
   plane: Plane,
 };
 
-export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
+export function ServiceSelector({
   selectedServices,
   onToggle,
   options,
-}) => {
+}: ServiceSelectorProps) {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
@@ -45,19 +45,18 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
               onClick={() => onToggle(service.id)}
               aria-pressed={isSelected}
               aria-label={service.title}
-              className={`
-                group cursor-pointer relative p-4 rounded-xl border transition-all duration-300 text-start w-full
-                ${isSelected 
-                  ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md ring-1 ring-primary/50' 
+              className={cn(
+                'group cursor-pointer relative p-4 rounded-xl border transition-all duration-300 text-start w-full',
+                isSelected
+                  ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md ring-1 ring-primary/50'
                   : 'border-gray-200 dark:border-gray-800 hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                }
-              `}
+              )}
             >
               <div className="flex items-start gap-3">
-                <div className={`
-                  p-2 rounded-lg transition-colors
-                  ${isSelected ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:text-primary'}
-                `}>
+                <div className={cn(
+                  'p-2 rounded-lg transition-colors',
+                  isSelected ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:text-primary'
+                )}>
                   <Icon className="w-5 h-5" />
                 </div>
                 
@@ -80,13 +79,12 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                   )}
                 </div>
 
-                <div className={`
-                  w-5 h-5 rounded-full border flex items-center justify-center transition-colors
-                  ${isSelected
+                <div className={cn(
+                  'w-5 h-5 rounded-full border flex items-center justify-center transition-colors',
+                  isSelected
                     ? 'bg-primary border-primary text-white'
                     : 'border-gray-300 dark:border-gray-600'
-                  }
-                `}>
+                )}>
                   {isSelected && <Check className="w-3.5 h-3.5" />}
                 </div>
               </div>
@@ -96,4 +94,4 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
       </div>
     </div>
   );
-};
+}

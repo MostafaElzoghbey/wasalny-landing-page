@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import gsap, { ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import { contactInfo } from '@/data/content';
@@ -12,7 +12,7 @@ export function FloatingCTA() {
   const [isInFooter, setIsInFooter] = useState(false);
   const isVisible = isPastHero && !isInFooter;
 
-  useEffect(() => {
+  useGSAP(() => {
     const heroTrigger = ScrollTrigger.create({
       trigger: '#home',
       start: 'bottom top+=100',
@@ -31,7 +31,7 @@ export function FloatingCTA() {
       heroTrigger.kill();
       footerTrigger.kill();
     };
-  }, []);
+  }, {});
 
   // Container entrance/exit animation
   useGSAP(() => {

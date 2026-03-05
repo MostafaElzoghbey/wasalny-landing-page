@@ -91,7 +91,7 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
     dismissBanner();
   };
 
-  if (!isEligible) return null;
+  if (!isEligible || !shouldShow) return null;
 
   return (
     <section

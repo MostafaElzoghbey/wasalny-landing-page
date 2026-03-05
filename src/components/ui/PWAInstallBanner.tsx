@@ -4,6 +4,7 @@ import gsap, { useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { usePWAInstall } from '@/context/PWAInstallContext';
+import type { PWAInstallBannerProps } from '@/types';
 
 const DISMISS_KEY = 'wasalny-pwa-banner-dismissed-at';
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -24,10 +25,6 @@ function dismissBanner(): void {
   } catch {
     // localStorage may be unavailable in private browsing
   }
-}
-
-interface PWAInstallBannerProps {
-  readonly logoSrc: string;
 }
 
 export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
@@ -78,7 +75,7 @@ export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
     handleDismiss();
   };
 
-  if (!isInstallable) return null;
+  if (!isInstallable || !shouldShow) return null;
 
   return (
     <section

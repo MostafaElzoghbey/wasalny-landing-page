@@ -82,7 +82,7 @@ export const CustomSelect = ({
       <div className="relative">
         <button
           type="button"
-          onClick={() => !disabled && (isOpen ? closeDropdown() : setIsOpen(true))}
+          onClick={() => isOpen ? closeDropdown() : setIsOpen(true)}
           disabled={disabled}
           className={`
             w-full p-3 pl-10 pr-10 text-right rounded-lg border bg-[hsl(var(--input))]

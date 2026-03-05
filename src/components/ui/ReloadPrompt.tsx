@@ -65,9 +65,11 @@ export function ReloadPrompt() {
   return (
     <div
       ref={containerRef}
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
+      role={shouldShow ? 'status' : undefined}
+      aria-live={shouldShow ? 'polite' : undefined}
+      aria-atomic={shouldShow ? 'true' : undefined}
+      aria-hidden={shouldShow ? undefined : 'true'}
+      inert={!shouldShow || undefined}
       className={cn(
         'fixed top-20 end-4 z-[60]',
         'w-full max-w-sm',
@@ -108,6 +110,8 @@ export function ReloadPrompt() {
         {/* Close */}
         <button
           onClick={handleClose}
+          disabled={!shouldShow}
+          tabIndex={shouldShow ? 0 : -1}
           className="shrink-0 p-1.5 rounded-lg text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] transition-colors"
           aria-label="إغلاق"
         >
