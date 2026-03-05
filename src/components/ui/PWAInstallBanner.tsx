@@ -72,7 +72,6 @@ export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
 
   const handleInstall = () => {
     void installPWA();
-    handleDismiss();
   };
 
   if (!isInstallable || !shouldShow) return null;

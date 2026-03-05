@@ -125,7 +125,15 @@ export function ReloadPrompt() {
             variant="primary"
             size="sm"
             icon={RefreshCw}
-            onClick={() => updateServiceWorker(true)}
+            onClick={async () => {
+              try {
+                await updateServiceWorker(true);
+              } catch (err) {
+                if (import.meta.env.DEV) {
+                  console.error('[SW] update failed:', err);
+                }
+              }
+            }}
           >
             تحديث الآن
           </Button>
