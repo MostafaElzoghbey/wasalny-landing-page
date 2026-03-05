@@ -30,7 +30,7 @@ import { RoutePage } from '@/pages/RoutePage';
 import { NotFound } from '@/pages/NotFound';
 
 // Data
-import { cars } from '@/data/cars';
+import { cars, logoImage } from '@/data/cars';
 
 // Lazy load below-the-fold sections
 const FleetSection = lazy(() => import('@/components/sections/FleetSection').then(module => ({ default: module.FleetSection })));
@@ -168,7 +168,7 @@ function AppContent() {
           <FloatingCTA />
           <PWAInstallBanner />
           <ReloadPrompt />
-          <IOSInstallBanner />
+          <IOSInstallBanner logoSrc={logoImage} />
         </div>
       </SmoothScrollProvider>
       </PWAInstallProvider>

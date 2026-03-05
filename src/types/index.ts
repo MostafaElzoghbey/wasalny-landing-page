@@ -80,6 +80,7 @@ export interface PWAInstallButtonProps {
 }
 
 export interface IOSInstallBannerProps {
+  readonly logoSrc: string;
   readonly className?: string;
 }
 

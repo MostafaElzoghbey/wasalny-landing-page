@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { X, Share, PlusSquare } from 'lucide-react';
 import gsap, { useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
-import { logoImage } from '@/data/cars';
 import type { IOSInstallBannerProps } from '@/types';
 
 const DISMISS_KEY = 'wasalny-ios-banner-dismissed-at';
@@ -40,7 +39,7 @@ function isInStandaloneMode(): boolean {
   );
 }
 
-export function IOSInstallBanner({ className }: IOSInstallBannerProps) {
+export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) {
   const [dismissed, setDismissed] = useState(() => isDismissed());
   const [isReady, setIsReady] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
@@ -85,7 +84,7 @@ export function IOSInstallBanner({ className }: IOSInstallBannerProps) {
         'translate-y-[120px] opacity-0 pointer-events-none',
         className
       )}
-      role="banner"
+      role="region"
       aria-live="polite"
       aria-label="تثبيت تطبيق وصلني على iOS"
     >
@@ -101,7 +100,7 @@ export function IOSInstallBanner({ className }: IOSInstallBannerProps) {
           {/* Header row */}
           <div className="flex items-center gap-3 mb-3">
             <img
-              src={logoImage}
+              src={logoSrc}
               alt="وصلني"
               className="w-12 h-12 rounded-2xl object-cover shadow-md shadow-primary-500/20 shrink-0"
             />
