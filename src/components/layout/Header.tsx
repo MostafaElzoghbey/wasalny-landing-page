@@ -185,7 +185,11 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
   );
 }
 
-function PWAInstallButton({ isMobile }: { isMobile?: boolean }) {
+interface PWAInstallButtonProps {
+  readonly isMobile?: boolean;
+}
+
+function PWAInstallButton({ isMobile }: PWAInstallButtonProps) {
   const { isInstallable, installPWA } = usePWAInstall();
 
   if (!isInstallable) return null;

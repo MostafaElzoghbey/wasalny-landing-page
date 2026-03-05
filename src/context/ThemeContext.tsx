@@ -11,6 +11,8 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_KEY = 'wasalny-theme';
+const THEME_COLOR_DARK = '#111827';
+const THEME_COLOR_LIGHT = '#ffffff';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
@@ -39,7 +41,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       themeMeta.setAttribute('name', 'theme-color');
       document.head.appendChild(themeMeta);
     }
-    themeMeta.setAttribute('content', isDark ? '#111827' : '#ffffff');
+    themeMeta.setAttribute('content', isDark ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
   }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {
