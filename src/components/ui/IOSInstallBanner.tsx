@@ -150,7 +150,7 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
               </span>
               <span>
                 اضغط على زر المشاركة{' '}
-                <Share className="inline w-3.5 h-3.5 mb-0.5 text-primary-600" />{' '}
+                <Share className="inline w-3.5 h-3.5 mb-0.5 text-primary-600" aria-hidden="true" />{' '}
                 {isIPadDevice ? 'في شريط الأدوات' : 'في أسفل المتصفح'}
               </span>
             </li>
@@ -163,7 +163,7 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
                 <strong className="text-[hsl(var(--foreground))] font-semibold">
                   إضافة إلى الشاشة الرئيسية
                 </strong>{' '}
-                <PlusSquare className="inline w-3.5 h-3.5 mb-0.5 text-primary-600" />
+                <PlusSquare className="inline w-3.5 h-3.5 mb-0.5 text-primary-600" aria-hidden="true" />
               </span>
             </li>
             <li className="flex items-start gap-2.5 text-xs text-[hsl(var(--muted-foreground))]">

@@ -92,7 +92,7 @@ export const VehiclePassengerCard = ({
 
         <div className="pt-4 border-t border-[hsl(var(--border))]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <label htmlFor="passenger-count" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Users className="w-4 h-4 text-gray-400" />
               عدد الركاب
             </label>
@@ -103,10 +103,12 @@ export const VehiclePassengerCard = ({
                   onClick={() => setPassengerCount(Math.max(1, passengerCount - 1))}
                   className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-white dark:hover:bg-gray-700 rounded-md transition-colors"
                   disabled={passengerCount <= 1}
+                  aria-label="تقليل عدد الركاب"
                 >
                   -
                 </button>
                 <input
+                  id="passenger-count"
                   type="number"
                   min={1}
                   max={15}
@@ -118,6 +120,7 @@ export const VehiclePassengerCard = ({
                   onClick={() => setPassengerCount(passengerCount + 1)}
                   className="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-white dark:hover:bg-gray-700 rounded-md transition-colors"
                   disabled={passengerCount >= 15}
+                  aria-label="زيادة عدد الركاب"
                 >
                   +
                 </button>
