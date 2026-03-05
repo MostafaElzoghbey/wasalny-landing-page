@@ -1,217 +1,121 @@
 # AGENTS.md - Wasalny Landing Page
 
-## Project Overview
+**Generated:** 2026-03-05 | **Commit:** c352ddd | **Branch:** main
 
-React 19 + TypeScript + Vite landing page for Wasalny (وصلني) - a transportation service in Damietta, Egypt. Uses GSAP for animations, Lenis for smooth scrolling, and Tailwind CSS v4 for styling.
+## Overview
+
+React 19 + TypeScript 5.9 + Vite 7 landing page for Wasalny (وصلني) — passenger transport service in Damietta, Egypt. Arabic RTL site. GSAP for animations, Lenis for smooth scrolling, Tailwind CSS v4 for styling.
+
+## Structure
+
+```
+src/
+├── App.tsx               # Router, providers, lazy-loaded sections
+├── main.tsx              # Entry point
+├── index.css             # Tailwind v4 theme (@theme block, layers)
+├── components/           # → has own AGENTS.md
+│   ├── layout/           # Header, Footer
+│   ├── sections/         # 10 page sections (barrel exported, lazy loaded)
+│   ├── ui/               # 10 reusable atoms (Button, AnimatedCard, etc.)
+│   ├── pricing/          # Pricing calculator sub-components
+│   └── SEO/              # JsonLd structured data
+├── hooks/                # → has own AGENTS.md
+│   ├── useAnimations.ts  # 12 GSAP animation hooks
+│   ├── useHoverCapable.ts
+│   └── usePricingCalculator.ts
+├── lib/
+│   ├── gsap.ts           # GSAP config, plugin registration, RTL helpers, presets
+│   └── utils.ts          # cn() = clsx + tailwind-merge
+├── data/                 # Static content: cars, routes, pricing, FAQs, content
+├── providers/            # SmoothScrollProvider (Lenis + GSAP ticker sync)
+├── context/              # ThemeContext (dark/light mode)
+├── pages/                # RoutePage, NotFound
+├── types/                # Centralized TypeScript interfaces
+└── utils/                # pricingCalculator.ts, pricingEvents.ts
+```
+
+## Where to Look
+
+| Task | Location | Notes |
+|------|----------|-------|
+| Add new page section | `src/components/sections/` | Create component + add to barrel `index.ts` + lazy load in `App.tsx` |
+| Add reusable UI element | `src/components/ui/` | Named export, props interface required |
+| Add animation hook | `src/hooks/useAnimations.ts` | Follow existing pattern with `useGSAP` + cleanup |
+| Change theme colors | `src/index.css` | `@theme` block with CSS custom properties |
+| Add GSAP plugin | `src/lib/gsap.ts` | Register here, NOT in individual components |
+| Update car/route data | `src/data/` | Static JSON-like TS files |
+| Add new route | `src/App.tsx` | Inside `<Routes>` in `AppContent` |
+| Modify smooth scroll | `src/providers/SmoothScrollProvider.tsx` | Lenis config + GSAP ticker integration |
+| Add TypeScript types | `src/types/index.ts` | Centralized interfaces |
 
 ## Commands
 
 ```bash
-# Development
-npm run dev          # Start Vite dev server
-
-# Build
-npm run build        # TypeScript check + Vite production build
-
-# Lint
-npm run lint         # ESLint on all files
-
-# Preview
-npm run preview      # Preview production build locally
+npm run dev      # Vite dev server
+npm run build    # tsc -b && vite build
+npm run lint     # ESLint
+npm run preview  # Preview production build
 ```
 
-**Note**: No test framework is configured. No single-test commands available.
+No test framework configured.
 
-## Tech Stack
+## Conventions
 
-- **Framework**: React 19 with TypeScript 5.9
-- **Build**: Vite 7
-- **Styling**: Tailwind CSS v4 (via @tailwindcss/vite plugin)
-- **Animations**: GSAP + @gsap/react + ScrollTrigger
-- **Smooth Scroll**: Lenis
-- **Icons**: lucide-react
-- **Utilities**: clsx, tailwind-merge
+### Imports (strict order)
 
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── layout/       # Header, Footer
-│   ├── sections/     # Page sections (Hero, Features, Fleet, etc.)
-│   └── ui/           # Reusable UI components (Button, AnimatedCard, etc.)
-├── context/          # React contexts (ThemeContext)
-├── providers/        # Providers (SmoothScrollProvider with Lenis)
-├── hooks/            # Custom hooks (useAnimations with GSAP)
-├── lib/              # Utilities (gsap.ts config, utils.ts with cn())
-├── data/             # Static data (cars.ts, content.ts)
-└── types/            # TypeScript interfaces
-```
-
-## Code Style Guidelines
-
-### Imports
-
-Order imports as follows:
-1. React imports
-2. Third-party libraries
-3. Path aliases (`@/...`)
-4. Relative imports
-5. CSS imports (in entry files only)
-
-```typescript
-import { useState, useRef } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
-```
+1. React → 2. Third-party → 3. `@/` aliases → 4. Relative → 5. CSS (entry only)
 
 ### Path Aliases
 
-Always use path aliases defined in tsconfig:
 - `@/*` → `src/*`
 - `@assets/*` → `assets/*`
-
-```typescript
-// Good
-import { Button } from '@/components/ui/Button';
-
-// Bad
-import { Button } from '../../../components/ui/Button';
-```
+- ALWAYS use aliases. Never `../../../`.
 
 ### TypeScript
 
-- **Strict mode enabled** - no implicit any, strict null checks
-- Use explicit interface definitions in `src/types/index.ts`
-- Prefer `interface` over `type` for object shapes
-- Use union types for constrained values: `'sedan' | 'suv' | 'family_cruiser'`
-
-```typescript
-interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'accent' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  children: React.ReactNode;
-  onClick?: () => void;
-}
-```
+- Strict mode. `interface` over `type` for objects. Union types for constrained values.
+- Centralize interfaces in `src/types/index.ts`.
 
 ### Components
 
-- Use **function declarations** with named exports
-- Props interface defined above component
-- Refs typed explicitly: `useRef<HTMLElement>(null)`
-
-```typescript
-interface SectionProps {
-  title: string;
-  children: React.ReactNode;
-}
-
-export function Section({ title, children }: SectionProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  // ...
-}
-```
+- Function declarations with named exports (not arrow + default).
+- Props interface defined directly above component.
+- Refs typed explicitly: `useRef<HTMLDivElement>(null)`.
 
 ### Styling
 
-- Use Tailwind CSS classes exclusively
-- Use `cn()` utility (clsx + tailwind-merge) for conditional classes
-- CSS custom properties for theme colors: `hsl(var(--foreground))`
-- Dark mode via `dark:` prefix
-
-```typescript
-import { cn } from '@/lib/utils';
-
-<div className={cn(
-  'px-4 py-2 rounded-xl',
-  variant === 'primary' && 'btn-primary',
-  disabled && 'opacity-50 cursor-not-allowed'
-)} />
-```
+- Tailwind classes only. `cn()` for conditional classes.
+- Theme via CSS custom properties: `hsl(var(--foreground))`.
+- Dark mode via `dark:` prefix.
 
 ### Animations (GSAP)
 
-- Register plugins in `src/lib/gsap.ts` (imported in App.tsx)
-- Use `useGSAP` hook from `@gsap/react` for React integration
-- Custom animation hooks in `src/hooks/useAnimations.ts`
-- Always provide cleanup in useGSAP callbacks
+- Import `ScrollTrigger`, `useGSAP` from `@/lib/gsap` — never from `gsap` directly.
+- Use `useGSAP` hook (not `useEffect`) for all animation lifecycle.
+- ALWAYS return cleanup: `tween.kill()`, `scrollTrigger.kill()`.
+- Wrap horizontal transforms in `rtlX()` for RTL correctness.
 
-```typescript
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
+### RTL
 
-useGSAP(() => {
-  gsap.to(ref.current, { opacity: 1 });
-}, { scope: containerRef, dependencies: [dep] });
-```
+Arabic site. `document.dir === 'rtl'`.
+- `rtlX(value)` from `@/lib/gsap` negates x-axis values.
+- `.flip-rtl` CSS class flips icons via `rtl:-scale-x-100`.
+- Every new horizontal animation MUST use `rtlX()`.
 
-Available custom hooks:
-- `useTextReveal` - Split text animation
-- `useParallax` - Parallax scrolling
-- `useMagneticButton` - Magnetic hover effect
-- `useBatchReveal` - Staggered grid reveal
-- `useFloatingAnimation` - Continuous float animation
-- `useTiltEffect` - 3D tilt on hover
+## Anti-Patterns
 
-### Naming Conventions
+- `as any`, `@ts-ignore`, `@ts-expect-error` — forbidden
+- Inline styles — use Tailwind
+- `import { ScrollTrigger } from 'gsap/ScrollTrigger'` in components — use `@/lib/gsap`
+- Components without TypeScript interfaces
+- Missing cleanup in `useGSAP` callbacks
+- `useEffect` for animations — use `useGSAP` instead
+- Redundant `gsap.registerPlugin(ScrollTrigger)` in components — already in `@/lib/gsap.ts`
 
-- **Components**: PascalCase (`HeroSection.tsx`)
-- **Hooks**: camelCase with `use` prefix (`useAnimations.ts`)
-- **Utilities**: camelCase (`utils.ts`)
-- **Data files**: camelCase (`content.ts`)
-- **Types**: PascalCase interfaces (`interface Car {}`)
+## Architecture Notes
 
-### Error Handling
-
-- Use optional chaining: `ref.current?.method()`
-- Early returns for null refs in hooks
-- Cleanup event listeners in useGSAP return
-
-```typescript
-useGSAP(() => {
-  if (!ref.current) return;
-  
-  const handler = () => {};
-  el.addEventListener('click', handler);
-  
-  return () => el.removeEventListener('click', handler);
-}, { scope: ref });
-```
-
-### RTL Support
-
-This is an Arabic (RTL) website. Use RTL helpers from `src/lib/gsap.ts`:
-
-```typescript
-import { rtlX, isRTL } from '@/lib/gsap';
-
-// Negate x values for RTL
-gsap.to(el, { x: rtlX(100) });
-```
-
-## Barrel Exports
-
-Sections use barrel export in `src/components/sections/index.ts`:
-
-```typescript
-export { HeroSection } from './HeroSection';
-export { ServicesSection } from './ServicesSection';
-// ...
-```
-
-## ESLint Rules
-
-- TypeScript recommended rules
-- React Hooks rules (dependencies, rules of hooks)
-- React Refresh rules for Vite HMR
-
-## Do Not
-
-- Use `as any` or `@ts-ignore`
-- Use inline styles (use Tailwind classes)
-- Import from `gsap` directly for ScrollTrigger (use `@/lib/gsap`)
-- Create components without proper TypeScript interfaces
-- Skip cleanup functions in animation hooks
+- **Lazy loading**: All below-fold sections use `React.lazy` in `App.tsx` with `Suspense` boundaries.
+- **Lenis + GSAP sync**: `SmoothScrollProvider` adds `lenis.raf` to `gsap.ticker` and disables lag smoothing. `ScrollTrigger.update` fires on every Lenis scroll event.
+- **ScrollToTop**: `App.tsx` contains a `ScrollToTop` component with `ResizeObserver` that calls `ScrollTrigger.refresh()` on content height changes.
+- **Hover detection**: `useHoverCapable` → `canHover()` detects fine pointers to prevent sticky hover on touch devices. Used by `useTiltEffect`.
+- **Data-driven**: Cars, routes, pricing, FAQs stored in `src/data/` as typed TS objects — not fetched from API.
