@@ -438,7 +438,6 @@ export function Header() {
             {/* Mobile Menu Button */}
             <div className="flex lg:hidden items-center gap-3">
               <ThemeToggle />
-              <PWAInstallButton />
               <button
                 ref={menuButtonRef}
                 className="p-2 text-[hsl(var(--foreground))]"
