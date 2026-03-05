@@ -3,7 +3,7 @@ import { Download, X } from 'lucide-react';
 import gsap, { useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { usePWAInstall } from '@/context/PWAInstallContext';
 import { logoImage } from '@/data/cars';
 
 const DISMISS_KEY = 'wasalny-pwa-banner-dismissed';
@@ -73,7 +73,8 @@ export function PWAInstallBanner() {
         'shadow-[0_-4px_20px_hsl(var(--shadow-color)/0.15)]',
         'translate-y-[120px] opacity-0 pointer-events-none'
       )}
-      role="alert"
+      role="region"
+      aria-live="polite"
       aria-label="تثبيت التطبيق"
     >
       <div className="flex items-center gap-3 max-w-lg mx-auto">

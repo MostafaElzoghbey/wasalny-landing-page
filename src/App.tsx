@@ -9,6 +9,7 @@ import '@/lib/gsap';
 
 // Context/Providers
 import { ThemeProvider } from '@/context/ThemeContext';
+import { PWAInstallProvider } from '@/context/PWAInstallContext';
 import { SmoothScrollProvider, useLenis } from '@/providers/SmoothScrollProvider';
 
 // Components
@@ -150,6 +151,7 @@ function AppContent() {
 
   return (
     <ThemeProvider>
+      <PWAInstallProvider>
       <JsonLd cars={cars} />
       {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
       <SmoothScrollProvider>
@@ -167,6 +169,7 @@ function AppContent() {
           <ReloadPrompt />
         </div>
       </SmoothScrollProvider>
+      </PWAInstallProvider>
     </ThemeProvider>
   );
 }

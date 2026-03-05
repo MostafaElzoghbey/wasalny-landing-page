@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { logoImage } from '@/data/cars';
 import { contactInfo } from '@/data/content';
 import { useMagneticButton } from '@/hooks/useAnimations';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { usePWAInstall } from '@/context/PWAInstallContext';
 import type { PWAInstallButtonProps } from '@/types';
 
 const navLinks = [
