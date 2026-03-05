@@ -11,7 +11,7 @@ function isDismissed(): boolean {
   try {
     const dismissedAt = localStorage.getItem(DISMISS_KEY);
     if (!dismissedAt) return false;
-    return Date.now() - parseInt(dismissedAt, 10) < DISMISS_DURATION_MS;
+    return Date.now() - Number.parseInt(dismissedAt, 10) < DISMISS_DURATION_MS;
   } catch {
     return false;
   }
@@ -26,9 +26,10 @@ function dismissBanner(): void {
 }
 
 function isIOSDevice(): boolean {
-  const isStandardIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const ua = navigator.userAgent;
+  const isStandardIOS = /iPad|iPhone|iPod/.test(ua);
   const isIPadOS =
-    navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
   return isStandardIOS || isIPadOS;
 }
 

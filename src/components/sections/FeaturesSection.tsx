@@ -3,8 +3,7 @@ import { Shield, Star, Clock, Wallet, Headphones, MapPin } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { useCounterAnimation, useBatchReveal } from '@/hooks/useAnimations';
 import { stats } from '@/data/content';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
+import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
 
 const iconMap = {

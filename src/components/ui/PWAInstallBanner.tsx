@@ -4,7 +4,6 @@ import gsap, { useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { usePWAInstall } from '@/context/PWAInstallContext';
-import { logoImage } from '@/data/cars';
 
 const DISMISS_KEY = 'wasalny-pwa-banner-dismissed-at';
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -13,7 +12,7 @@ function isDismissed(): boolean {
   try {
     const dismissedAt = localStorage.getItem(DISMISS_KEY);
     if (!dismissedAt) return false;
-    return Date.now() - parseInt(dismissedAt, 10) < DISMISS_DURATION_MS;
+    return Date.now() - Number.parseInt(dismissedAt, 10) < DISMISS_DURATION_MS;
   } catch {
     return false;
   }
@@ -27,7 +26,11 @@ function dismissBanner(): void {
   }
 }
 
-export function PWAInstallBanner() {
+interface PWAInstallBannerProps {
+  readonly logoSrc: string;
+}
+
+export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
   const { isInstallable, installPWA } = usePWAInstall();
   const [dismissed, setDismissed] = useState(() => isDismissed());
   const [isReady, setIsReady] = useState(false);
@@ -68,13 +71,12 @@ export function PWAInstallBanner() {
   if (!isInstallable) return null;
 
   return (
-    <div
+    <section
       ref={bannerRef}
       className={cn(
         'fixed bottom-0 start-0 end-0 z-50',
         'translate-y-[120px] opacity-0 pointer-events-none'
       )}
-      role="region"
       aria-live="polite"
       aria-label="تثبيت التطبيق"
     >
@@ -90,7 +92,7 @@ export function PWAInstallBanner() {
           {/* App Icon */}
           <div className="relative shrink-0">
             <img
-              src={logoImage}
+              src={logoSrc}
               alt="وصلني"
               className="w-14 h-14 rounded-2xl object-cover shadow-md shadow-primary-500/20"
             />
@@ -154,6 +156,6 @@ export function PWAInstallBanner() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

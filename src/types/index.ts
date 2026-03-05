@@ -60,12 +60,14 @@ export interface RouteData {
   faqs: Faq[];
 }
 
+export interface BeforeInstallPromptChoice {
+  readonly outcome: 'accepted' | 'dismissed';
+  readonly platform: string;
+}
+
 export interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
-    platform: string;
-  }>;
+  readonly userChoice: Promise<BeforeInstallPromptChoice>;
   prompt(): Promise<void>;
 }
 
@@ -84,10 +86,12 @@ export interface IOSInstallBannerProps {
   readonly className?: string;
 }
 
+export type ServiceOptionIcon = 'baby' | 'luggage' | 'clock' | 'userCheck' | 'mapPin' | 'car' | 'route' | 'plane';
+
 export interface ServiceOption {
   readonly id: string;
   readonly title: string;
   readonly description?: string;
-  readonly icon: string;
+  readonly icon: ServiceOptionIcon;
   readonly priceEGP?: number;
 }

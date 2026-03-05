@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Dev scripts
+extractor.py
+process_comments.py
+formatted_comments.json
+processed_results.txt

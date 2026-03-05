@@ -59,8 +59,8 @@ function ScrollToTop() {
     // Immediate scroll to top only if no hash
     if (!window.location.hash) {
       window.scrollTo(0, 0);
-      if (lenis) {
-        lenis.scrollTo(0, { immediate: true });
+      if (lenis.current) {
+        lenis.current.scrollTo(0, { immediate: true });
       }
     }
 
@@ -166,7 +166,7 @@ function AppContent() {
           </Routes>
           <Footer />
           <FloatingCTA />
-          <PWAInstallBanner />
+          <PWAInstallBanner logoSrc={logoImage} />
           <ReloadPrompt />
           <IOSInstallBanner logoSrc={logoImage} />
         </div>

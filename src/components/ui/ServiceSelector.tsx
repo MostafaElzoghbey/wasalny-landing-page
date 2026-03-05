@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Check, Baby, Briefcase, Clock, UserCheck, MapPin, Car, Plane } from 'lucide-react';
 
-import type { ServiceOption } from '@/types';
+import type { ServiceOption, ServiceOptionIcon } from '@/types';
 
 interface ServiceSelectorProps {
   selectedServices: string[];
@@ -10,7 +10,7 @@ interface ServiceSelectorProps {
   options: ServiceOption[];
 }
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<ServiceOptionIcon, React.ElementType> = {
   baby: Baby,
   luggage: Briefcase,
   clock: Clock,
