@@ -44,7 +44,7 @@ export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
 
   useGSAP(() => {
     if (!bannerRef.current) return;
-    const desktop = window.matchMedia('(min-width: 768px)').matches;
+    const desktop = globalThis.window?.matchMedia('(min-width: 768px)').matches ?? false;
     const hiddenY = desktop ? 20 : 120;
     const showEase = desktop ? 'power3.out' : 'back.out(1.4)';
 
