@@ -4,12 +4,8 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { cars, carCategories } from '@/data/cars';
 import { cn } from '@/lib/utils';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
-
-gsap.registerPlugin(ScrollTrigger);
 
 type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
 
@@ -261,9 +257,7 @@ export function FleetSection() {
   const imageAlts = activeCar.imageAlts;
   const currentColors = categoryColors[activeCategory];
 
-  useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [activeCategory]);
+
 
   // Preload images
   useEffect(() => {
@@ -447,7 +441,7 @@ export function FleetSection() {
               return (
                 <button
                   key={cat.id} role="tab" aria-selected={activeCategory === cat.id}
-                  onClick={() => setActiveCategory(cat.id as CarCategory)}
+                  onClick={() => { setActiveCategory(cat.id as CarCategory); setCurrentImageIndex(0); }}
                   className={cn(
                     "relative px-6 py-3 rounded-full text-sm md:text-base font-bold transition-all duration-500 flex items-center gap-2 overflow-hidden",
                     activeCategory === cat.id ? "text-white shadow-lg shadow-primary-500/30" : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"

@@ -59,3 +59,43 @@ export interface RouteData {
   features: string[];
   faqs: Faq[];
 }
+
+export interface BeforeInstallPromptChoice {
+  readonly outcome: 'accepted' | 'dismissed';
+  readonly platform: string;
+}
+
+export interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<BeforeInstallPromptChoice>;
+  prompt(): Promise<BeforeInstallPromptChoice>;
+}
+
+declare global {
+  interface WindowEventMap {
+    beforeinstallprompt: BeforeInstallPromptEvent;
+  }
+}
+
+export interface PWAInstallButtonProps {
+  readonly isMobile?: boolean;
+}
+
+export interface PWAInstallBannerProps {
+  readonly logoSrc: string;
+}
+
+export interface IOSInstallBannerProps {
+  readonly logoSrc: string;
+  readonly className?: string;
+}
+
+export type ServiceOptionIcon = 'baby' | 'luggage' | 'clock' | 'userCheck' | 'mapPin' | 'car' | 'route' | 'plane';
+
+export interface ServiceOption {
+  readonly id: string;
+  readonly title: string;
+  readonly description?: string;
+  readonly icon: ServiceOptionIcon;
+  readonly priceEGP?: number;
+}

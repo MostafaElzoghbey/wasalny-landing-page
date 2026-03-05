@@ -1,24 +1,30 @@
 import React from 'react';
-
-import { Check, Baby, Briefcase, Clock, UserCheck, MapPin } from 'lucide-react';
+import { Check, Baby, Briefcase, Clock, UserCheck, MapPin, Car, Plane } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { ServiceOption, ServiceOptionIcon } from '@/types';
 
 interface ServiceSelectorProps {
-  selectedServices: string[];
-  onToggle: (serviceId: string) => void;
+  readonly selectedServices: readonly string[];
+  readonly onToggle: (serviceId: string) => void;
+  readonly options: readonly ServiceOption[];
 }
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<ServiceOptionIcon, React.ElementType> = {
   baby: Baby,
   luggage: Briefcase,
   clock: Clock,
   userCheck: UserCheck,
   mapPin: MapPin,
+  car: Car,
+  route: MapPin,
+  plane: Plane,
 };
 
-export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
+export function ServiceSelector({
   selectedServices,
   onToggle,
-}) => {
+  options,
+}: ServiceSelectorProps) {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
@@ -27,61 +33,64 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
       </h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {([] as any[]).map((service: any) => {
+        {options.map((service) => {
           const isSelected = selectedServices.includes(service.id);
-          const Icon = iconMap[service.icon] || Briefcase;
+          const Icon = iconMap[service.icon];
           
           return (
-            <div
+            <button
               key={service.id}
+              type="button"
               onClick={() => onToggle(service.id)}
-              className={`
-                group cursor-pointer relative p-4 rounded-xl border transition-all duration-300
-                ${isSelected 
-                  ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md ring-1 ring-primary/50' 
+              aria-pressed={isSelected}
+              aria-label={service.title}
+              className={cn(
+                'group cursor-pointer relative p-4 rounded-xl border transition-all duration-300 text-start w-full',
+                isSelected
+                  ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md ring-1 ring-primary/50'
                   : 'border-gray-200 dark:border-gray-800 hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                }
-              `}
+              )}
             >
               <div className="flex items-start gap-3">
-                <div className={`
-                  p-2 rounded-lg transition-colors
-                  ${isSelected ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:text-primary'}
-                `}>
+                <div className={cn(
+                  'p-2 rounded-lg transition-colors',
+                  isSelected ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:text-primary'
+                )}>
                   <Icon className="w-5 h-5" />
                 </div>
                 
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-gray-900 dark:text-white">
-                      {service.nameAr}
+                      {service.title}
                     </h4>
-                    <span className="text-sm font-bold text-primary">
-                      {service.priceEGP} ج.م
-                    </span>
+                    {service.priceEGP != null && (
+                      <span className="text-sm font-bold text-primary">
+                        {service.priceEGP} ج.م
+                      </span>
+                    )}
                   </div>
                   
-                  {service.description && (
+                  {service.description != null && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {service.description}
                     </p>
                   )}
                 </div>
 
-                <div className={`
-                  w-5 h-5 rounded-full border flex items-center justify-center transition-colors
-                  ${isSelected
+                <div className={cn(
+                  'w-5 h-5 rounded-full border flex items-center justify-center transition-colors',
+                  isSelected
                     ? 'bg-primary border-primary text-white'
                     : 'border-gray-300 dark:border-gray-600'
-                  }
-                `}>
+                )}>
                   {isSelected && <Check className="w-3.5 h-3.5" />}
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
     </div>
   );
-};
+}

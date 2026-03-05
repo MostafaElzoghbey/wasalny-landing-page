@@ -34,11 +34,16 @@ export const CustomSelect = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const closeDropdown = () => {
+    setIsOpen(false);
+    setSearchQuery('');
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        closeDropdown();
       }
     };
 
@@ -53,22 +58,17 @@ export const CustomSelect = ({
 
   const selectedOption = options.find(opt => opt.id === value);
 
-  // Focus search input when opening
   useEffect(() => {
     if (isOpen && searchable && searchInputRef.current) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
     }
-    if (!isOpen) {
-      setSearchQuery('');
-    }
   }, [isOpen, searchable]);
 
   const handleSelect = (optionId: string) => {
     onChange(optionId);
-    setIsOpen(false);
-    setSearchQuery('');
+    closeDropdown();
   };
 
   return (
@@ -82,7 +82,7 @@ export const CustomSelect = ({
       <div className="relative">
         <button
           type="button"
-          onClick={() => !disabled && setIsOpen(!isOpen)}
+          onClick={() => isOpen ? closeDropdown() : setIsOpen(true)}
           disabled={disabled}
           className={`
             w-full p-3 pl-10 pr-10 text-right rounded-lg border bg-[hsl(var(--input))]

@@ -9,6 +9,7 @@ import '@/lib/gsap';
 
 // Context/Providers
 import { ThemeProvider } from '@/context/ThemeContext';
+import { PWAInstallProvider } from '@/context/PWAInstallContext';
 import { SmoothScrollProvider, useLenis } from '@/providers/SmoothScrollProvider';
 
 // Components
@@ -20,12 +21,16 @@ import { HeroSection } from '@/components/sections/HeroSection';
 import { ServicesSection } from '@/components/sections/ServicesSection';
 import { JsonLd } from '@/components/SEO/JsonLd';
 
+import { ReloadPrompt } from '@/components/ui/ReloadPrompt';
+import { PWAInstallBanner } from '@/components/ui/PWAInstallBanner';
+import { IOSInstallBanner } from '@/components/ui/IOSInstallBanner';
+
 // Pages
 import { RoutePage } from '@/pages/RoutePage';
 import { NotFound } from '@/pages/NotFound';
 
 // Data
-import { cars } from '@/data/cars';
+import { cars, logoImage } from '@/data/cars';
 
 // Lazy load below-the-fold sections
 const FleetSection = lazy(() => import('@/components/sections/FleetSection').then(module => ({ default: module.FleetSection })));
@@ -54,8 +59,8 @@ function ScrollToTop() {
     // Immediate scroll to top only if no hash
     if (!window.location.hash) {
       window.scrollTo(0, 0);
-      if (lenis) {
-        lenis.scrollTo(0, { immediate: true });
+      if (lenis.current) {
+        lenis.current.scrollTo(0, { immediate: true });
       }
     }
 
@@ -147,6 +152,7 @@ function AppContent() {
 
   return (
     <ThemeProvider>
+      <PWAInstallProvider>
       <JsonLd cars={cars} />
       {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
       <SmoothScrollProvider>
@@ -160,8 +166,12 @@ function AppContent() {
           </Routes>
           <Footer />
           <FloatingCTA />
+          <PWAInstallBanner logoSrc={logoImage} />
+          <ReloadPrompt />
+          <IOSInstallBanner logoSrc={logoImage} />
         </div>
       </SmoothScrollProvider>
+      </PWAInstallProvider>
     </ThemeProvider>
   );
 }

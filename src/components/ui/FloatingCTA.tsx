@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import gsap, { ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import { contactInfo } from '@/data/content';
@@ -12,7 +12,7 @@ export function FloatingCTA() {
   const [isInFooter, setIsInFooter] = useState(false);
   const isVisible = isPastHero && !isInFooter;
 
-  useEffect(() => {
+  useGSAP(() => {
     const heroTrigger = ScrollTrigger.create({
       trigger: '#home',
       start: 'bottom top+=100',
@@ -31,7 +31,7 @@ export function FloatingCTA() {
       heroTrigger.kill();
       footerTrigger.kill();
     };
-  }, []);
+  }, {});
 
   // Container entrance/exit animation
   useGSAP(() => {
@@ -75,8 +75,7 @@ export function FloatingCTA() {
 
     gsap.set(glowRef.current, { scale: 1, opacity: 0.4 });
 
-    let tween: gsap.core.Tween | undefined;
-    tween = gsap.to(glowRef.current, {
+    const tween = gsap.to(glowRef.current, {
       scale: 1.6,
       opacity: 0,
       duration: 2,
@@ -84,7 +83,7 @@ export function FloatingCTA() {
       ease: 'sine.out',
     });
 
-    return () => { tween?.kill(); };
+    return () => { tween.kill(); };
   }, { dependencies: [isVisible] });
 
   // Hover effects with magnetic pull

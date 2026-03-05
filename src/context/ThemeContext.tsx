@@ -11,6 +11,8 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_KEY = 'wasalny-theme';
+const THEME_COLOR_DARK = '#111827';
+const THEME_COLOR_LIGHT = '#ffffff';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
@@ -32,6 +34,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.remove('light', 'dark');
     root.classList.add(isDark ? 'dark' : 'light');
     setResolvedTheme(isDark ? 'dark' : 'light');
+    
+    let themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (!themeMeta) {
+      themeMeta = document.createElement('meta');
+      themeMeta.setAttribute('name', 'theme-color');
+      document.head.appendChild(themeMeta);
+    }
+    themeMeta.setAttribute('content', isDark ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
   }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {
@@ -41,6 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [applyTheme]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyTheme(theme);
 
     // Listen for system preference changes
@@ -62,6 +73,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
