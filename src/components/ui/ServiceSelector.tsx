@@ -2,19 +2,12 @@ import React from 'react';
 
 import { Check, Baby, Briefcase, Clock, UserCheck, MapPin, Car, Plane } from 'lucide-react';
 
-import { services } from '@/data/content';
+import type { ServiceOption } from '@/types';
 
 interface ServiceSelectorProps {
   selectedServices: string[];
   onToggle: (serviceId: string) => void;
-}
-
-interface ServiceOption {
-  id: string;
-  icon: string;
-  title: string;
-  priceEGP?: number;
-  description?: string;
+  options: ServiceOption[];
 }
 
 const iconMap: Record<string, React.ElementType> = {
@@ -31,14 +24,8 @@ const iconMap: Record<string, React.ElementType> = {
 export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
   selectedServices,
   onToggle,
+  options,
 }) => {
-  const serviceOptions: ServiceOption[] = services.map((s) => ({
-    id: s.id,
-    icon: s.icon,
-    title: s.title,
-    description: s.description,
-  }));
-
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
@@ -47,7 +34,7 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
       </h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {serviceOptions.map((service) => {
+        {options.map((service) => {
           const isSelected = selectedServices.includes(service.id);
           const Icon = iconMap[service.icon] ?? Briefcase;
           
