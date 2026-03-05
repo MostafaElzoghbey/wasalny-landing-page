@@ -55,8 +55,8 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
   const hasInit = useRef(false);
 
   const isEligible =
-    typeof window !== 'undefined' && isIOSDevice() && !isInStandaloneMode();
-  const isIPadDevice = typeof window !== 'undefined' && isIPad();
+    typeof globalThis.window !== 'undefined' && isIOSDevice() && !isInStandaloneMode();
+  const isIPadDevice = typeof globalThis.window !== 'undefined' && isIPad();
 
   const shouldShow = isEligible && !dismissed && isReady;
 

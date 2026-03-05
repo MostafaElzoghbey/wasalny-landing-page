@@ -117,12 +117,12 @@ export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
               </p>
               {/* Stars */}
               <div className="flex items-center gap-0.5 mt-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
+                {[1, 2, 3, 4, 5].map((n) => (
                   <Star
-                    key={i}
+                    key={`star-${n}`}
                     className={cn(
                       'w-3 h-3',
-                      i < 4
+                      n < 5
                         ? 'fill-amber-400 text-amber-400'
                         : 'fill-amber-400/50 text-amber-400/50'
                     )}
@@ -179,8 +179,8 @@ export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
             <div className="flex-1 min-w-0">
               <p className="font-bold text-sm text-[hsl(var(--foreground))]">ثبّت تطبيق وصلني</p>
               <div className="flex items-center gap-0.5 mt-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={cn('w-3 h-3', i < 4 ? 'fill-amber-400 text-amber-400' : 'fill-amber-400/50 text-amber-400/50')} />
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <Star key={`star-${n}`} className={cn('w-3 h-3', n < 5 ? 'fill-amber-400 text-amber-400' : 'fill-amber-400/50 text-amber-400/50')} />
                 ))}
               </div>
             </div>

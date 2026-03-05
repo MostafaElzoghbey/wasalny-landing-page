@@ -1,13 +1,12 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
 import { Check, Baby, Briefcase, Clock, UserCheck, MapPin, Car, Plane } from 'lucide-react';
-
+import { cn } from '@/lib/utils';
 import type { ServiceOption, ServiceOptionIcon } from '@/types';
 
 interface ServiceSelectorProps {
-  selectedServices: string[];
-  onToggle: (serviceId: string) => void;
-  options: ServiceOption[];
+  readonly selectedServices: readonly string[];
+  readonly onToggle: (serviceId: string) => void;
+  readonly options: readonly ServiceOption[];
 }
 
 const iconMap: Record<ServiceOptionIcon, React.ElementType> = {
@@ -36,7 +35,7 @@ export function ServiceSelector({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {options.map((service) => {
           const isSelected = selectedServices.includes(service.id);
-          const Icon = iconMap[service.icon] ?? Briefcase;
+          const Icon = iconMap[service.icon];
           
           return (
             <button

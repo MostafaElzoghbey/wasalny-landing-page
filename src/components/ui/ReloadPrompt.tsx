@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 
 export function ReloadPrompt() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const hasInit = useRef(false);
+  const hasInit = useRef<boolean>(false);
 
   const {
     offlineReady: [offlineReady, setOfflineReady],
