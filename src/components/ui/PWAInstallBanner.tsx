@@ -48,19 +48,21 @@ export function PWAInstallBanner({ logoSrc }: PWAInstallBannerProps) {
   useGSAP(() => {
     if (!bannerRef.current) return;
     const desktop = window.matchMedia('(min-width: 768px)').matches;
+    const hiddenY = desktop ? 20 : 120;
+    const showEase = desktop ? 'power3.out' : 'back.out(1.4)';
 
     if (!hasInit.current) {
-      gsap.set(bannerRef.current, { y: desktop ? 20 : 120, opacity: 0, pointerEvents: 'none' });
+      gsap.set(bannerRef.current, { y: hiddenY, opacity: 0, pointerEvents: 'none' });
       hasInit.current = true;
       if (!shouldShow) return;
     }
 
     const tween = gsap.to(bannerRef.current, {
-      y: shouldShow ? 0 : (desktop ? 20 : 120),
+      y: shouldShow ? 0 : hiddenY,
       opacity: shouldShow ? 1 : 0,
       pointerEvents: shouldShow ? 'auto' : 'none',
       duration: 0.55,
-      ease: shouldShow ? (desktop ? 'power3.out' : 'back.out(1.4)') : 'power3.in',
+      ease: shouldShow ? showEase : 'power3.in',
     });
 
     return () => { tween.kill(); };

@@ -69,7 +69,7 @@ export function ReloadPrompt() {
       aria-live="assertive"
       aria-atomic="true"
       className={cn(
-        'fixed top-4 end-4 z-[60]',
+        'fixed top-20 end-4 z-[60]',
         'w-full max-w-sm',
         'bg-[hsl(var(--card)/0.97)] backdrop-blur-xl',
         'border border-[hsl(var(--border))]',

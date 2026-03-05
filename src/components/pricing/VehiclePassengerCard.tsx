@@ -41,11 +41,14 @@ export const VehiclePassengerCard = ({
             const image = getCarImage(v.category);
 
             return (
-              <div
+              <button
                 key={v.category}
+                type="button"
                 onClick={() => setVehicleCategory(v.category)}
+                aria-pressed={isActive}
+                aria-label={v.categoryAr}
                 className={`
-                  cursor-pointer rounded-xl border transition-all duration-300 relative overflow-hidden group/card
+                  cursor-pointer rounded-xl border transition-all duration-300 relative overflow-hidden group/card text-start
                   ${isActive
                     ? 'border-primary bg-primary/5 ring-1 ring-primary shadow-lg shadow-primary/10 scale-[1.02]'
                     : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-[hsl(var(--muted-foreground))] hover:shadow-md'
@@ -82,7 +85,7 @@ export const VehiclePassengerCard = ({
                     حتى {v.maxPassengers} ركاب
                   </p>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

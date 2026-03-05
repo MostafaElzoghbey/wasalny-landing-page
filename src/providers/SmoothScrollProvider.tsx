@@ -23,7 +23,7 @@ interface SmoothScrollProviderProps {
   children: React.ReactNode;
 }
 
-export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ children }) => {
+export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
   const lenisRef = useRef<Lenis | null>(null);
 
   useLayoutEffect(() => {
@@ -68,4 +68,4 @@ export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ chil
       {children}
     </LenisContext.Provider>
   );
-};
+}

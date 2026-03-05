@@ -40,9 +40,11 @@ function isIPad(): boolean {
 }
 
 function isInStandaloneMode(): boolean {
+  const win = globalThis.window;
+  if (!win) return false;
   return (
-    !!(window.navigator as { standalone?: boolean }).standalone ||
-    window.matchMedia('(display-mode: standalone)').matches
+    !!(win.navigator as { standalone?: boolean }).standalone ||
+    win.matchMedia('(display-mode: standalone)').matches
   );
 }
 
