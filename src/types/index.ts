@@ -78,3 +78,15 @@ declare global {
 export interface PWAInstallButtonProps {
   readonly isMobile?: boolean;
 }
+
+export interface IOSInstallBannerProps {
+  readonly className?: string;
+}
+
+export interface ServiceOption {
+  readonly id: string;
+  readonly title: string;
+  readonly description?: string;
+  readonly icon: string;
+  readonly priceEGP?: number;
+}
