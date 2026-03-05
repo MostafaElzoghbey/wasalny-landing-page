@@ -4,6 +4,7 @@ import gsap, { useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import type { IOSInstallBannerProps } from '@/types';
 
+
 const DISMISS_KEY = 'wasalny-ios-banner-dismissed-at';
 const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -33,6 +34,11 @@ function isIOSDevice(): boolean {
   return isStandardIOS || isIPadOS;
 }
 
+function isIPad(): boolean {
+  const ua = navigator.userAgent;
+  return /iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+
 function isInStandaloneMode(): boolean {
   return (
     !!(window.navigator as { standalone?: boolean }).standalone ||
@@ -44,9 +50,11 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
   const [dismissed, setDismissed] = useState(() => isDismissed());
   const [isReady, setIsReady] = useState(false);
   const bannerRef = useRef<HTMLDivElement>(null);
+  const hasInit = useRef(false);
 
   const isEligible =
     typeof window !== 'undefined' && isIOSDevice() && !isInStandaloneMode();
+  const isIPadDevice = typeof window !== 'undefined' && isIPad();
 
   const shouldShow = isEligible && !dismissed && isReady;
 
@@ -58,6 +66,12 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
 
   useGSAP(() => {
     if (!bannerRef.current) return;
+
+    if (!hasInit.current) {
+      gsap.set(bannerRef.current, { y: 120, opacity: 0, pointerEvents: 'none' });
+      hasInit.current = true;
+      if (!shouldShow) return;
+    }
 
     const tween = gsap.to(bannerRef.current, {
       y: shouldShow ? 0 : 120,
@@ -82,7 +96,6 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
       ref={bannerRef}
       className={cn(
         'fixed bottom-0 start-0 end-0 z-50',
-        'translate-y-[120px] opacity-0 pointer-events-none',
         className
       )}
       role="region"
@@ -137,7 +150,7 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
               <span>
                 اضغط على زر المشاركة{' '}
                 <Share className="inline w-3.5 h-3.5 mb-0.5 text-primary-600" />{' '}
-                في أسفل المتصفح
+                {isIPadDevice ? 'في شريط الأدوات' : 'في أسفل المتصفح'}
               </span>
             </li>
             <li className="flex items-start gap-2.5 text-xs text-[hsl(var(--muted-foreground))]">

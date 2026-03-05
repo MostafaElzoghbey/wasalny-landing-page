@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { RefreshCw, X, Wifi } from 'lucide-react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import gsap, { useGSAP } from '@/lib/gsap';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 
 export function ReloadPrompt() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasInit = useRef(false);
 
   const {
     offlineReady: [offlineReady, setOfflineReady],
@@ -27,8 +28,23 @@ export function ReloadPrompt() {
 
   const shouldShow = offlineReady || needRefresh;
 
+  // Auto-dismiss offline-ready after 4s (it's informational, not actionable)
+  useEffect(() => {
+    if (!offlineReady) return;
+    const timer = setTimeout(() => {
+      setOfflineReady(false);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [offlineReady, setOfflineReady]);
+
   useGSAP(() => {
     if (!containerRef.current) return;
+
+    if (!hasInit.current) {
+      gsap.set(containerRef.current, { y: -100, opacity: 0, pointerEvents: 'none' });
+      hasInit.current = true;
+      if (!shouldShow) return;
+    }
 
     const tween = gsap.to(containerRef.current, {
       y: shouldShow ? 0 : -100,
@@ -55,7 +71,6 @@ export function ReloadPrompt() {
       className={cn(
         'fixed top-4 end-4 z-[60]',
         'w-full max-w-sm',
-        '-translate-y-[100px] opacity-0 pointer-events-none',
         'bg-[hsl(var(--card)/0.97)] backdrop-blur-xl',
         'border border-[hsl(var(--border))]',
         'rounded-2xl',

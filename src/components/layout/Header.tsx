@@ -192,15 +192,29 @@ function PWAInstallButton({ isMobile }: PWAInstallButtonProps) {
 
   if (!isInstallable) return null;
 
+  if (isMobile) {
+    return (
+      <Button
+        variant="secondary"
+        size="sm"
+        icon={Download}
+        onClick={installPWA}
+        className="w-full nav-link-item"
+      >
+        تثبيت التطبيق
+      </Button>
+    );
+  }
+
   return (
     <Button
       variant="secondary"
       size="sm"
       icon={Download}
       onClick={installPWA}
-      className={cn(isMobile && "w-full nav-link-item")}
+      className="whitespace-nowrap"
     >
-      تثبيت التطبيق
+      تثبيت
     </Button>
   );
 }
