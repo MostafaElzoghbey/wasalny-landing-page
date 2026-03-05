@@ -9,6 +9,7 @@ import { logoImage } from '@/data/cars';
 import { contactInfo } from '@/data/content';
 import { useMagneticButton } from '@/hooks/useAnimations';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import type { PWAInstallButtonProps } from '@/types';
 
 const navLinks = [
   { href: '#home', label: 'الرئيسية' },
@@ -183,10 +184,6 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
       </div>
     </FocusTrap>
   );
-}
-
-interface PWAInstallButtonProps {
-  readonly isMobile?: boolean;
 }
 
 function PWAInstallButton({ isMobile }: PWAInstallButtonProps) {

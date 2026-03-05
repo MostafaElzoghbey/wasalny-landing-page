@@ -1,19 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
-    platform: string;
-  }>;
-  prompt(): Promise<void>;
-}
-
-declare global {
-  interface WindowEventMap {
-    beforeinstallprompt: BeforeInstallPromptEvent;
-  }
-}
+import type { BeforeInstallPromptEvent } from '@/types';
 
 export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -44,12 +30,14 @@ export function usePWAInstall() {
     if (!deferredPrompt) {
       return;
     }
-    
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    
-    setDeferredPrompt(null);
-    setIsInstallable(false);
+
+    try {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+    } finally {
+      setDeferredPrompt(null);
+      setIsInstallable(false);
+    }
   };
 
   return { isInstallable, installPWA };

@@ -51,6 +51,11 @@
 
       document.documentElement.classList.remove('light', 'dark');
       document.documentElement.classList.add(isDark ? 'dark' : 'light');
+
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        meta.setAttribute('content', isDark ? '#111827' : '#ffffff');
+      }
     })();
   </script>
 </head>
