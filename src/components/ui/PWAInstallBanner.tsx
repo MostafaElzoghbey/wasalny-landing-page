@@ -38,6 +38,7 @@ export function PWAInstallBanner() {
     const tween = gsap.to(bannerRef.current, {
       y: shouldShow ? 0 : 120,
       opacity: shouldShow ? 1 : 0,
+      pointerEvents: shouldShow ? 'auto' : 'none',
       duration: 0.5,
       ease: shouldShow ? 'back.out(1.4)' : 'power3.in',
     });
