@@ -17,6 +17,7 @@ const LenisContext = createContext<LenisContextType>({
   start: () => {},
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useLenis = () => useContext(LenisContext);
 
 interface SmoothScrollProviderProps {
@@ -38,6 +39,7 @@ export const SmoothScrollProvider: React.FC<SmoothScrollProviderProps> = ({ chil
       touchMultiplier: 2.5,
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLenis(lenisInstance);
 
     // Sync Lenis with GSAP ScrollTrigger

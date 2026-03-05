@@ -262,6 +262,7 @@ export function FleetSection() {
   const currentColors = categoryColors[activeCategory];
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentImageIndex(0);
   }, [activeCategory]);
 

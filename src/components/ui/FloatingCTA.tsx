@@ -75,8 +75,7 @@ export function FloatingCTA() {
 
     gsap.set(glowRef.current, { scale: 1, opacity: 0.4 });
 
-    let tween: gsap.core.Tween | undefined;
-    tween = gsap.to(glowRef.current, {
+    const tween = gsap.to(glowRef.current, {
       scale: 1.6,
       opacity: 0,
       duration: 2,
@@ -84,7 +83,7 @@ export function FloatingCTA() {
       ease: 'sine.out',
     });
 
-    return () => { tween?.kill(); };
+    return () => { tween.kill(); };
   }, { dependencies: [isVisible] });
 
   // Hover effects with magnetic pull

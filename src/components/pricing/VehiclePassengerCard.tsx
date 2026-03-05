@@ -4,7 +4,7 @@ import { cars } from '@/data/cars';
 
 interface VehiclePassengerProps {
   vehicleCategory: string;
-  setVehicleCategory: (val: any) => void;
+  setVehicleCategory: (val: string) => void;
   passengerCount: number;
   setPassengerCount: (val: number) => void;
 }

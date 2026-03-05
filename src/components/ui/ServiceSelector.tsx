@@ -7,6 +7,14 @@ interface ServiceSelectorProps {
   onToggle: (serviceId: string) => void;
 }
 
+interface ServiceOption {
+  id: string;
+  icon: string;
+  nameAr?: string;
+  priceEGP?: number;
+  description?: string;
+}
+
 const iconMap: Record<string, React.ElementType> = {
   baby: Baby,
   luggage: Briefcase,
@@ -27,7 +35,7 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
       </h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {([] as any[]).map((service: any) => {
+        {([] as ServiceOption[]).map((service: ServiceOption) => {
           const isSelected = selectedServices.includes(service.id);
           const Icon = iconMap[service.icon] || Briefcase;
           

@@ -51,6 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [applyTheme]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyTheme(theme);
 
     // Listen for system preference changes
@@ -72,6 +73,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {

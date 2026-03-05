@@ -119,6 +119,7 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       animateIn();
     } else {
       animateOut();
