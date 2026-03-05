@@ -1,6 +1,8 @@
 import React from 'react';
 
-import { Check, Baby, Briefcase, Clock, UserCheck, MapPin } from 'lucide-react';
+import { Check, Baby, Briefcase, Clock, UserCheck, MapPin, Car, Plane } from 'lucide-react';
+
+import { services } from '@/data/content';
 
 interface ServiceSelectorProps {
   selectedServices: string[];
@@ -10,7 +12,7 @@ interface ServiceSelectorProps {
 interface ServiceOption {
   id: string;
   icon: string;
-  nameAr?: string;
+  title: string;
   priceEGP?: number;
   description?: string;
 }
@@ -21,12 +23,22 @@ const iconMap: Record<string, React.ElementType> = {
   clock: Clock,
   userCheck: UserCheck,
   mapPin: MapPin,
+  car: Car,
+  route: MapPin,
+  plane: Plane,
 };
 
 export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
   selectedServices,
   onToggle,
 }) => {
+  const serviceOptions: ServiceOption[] = services.map((s) => ({
+    id: s.id,
+    icon: s.icon,
+    title: s.title,
+    description: s.description,
+  }));
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
@@ -35,9 +47,9 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
       </h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {([] as ServiceOption[]).map((service: ServiceOption) => {
+        {serviceOptions.map((service) => {
           const isSelected = selectedServices.includes(service.id);
-          const Icon = iconMap[service.icon] || Briefcase;
+          const Icon = iconMap[service.icon] ?? Briefcase;
           
           return (
             <div
@@ -62,14 +74,16 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                 <div className="flex-1">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-gray-900 dark:text-white">
-                      {service.nameAr}
+                      {service.title}
                     </h4>
-                    <span className="text-sm font-bold text-primary">
-                      {service.priceEGP} ج.م
-                    </span>
+                    {service.priceEGP != null && (
+                      <span className="text-sm font-bold text-primary">
+                        {service.priceEGP} ج.م
+                      </span>
+                    )}
                   </div>
                   
-                  {service.description && (
+                  {service.description != null && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {service.description}
                     </p>

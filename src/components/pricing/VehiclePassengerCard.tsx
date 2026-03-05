@@ -3,7 +3,7 @@ import { vehiclePricing, type VehicleCategory } from '@/data/pricing';
 import { cars } from '@/data/cars';
 
 interface VehiclePassengerProps {
-  vehicleCategory: string;
+  vehicleCategory: VehicleCategory;
   setVehicleCategory: (val: VehicleCategory) => void;
   passengerCount: number;
   setPassengerCount: (val: number) => void;
@@ -16,7 +16,7 @@ export const VehiclePassengerCard = ({
   const selectedVehicle = vehiclePricing.find((v) => v.category === vehicleCategory);
 
   // Helper to get image for category
-  const getCarImage = (cat: string) => {
+  const getCarImage = (cat: VehicleCategory) => {
     const car = cars.find(c => c.category === cat);
     return car?.images[0] || null;
   };

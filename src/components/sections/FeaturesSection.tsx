@@ -67,11 +67,6 @@ function GSAPCounter({ value, suffix = '' }: { value: number; suffix?: string })
   useCounterAnimation(elementRef, value, {
     duration: 2.5,
     ease: "power2.out",
-    scrollTrigger: {
-      // eslint-disable-next-line react-hooks/refs
-      trigger: elementRef.current,
-      start: "top 85%",
-    }
   });
 
   return (

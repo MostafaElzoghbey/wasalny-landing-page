@@ -41,6 +41,10 @@ export function PWAInstallProvider({ children }: { children: React.ReactNode }) 
     try {
       await deferredPrompt.prompt();
       await deferredPrompt.userChoice;
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[PWA] install prompt failed:', err);
+      }
     } finally {
       setDeferredPrompt(null);
       setIsInstallable(false);
