@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { BeforeInstallPromptEvent } from '@/types';
 
 interface PWAInstallContextType {
@@ -6,9 +6,13 @@ interface PWAInstallContextType {
   readonly installPWA: () => Promise<void>;
 }
 
+interface PWAInstallProviderProps {
+  readonly children: React.ReactNode;
+}
+
 const PWAInstallContext = createContext<PWAInstallContextType | undefined>(undefined);
 
-export function PWAInstallProvider({ children }: { children: React.ReactNode }) {
+export function PWAInstallProvider({ children }: PWAInstallProviderProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
 
@@ -51,8 +55,13 @@ export function PWAInstallProvider({ children }: { children: React.ReactNode }) 
     }
   }, [deferredPrompt]);
 
+  const contextValue = useMemo<PWAInstallContextType>(
+    () => ({ isInstallable, installPWA }),
+    [isInstallable, installPWA]
+  );
+
   return (
-    <PWAInstallContext.Provider value={{ isInstallable, installPWA }}>
+    <PWAInstallContext.Provider value={contextValue}>
       {children}
     </PWAInstallContext.Provider>
   );
