@@ -32,6 +32,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.remove('light', 'dark');
     root.classList.add(isDark ? 'dark' : 'light');
     setResolvedTheme(isDark ? 'dark' : 'light');
+    
+    let themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (!themeMeta) {
+      themeMeta = document.createElement('meta');
+      themeMeta.setAttribute('name', 'theme-color');
+      document.head.appendChild(themeMeta);
+    }
+    themeMeta.setAttribute('content', isDark ? '#111827' : '#ffffff');
   }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {

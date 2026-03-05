@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Menu, X, Phone } from 'lucide-react';
+import { Menu, X, Phone, Download } from 'lucide-react';
 import { FocusTrap } from 'focus-trap-react';
 import gsap, { useGSAP, rtlX } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { logoImage } from '@/data/cars';
 import { contactInfo } from '@/data/content';
 import { useMagneticButton } from '@/hooks/useAnimations';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 
 const navLinks = [
   { href: '#home', label: 'الرئيسية' },
@@ -166,10 +167,11 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
                 {link.label}
               </button>
             ))}
-            <div className="pt-4 border-t border-[hsl(var(--border))]">
+            <div className="pt-4 border-t border-[hsl(var(--border))] flex flex-col gap-3">
+              <PWAInstallButton isMobile={true} />
               <Button
                 variant="primary"
-                className="w-full nav-link-item" // Added class for focus trap query
+                className="w-full nav-link-item"
                 icon={Phone}
                 onClick={() => window.open(`tel:${contactInfo.phone}`)}
               >
@@ -180,6 +182,24 @@ function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
         </nav>
       </div>
     </FocusTrap>
+  );
+}
+
+function PWAInstallButton({ isMobile }: { isMobile?: boolean }) {
+  const { isInstallable, installPWA } = usePWAInstall();
+
+  if (!isInstallable) return null;
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      icon={Download}
+      onClick={installPWA}
+      className={cn(isMobile && "w-full nav-link-item")}
+    >
+      تثبيت التطبيق
+    </Button>
   );
 }
 

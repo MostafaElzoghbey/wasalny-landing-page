@@ -20,6 +20,8 @@ import { HeroSection } from '@/components/sections/HeroSection';
 import { ServicesSection } from '@/components/sections/ServicesSection';
 import { JsonLd } from '@/components/SEO/JsonLd';
 
+import { ReloadPrompt } from '@/components/ui/ReloadPrompt';
+
 // Pages
 import { RoutePage } from '@/pages/RoutePage';
 import { NotFound } from '@/pages/NotFound';
@@ -160,6 +162,7 @@ function AppContent() {
           </Routes>
           <Footer />
           <FloatingCTA />
+          <ReloadPrompt />
         </div>
       </SmoothScrollProvider>
     </ThemeProvider>
