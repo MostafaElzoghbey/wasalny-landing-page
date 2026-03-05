@@ -39,11 +39,14 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
           const Icon = iconMap[service.icon] ?? Briefcase;
           
           return (
-            <div
+            <button
               key={service.id}
+              type="button"
               onClick={() => onToggle(service.id)}
+              aria-pressed={isSelected}
+              aria-label={service.title}
               className={`
-                group cursor-pointer relative p-4 rounded-xl border transition-all duration-300
+                group cursor-pointer relative p-4 rounded-xl border transition-all duration-300 text-start w-full
                 ${isSelected 
                   ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-md ring-1 ring-primary/50' 
                   : 'border-gray-200 dark:border-gray-800 hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800/50'
@@ -87,7 +90,7 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                   {isSelected && <Check className="w-3.5 h-3.5" />}
                 </div>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
