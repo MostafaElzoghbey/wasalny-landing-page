@@ -65,8 +65,8 @@ export function ReloadPrompt() {
   return (
     <div
       ref={containerRef}
-      role="alert"
-      aria-live="assertive"
+      role={needRefresh ? 'alert' : 'status'}
+      aria-live={needRefresh ? 'assertive' : 'polite'}
       aria-atomic="true"
       className={cn(
         'fixed top-20 end-4 z-[60]',
