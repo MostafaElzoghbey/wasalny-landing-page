@@ -51,6 +51,9 @@ function isInStandaloneMode(): boolean {
 export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) {
   const [dismissed, setDismissed] = useState(() => isDismissed());
   const [isReady, setIsReady] = useState(false);
+  const [isMounted, setIsMounted] = useState(() =>
+    typeof globalThis.window !== 'undefined' && isIOSDevice() && !isInStandaloneMode() && !isDismissed()
+  );
   const bannerRef = useRef<HTMLElement>(null);
   const hasInit = useRef(false);
 
@@ -81,6 +84,9 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
       pointerEvents: shouldShow ? 'auto' : 'none',
       duration: 0.55,
       ease: shouldShow ? 'back.out(1.4)' : 'power3.in',
+      onComplete: () => {
+        if (!shouldShow) setIsMounted(false);
+      },
     });
 
     return () => { tween.kill(); };
@@ -91,7 +97,7 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
     dismissBanner();
   };
 
-  if (!isEligible || !shouldShow) return null;
+  if (!isEligible || !isMounted) return null;
 
   return (
     <section
