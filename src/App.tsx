@@ -23,6 +23,7 @@ import { JsonLd } from '@/components/SEO/JsonLd';
 
 import { ReloadPrompt } from '@/components/ui/ReloadPrompt';
 import { PWAInstallBanner } from '@/components/ui/PWAInstallBanner';
+import { IOSInstallBanner } from '@/components/ui/IOSInstallBanner';
 
 // Pages
 import { RoutePage } from '@/pages/RoutePage';
@@ -167,6 +168,7 @@ function AppContent() {
           <FloatingCTA />
           <PWAInstallBanner />
           <ReloadPrompt />
+          <IOSInstallBanner />
         </div>
       </SmoothScrollProvider>
       </PWAInstallProvider>
