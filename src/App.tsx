@@ -21,6 +21,7 @@ import { ServicesSection } from '@/components/sections/ServicesSection';
 import { JsonLd } from '@/components/SEO/JsonLd';
 
 import { ReloadPrompt } from '@/components/ui/ReloadPrompt';
+import { PWAInstallBanner } from '@/components/ui/PWAInstallBanner';
 
 // Pages
 import { RoutePage } from '@/pages/RoutePage';
@@ -162,6 +163,7 @@ function AppContent() {
           </Routes>
           <Footer />
           <FloatingCTA />
+          <PWAInstallBanner />
           <ReloadPrompt />
         </div>
       </SmoothScrollProvider>

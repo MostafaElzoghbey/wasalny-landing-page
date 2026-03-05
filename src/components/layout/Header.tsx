@@ -423,6 +423,7 @@ export function Header() {
             {/* Desktop Actions */}
             <div className="hidden lg:flex items-center gap-4">
               <ThemeToggle />
+              <PWAInstallButton />
               <Button
                 variant="primary"
                 size="sm"
