@@ -32,7 +32,7 @@ export function usePWAInstall() {
     }
 
     try {
-      deferredPrompt.prompt();
+      await deferredPrompt.prompt();
       await deferredPrompt.userChoice;
     } finally {
       setDeferredPrompt(null);
