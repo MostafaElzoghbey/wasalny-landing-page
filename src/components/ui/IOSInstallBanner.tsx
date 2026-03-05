@@ -51,7 +51,7 @@ function isInStandaloneMode(): boolean {
 export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) {
   const [dismissed, setDismissed] = useState(() => isDismissed());
   const [isReady, setIsReady] = useState(false);
-  const bannerRef = useRef<HTMLDivElement>(null);
+  const bannerRef = useRef<HTMLElement>(null);
   const hasInit = useRef(false);
 
   const isEligible =
@@ -94,13 +94,12 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
   if (!isEligible) return null;
 
   return (
-    <div
+    <section
       ref={bannerRef}
       className={cn(
         'fixed bottom-0 start-0 end-0 z-50',
         className
       )}
-      role="region"
       aria-live="polite"
       aria-label="تثبيت تطبيق وصلني على iOS"
     >
@@ -182,6 +181,6 @@ export function IOSInstallBanner({ logoSrc, className }: IOSInstallBannerProps) 
           </ol>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
