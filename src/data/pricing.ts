@@ -41,17 +41,17 @@ export const locations: Location[] = [
   { id: 'ras-elbar', name: 'Ras El Bar', nameAr: 'رأس البر', type: 'travel' },
   { id: 'faraskour', name: 'Faraskour', nameAr: 'فارسكور', type: 'travel' },
   { id: 'ezbet-elborg', name: 'Ezbet El Borg', nameAr: 'عزبة البرج', type: 'travel' },
-  
+
   // Cairo Area
   { id: 'cairo-airport', name: 'Cairo Airport', nameAr: 'مطار القاهرة', type: 'travel' },
   { id: 'nasr-city', name: 'Nasr City', nameAr: 'مدينة نصر', type: 'travel' },
   { id: 'new-cairo', name: 'New Cairo', nameAr: 'التجمع', type: 'travel' },
   { id: 'heliopolis', name: 'Heliopolis', nameAr: 'مصر الجديدة', type: 'travel' },
-  
+
   // Alexandria Area
   { id: 'alexandria', name: 'Alexandria', nameAr: 'الإسكندرية', type: 'travel' },
   { id: 'borg-alarab-airport', name: 'Borg Al Arab Airport', nameAr: 'مطار برج العرب', type: 'travel' },
-  
+
   // West Cairo Area
   { id: 'sphinx-airport', name: 'Sphinx Airport', nameAr: 'مطار اسفنكس', type: 'travel' },
   { id: '6th-october', name: '6th of October', nameAr: 'أكتوبر', type: 'travel' },
@@ -70,24 +70,38 @@ export const routeGroups: RouteGroup[] = [
     nameAr: 'دمياط - القاهرة',
     bidirectional: true,
     pricing: {
-      sedan: { oneWay: 1600, roundTrip: 2600 },
+      sedan: { oneWay: 1800, roundTrip: 2700 },
       suv: { oneWay: 2000, roundTrip: 3000 },
-      family_cruiser: { oneWay: 2200, roundTrip: 3200 },
-      minibus: { oneWay: 3500, roundTrip: 4000 },
+      family_cruiser: { oneWay: 2300, roundTrip: 3200 },
+      minibus: { oneWay: 3700, roundTrip: 5000 },
     },
   },
   {
     id: 'travel-alexandria',
     type: 'travel',
     fromLocations: ['damietta', 'new-damietta', 'ras-elbar', 'faraskour', 'ezbet-elborg'],
-    toLocations: ['alexandria', 'borg-alarab-airport'],
+    toLocations: ['alexandria'],
     nameAr: 'دمياط - الإسكندرية',
     bidirectional: true,
     pricing: {
-      sedan: { oneWay: 1800, roundTrip: 2800 },
+      sedan: { oneWay: 1800, roundTrip: 2700 },
       suv: { oneWay: 2000, roundTrip: 3000 },
-      family_cruiser: { oneWay: 2200, roundTrip: 3200 },
-      minibus: { oneWay: 3500, roundTrip: 4000 },
+      family_cruiser: { oneWay: 2300, roundTrip: 3200 },
+      minibus: { oneWay: 3700, roundTrip: 5000 },
+    },
+  },
+  {
+    id: 'travel-borg-alarab',
+    type: 'travel',
+    fromLocations: ['damietta', 'new-damietta', 'ras-elbar', 'faraskour', 'ezbet-elborg'],
+    toLocations: ['borg-alarab-airport'],
+    nameAr: 'دمياط - مطار برج العرب',
+    bidirectional: true,
+    pricing: {
+      sedan: { oneWay: 2000, roundTrip: 2700 },
+      suv: { oneWay: 2000, roundTrip: 3000 },
+      family_cruiser: { oneWay: 2300, roundTrip: 3200 },
+      minibus: { oneWay: 3700, roundTrip: 5000 },
     },
   },
   {
@@ -104,7 +118,7 @@ export const routeGroups: RouteGroup[] = [
       minibus: { oneWay: 3500, roundTrip: 4000 },
     },
   },
-  
+
   // INTERNAL DAMIETTA ROUTES
   {
     id: 'internal-main',
@@ -208,12 +222,12 @@ export function findRouteGroup(fromId: string, toId: string): RouteGroup | undef
   return routeGroups.find(group => {
     // Check forward direction
     const forwardMatch = group.fromLocations.includes(fromId) && group.toLocations.includes(toId);
-    
+
     // Check reverse direction if bidirectional
-    const reverseMatch = group.bidirectional && 
-                         group.fromLocations.includes(toId) && 
-                         group.toLocations.includes(fromId);
-    
+    const reverseMatch = group.bidirectional &&
+      group.fromLocations.includes(toId) &&
+      group.toLocations.includes(fromId);
+
     return forwardMatch || reverseMatch;
   });
 }
@@ -224,11 +238,11 @@ export function findRouteGroup(fromId: string, toId: string): RouteGroup | undef
 export function getFromLocations(routeType: RouteType): Location[] {
   if (routeType === 'internal') {
     // For internal, only show Damietta area locations
-    return locations.filter(loc => 
+    return locations.filter(loc =>
       ['damietta', 'new-damietta', 'ras-elbar', 'faraskour', 'ezbet-elborg'].includes(loc.id)
     );
   }
-  
+
   // For travel, show all locations
   return locations;
 }
@@ -238,7 +252,7 @@ export function getFromLocations(routeType: RouteType): Location[] {
  */
 export function getToLocations(routeType: RouteType, fromId: string): Location[] {
   const possibleToIds = new Set<string>();
-  
+
   routeGroups
     .filter(group => group.type === routeType)
     .forEach(group => {
@@ -246,13 +260,13 @@ export function getToLocations(routeType: RouteType, fromId: string): Location[]
       if (group.fromLocations.includes(fromId)) {
         group.toLocations.forEach(id => possibleToIds.add(id));
       }
-      
+
       // Reverse direction
       if (group.bidirectional && group.toLocations.includes(fromId)) {
         group.fromLocations.forEach(id => possibleToIds.add(id));
       }
     });
-  
+
   return locations.filter(loc => possibleToIds.has(loc.id));
 }
 
