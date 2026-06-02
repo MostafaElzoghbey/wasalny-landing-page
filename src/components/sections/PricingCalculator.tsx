@@ -6,6 +6,7 @@ import { AlertCircle, Plane, MapPin } from 'lucide-react';
 import { RouteSelectionCard } from '@/components/pricing/RouteSelectionCard';
 import { VehiclePassengerCard } from '@/components/pricing/VehiclePassengerCard';
 import { DateTimeCard } from '@/components/pricing/DateTimeCard';
+import { sectionCopy } from '@/data/content';
 
 
 export const PricingCalculator = () => {
@@ -29,8 +30,8 @@ export const PricingCalculator = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <SectionHeading
-          title="احسب سعر رحلتك"
-          subtitle="خطط ميزانيتك بدقة واحصل على أفضل سعر لرحلتك مع وصلني"
+          title={sectionCopy.pricing.title}
+          subtitle={sectionCopy.pricing.subtitle}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

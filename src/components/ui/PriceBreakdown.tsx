@@ -87,7 +87,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
         <div className="space-y-4">
           <div className="flex justify-between items-end">
             <span className="text-lg font-bold text-gray-900 dark:text-white">الإجمالي</span>
-            <span className="text-3xl font-extrabold text-primary">
+            <span className={`font-extrabold text-primary ${breakdown.total === 0 ? 'text-xl sm:text-2xl' : 'text-3xl'}`}>
               {formatPrice(breakdown.total)}
             </span>
           </div>
@@ -110,7 +110,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
           </a>
 
           <p className="text-xs text-center text-gray-400">
-            * السعر نهائي وشامل جميع الرسوم
+            {breakdown.total === 0 ? '* السعر يحدد حسب الطلب' : '* السعر نهائي وشامل جميع الرسوم'}
           </p>
         </div>
       </div>

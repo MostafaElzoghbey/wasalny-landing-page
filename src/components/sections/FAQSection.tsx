@@ -9,6 +9,7 @@ import gsap from '@/lib/gsap';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { cn } from '@/lib/utils';
 import { faqs } from '@/data/faqs';
+import { sectionCopy } from '@/data/content';
 import type { Faq } from '@/types';
 
 interface FAQItemProps {
@@ -122,8 +123,8 @@ export function FAQSection() {
 
             <div className="section-container relative z-10 max-w-4xl mx-auto">
                 <SectionHeading
-                    title="الأسئلة الشائعة"
-                    subtitle="إجابات على أكثر الأسئلة شيوعاً حول خدماتنا"
+                    title={sectionCopy.faq.title}
+                    subtitle={sectionCopy.faq.subtitle}
                     centered
                 />
 

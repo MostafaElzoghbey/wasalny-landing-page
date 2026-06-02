@@ -3,9 +3,10 @@ import { Phone, MessageCircle, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { carImages } from '@/data/cars';
-import { contactInfo } from '@/data/content';
+import { contactInfo, sectionCopy } from '@/data/content';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { siteConfig } from '@/data/siteConfig';
 import { useTextReveal, useFloatingAnimation, useParallax } from '@/hooks/useAnimations';
 import { canHover } from '@/hooks/useHoverCapable';
 
@@ -117,7 +118,7 @@ export function HeroSection() {
 
   const handleWhatsApp = () => {
     window.open(
-      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('السلام عليكم، أريد حجز رحلة')}`,
+      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent(siteConfig.whatsappDefaultMessage)}`,
       '_blank'
     );
   };
@@ -155,16 +156,16 @@ export function HeroSection() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium mb-6 opacity-0"
             >
               <MapPin className="w-4 h-4" />
-              <span>دمياط - القاهرة - المطار</span>
+              <span>{sectionCopy.hero.badge}</span>
             </div>
 
             {/* Heading */}
             <h1 ref={titleRef} className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6">
-              <span className="text-[hsl(var(--foreground))]">خدمة نقل</span>{' '}
-              <span className="text-primary-600 dark:text-primary-400">الركاب</span>
+              <span className="text-[hsl(var(--foreground))]">{sectionCopy.hero.title.line1}</span>{' '}
+              <span className="text-primary-600 dark:text-primary-400">{sectionCopy.hero.title.highlight1}</span>
               <br />
-              <span className="text-[hsl(var(--foreground))]">الأولى في</span>{' '}
-              <span className="text-accent-500">دمياط</span>
+              <span className="text-[hsl(var(--foreground))]">{sectionCopy.hero.title.line2}</span>{' '}
+              <span className="text-accent-500">{sectionCopy.hero.title.highlight2}</span>
             </h1>
 
             {/* Description */}
@@ -172,7 +173,7 @@ export function HeroSection() {
               ref={descriptionRef}
               className="text-lg sm:text-xl text-[hsl(var(--muted-foreground))] mb-8 max-w-xl mx-auto lg:mx-0 lg:mr-0 opacity-0"
             >
-              رحلات مريحة وآمنة من دمياط إلى القاهرة والمطار. سيارات حديثة وسائقين محترفين في خدمتك على مدار الساعة.
+              {sectionCopy.hero.description}
             </p>
 
             {/* CTA Buttons */}
@@ -200,11 +201,7 @@ export function HeroSection() {
 
             {/* Stats */}
             <div ref={statsRef} className="mt-12 grid grid-cols-3 gap-6">
-              {[
-                { value: '24/7', label: 'خدمة متاحة' },
-                { value: '3000+', label: 'عميل سعيد' },
-                { value: '5000+', label: 'رحلة ناجحة' },
-              ].map((stat, index) => (
+              {sectionCopy.hero.stats.map((stat, index) => (
                 <div key={index} className="text-center lg:text-right">
                   <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400">
                     {stat.value}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { sectionCopy } from "@/data/content";
 
 export function MapEmbed() {
     const [isMapVisible, setIsMapVisible] = useState(false);
@@ -10,8 +11,8 @@ export function MapEmbed() {
         <section className="section-padding bg-[hsl(var(--card))] border-t border-[hsl(var(--border))]">
             <div className="section-container">
                 <SectionHeading
-                    title="موقعنا"
-                    subtitle="موقعنا في دمياط ويوجد لدينا توصيل لجميع أنحاء دمياط و سفر خارج دمياط"
+                    title={sectionCopy.map.title}
+                    subtitle={sectionCopy.map.subtitle}
                     centered
                 />
                 <div className="w-full h-[400px] rounded-3xl overflow-hidden shadow-2xl bg-[hsl(var(--muted))] relative group">

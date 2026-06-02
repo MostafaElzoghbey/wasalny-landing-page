@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
+import { sectionCopy } from '@/data/content';
 import { mockupImages } from '@/data/cars';
 import gsap, { useGSAP } from '@/lib/gsap';
 
@@ -114,8 +115,8 @@ export function AppShowcaseSection() {
         <div className="relative z-10 w-full">
           <div className="section-container mb-12">
             <SectionHeading
-              title="هوية وصلني"
-              subtitle="علامتنا التجارية وهويتنا البصرية التي تعكس احترافية خدماتنا"
+              title={sectionCopy.appShowcase.title}
+              subtitle={sectionCopy.appShowcase.subtitle}
               className="text-white [&_h2]:text-white [&_p]:text-primary-200"
             />
           </div>

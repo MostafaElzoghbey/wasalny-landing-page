@@ -2,7 +2,8 @@ import { useRef } from 'react';
 import { Phone, MessageCircle, MapPin, Clock } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
-import { contactInfo } from '@/data/content';
+import { contactInfo, sectionCopy } from '@/data/content';
+import { siteConfig } from '@/data/siteConfig';
 import { useMagneticButton, useBatchReveal } from '@/hooks/useAnimations';
 import gsap, { useGSAP, rtlX } from '@/lib/gsap';
 
@@ -130,7 +131,7 @@ export function CTASection() {
 
   const handleWhatsApp = () => {
     window.open(
-      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent('السلام عليكم، أريد حجز رحلة')}`,
+      `https://wa.me/${contactInfo.whatsapp}?text=${encodeURIComponent(siteConfig.whatsappDefaultMessage)}`,
       '_blank'
     );
   };
@@ -164,8 +165,8 @@ export function CTASection() {
         <div className="text-center max-w-3xl mx-auto">
           <div ref={titleRef}>
             <SectionHeading
-              title="احجز رحلتك الآن"
-              subtitle="تواصل معنا الآن واحجز رحلتك بسهولة. نحن في خدمتك على مدار الساعة."
+              title={sectionCopy.cta.title}
+              subtitle={sectionCopy.cta.subtitle}
               className="text-white [&_h2]:text-white [&_p]:text-primary-100 [&_div]:bg-white/30"
             />
           </div>
@@ -237,7 +238,7 @@ export function CTASection() {
             ref={trustBadgeRef}
             className="mt-8 text-primary-200 text-sm opacity-0"
           >
-            ✨ أكثر من 3000+ عميل سعيد • 5000 رحلة ناجحة • خدمة موثوقة منذ 2020
+            {sectionCopy.cta.trustBadge}
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { canHover } from '@/hooks/useHoverCapable';
 import { dispatchPricingPreset, type PricingPreset } from '@/utils/pricingEvents';
+import { sectionCopy } from '@/data/content';
 
 const iconMap = {
   route: MapPin,
@@ -163,8 +164,8 @@ export function ServicesSection() {
 
       <div className="section-container relative z-10">
         <SectionHeading
-          title="خدماتنا"
-          subtitle="نقدم لكم أفضل خدمات النقل والتوصيل في دمياط والقاهرة"
+          title={sectionCopy.services.title}
+          subtitle={sectionCopy.services.subtitle}
         />
 
         <div

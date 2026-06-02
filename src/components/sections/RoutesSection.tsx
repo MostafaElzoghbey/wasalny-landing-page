@@ -7,7 +7,7 @@ import { ScrollTrigger, rtlX } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
 
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { routes } from '@/data/content';
+import { routes, sectionCopy } from '@/data/content';
 import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
 
 interface RouteCardProps {
@@ -296,8 +296,8 @@ export function RoutesSection() {
 
       <div className="section-container relative z-10">
         <SectionHeading
-          title="مساراتنا"
-          subtitle="نغطي المسارات الرئيسية بين دمياط والقاهرة والمطار"
+          title={sectionCopy.routes.title}
+          subtitle={sectionCopy.routes.subtitle}
         />
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">

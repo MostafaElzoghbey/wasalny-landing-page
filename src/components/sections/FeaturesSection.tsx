@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Shield, Star, Clock, Wallet, Headphones, MapPin } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { useCounterAnimation, useBatchReveal } from '@/hooks/useAnimations';
-import { stats } from '@/data/content';
+import { stats, sectionCopy } from '@/data/content';
 import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
 
@@ -206,8 +206,8 @@ export function FeaturesSection() {
 
       <div className="section-container relative z-10">
         <SectionHeading
-          title="لماذا وصلني؟"
-          subtitle="مميزات تجعلنا الاختيار الأول لنقل الركاب في دمياط"
+          title={sectionCopy.features.title}
+          subtitle={sectionCopy.features.subtitle}
         />
 
         {/* Stats */}

@@ -102,3 +102,64 @@ export const contactInfo = {
   address: 'قهوة حكاوي، شارع وزير، قسم دمياط',
   facebook: 'https://www.facebook.com/damitta.wasalny/?locale=ar_AR',
 };
+
+export const sectionCopy = {
+  hero: {
+    badge: 'دمياط - القاهرة - المطار',
+    title: {
+      line1: 'خدمة نقل',
+      highlight1: 'الركاب',
+      line2: 'الأولى في',
+      highlight2: 'دمياط'
+    },
+    description: 'رحلات مريحة وآمنة من دمياط إلى القاهرة والمطار. سيارات حديثة وسائقين محترفين في خدمتك على مدار الساعة.',
+    get stats() {
+      return [
+        { value: '24/7', label: 'خدمة متاحة' },
+        { value: `${stats.find(s => s.id === 'customers')?.value}+`, label: stats.find(s => s.id === 'customers')?.label || '' },
+        { value: `${stats.find(s => s.id === 'trips')?.value}+`, label: stats.find(s => s.id === 'trips')?.label || '' },
+      ];
+    }
+  },
+  services: {
+    title: 'خدماتنا',
+    subtitle: 'نقدم لكم أفضل خدمات النقل والتوصيل في دمياط والقاهرة',
+  },
+  fleet: {
+    title: 'أسطولنا المميز',
+    subtitle: 'نجمع بين الفخامة والراحة في كل رحلة',
+  },
+  appShowcase: {
+    title: 'هوية وصلني',
+    subtitle: 'علامتنا التجارية وهويتنا البصرية التي تعكس احترافية خدماتنا',
+  },
+  routes: {
+    title: 'مساراتنا',
+    subtitle: 'نغطي المسارات الرئيسية بين دمياط والقاهرة والمطار',
+  },
+  pricing: {
+    title: 'احسب سعر رحلتك',
+    subtitle: 'خطط ميزانيتك بدقة واحصل على أفضل سعر لرحلتك مع وصلني',
+  },
+  features: {
+    title: 'لماذا وصلني؟',
+    subtitle: 'مميزات تجعلنا الاختيار الأول لنقل الركاب في دمياط',
+  },
+  faq: {
+    title: 'الأسئلة الشائعة',
+    subtitle: 'إجابات على أكثر الأسئلة شيوعاً حول خدماتنا',
+  },
+  cta: {
+    title: 'احجز رحلتك الآن',
+    subtitle: 'تواصل معنا الآن واحجز رحلتك بسهولة. نحن في خدمتك على مدار الساعة.',
+    get trustBadge() {
+      const customers = stats.find(s => s.id === 'customers')?.value || 3000;
+      const trips = stats.find(s => s.id === 'trips')?.value || 5000;
+      return `✨ أكثر من ${customers}+ عميل سعيد • ${trips} رحلة ناجحة • خدمة موثوقة منذ 2020`;
+    }
+  },
+  map: {
+    title: 'موقعنا',
+    subtitle: 'موقعنا في دمياط ويوجد لدينا توصيل لجميع أنحاء دمياط و سفر خارج دمياط',
+  }
+};

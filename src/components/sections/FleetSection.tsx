@@ -3,6 +3,7 @@ import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { cars, carCategories } from '@/data/cars';
+import { sectionCopy } from '@/data/content';
 import { cn } from '@/lib/utils';
 import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
@@ -434,7 +435,7 @@ export function FleetSection() {
 
       <div className="section-container relative z-10 w-full text-right" dir="rtl">
         <div className="flex flex-col items-center mb-12 lg:mb-20">
-          <SectionHeading title="أسطولنا المميز" subtitle="نجمع بين الفخامة والراحة في كل رحلة" className="mb-8" />
+          <SectionHeading title={sectionCopy.fleet.title} subtitle={sectionCopy.fleet.subtitle} className="mb-8" />
           <div ref={tablistRef} className="flex flex-wrap justify-center gap-2 md:gap-4 p-2 bg-white/60 dark:bg-white/5 backdrop-blur-2xl rounded-full border border-[hsl(var(--border))] shadow-xl" role="tablist">
             {carCategories.map((cat) => {
               const IconComponent = iconMap[cat.icon as keyof typeof iconMap];

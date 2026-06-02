@@ -1,5 +1,6 @@
 import type { Car } from '@/types';
 import { faqs } from '@/data/faqs';
+import { siteConfig } from '@/data/siteConfig';
 
 interface JsonLdProps {
     cars: Car[];
@@ -12,9 +13,9 @@ export function JsonLd({ cars }: JsonLdProps) {
             {
                 "@type": "CarRental",
                 "name": "مكتب وصلني في دمياط (Wasalny Office)",
-                "image": "https://wasalny.pages.dev/assets/images/logo/logo.jpeg",
+                "image": siteConfig.ogImage,
                 "description": "Premium car rental and passenger transport services in Damietta, Cairo, and Airports. Modern fleet of Sedans, SUVs, and Minibuses.",
-                "url": "https://wasalny.pages.dev",
+                "url": siteConfig.url,
                 "sameAs": [
                     "https://share.google/qCkiUoMQSmVUzxSly",
                     "https://www.facebook.com/profile.php?id=100054619677322"

@@ -1,6 +1,6 @@
 // src/data/pricing.ts
 export type RouteType = 'travel' | 'internal';
-export type VehicleCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus';
+export type VehicleCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
 
 export interface Location {
   id: string;
@@ -21,6 +21,7 @@ export interface RouteGroup {
     suv: { oneWay: number; roundTrip: number };
     family_cruiser: { oneWay: number; roundTrip: number };
     minibus: { oneWay: number; roundTrip: number };
+    wedding: { oneWay: number; roundTrip: number };
   };
 }
 
@@ -74,6 +75,7 @@ export const routeGroups: RouteGroup[] = [
       suv: { oneWay: 2000, roundTrip: 3000 },
       family_cruiser: { oneWay: 2300, roundTrip: 3200 },
       minibus: { oneWay: 3700, roundTrip: 5000 },
+      wedding: { oneWay: 0, roundTrip: 0 },
     },
   },
   {
@@ -88,6 +90,7 @@ export const routeGroups: RouteGroup[] = [
       suv: { oneWay: 2000, roundTrip: 3000 },
       family_cruiser: { oneWay: 2300, roundTrip: 3200 },
       minibus: { oneWay: 3700, roundTrip: 5000 },
+      wedding: { oneWay: 0, roundTrip: 0 },
     },
   },
   {
@@ -102,6 +105,7 @@ export const routeGroups: RouteGroup[] = [
       suv: { oneWay: 2000, roundTrip: 3000 },
       family_cruiser: { oneWay: 2300, roundTrip: 3200 },
       minibus: { oneWay: 3700, roundTrip: 5000 },
+      wedding: { oneWay: 0, roundTrip: 0 },
     },
   },
   {
@@ -116,6 +120,7 @@ export const routeGroups: RouteGroup[] = [
       suv: { oneWay: 2000, roundTrip: 3000 },
       family_cruiser: { oneWay: 2200, roundTrip: 3200 },
       minibus: { oneWay: 3500, roundTrip: 4000 },
+      wedding: { oneWay: 0, roundTrip: 0 },
     },
   },
 
@@ -132,6 +137,7 @@ export const routeGroups: RouteGroup[] = [
       suv: { oneWay: 130, roundTrip: 130 },
       family_cruiser: { oneWay: 130, roundTrip: 130 },
       minibus: { oneWay: 130, roundTrip: 130 },
+      wedding: { oneWay: 0, roundTrip: 0 },
     },
   },
   {
@@ -146,6 +152,7 @@ export const routeGroups: RouteGroup[] = [
       suv: { oneWay: 140, roundTrip: 140 },
       family_cruiser: { oneWay: 140, roundTrip: 140 },
       minibus: { oneWay: 140, roundTrip: 140 },
+      wedding: { oneWay: 0, roundTrip: 0 },
     },
   },
   {
@@ -160,6 +167,7 @@ export const routeGroups: RouteGroup[] = [
       suv: { oneWay: 260, roundTrip: 260 },
       family_cruiser: { oneWay: 260, roundTrip: 260 },
       minibus: { oneWay: 260, roundTrip: 260 },
+      wedding: { oneWay: 0, roundTrip: 0 },
     },
   },
 ];
