@@ -1,10 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import {
-  type VehicleCategory,
-  type RouteType,
-  vehiclePricing,
-  pricingConfig,
-} from '../data/pricing';
+import type { VehicleCategory, RouteType } from '@/types/pricing';
+import { useData } from '@/context/DataProvider';
 import {
   calculatePrice,
   generateWhatsAppMessage,
@@ -12,10 +8,12 @@ import {
   getToLocations,
   detectRouteType,
   type PriceCalculationResult,
-} from '../utils/pricingCalculator';
+} from '@/utils/pricingCalculator';
 import { subscribePricingPreset, type PricingPreset } from '@/utils/pricingEvents';
 
 export function usePricingCalculator() {
+  const { pricing } = useData();
+
   // --- State ---
   const [routeType, setRouteType] = useState<RouteType>('travel');
   const [fromLocation, setFromLocation] = useState<string>('');
@@ -42,13 +40,13 @@ export function usePricingCalculator() {
 
   // Available "From" locations based on route type
   const availableFromLocations = useMemo(() => {
-    return getFromLocations(routeType);
+    return getFromLocations(pricing.locations, routeType);
   }, [routeType]);
 
   // Available "To" locations based on route type and selected "from"
   const availableToLocations = useMemo(() => {
     if (!fromLocation) return [];
-    return getToLocations(routeType, fromLocation);
+    return getToLocations(pricing.locations, pricing.routeGroups, routeType, fromLocation);
   }, [routeType, fromLocation]);
 
   // Reset selections when route type changes (skipped during preset application)
@@ -72,7 +70,7 @@ export function usePricingCalculator() {
   // Auto-detect route type when both locations are selected
   useEffect(() => {
     if (fromLocation && toLocation) {
-      const detected = detectRouteType(fromLocation, toLocation);
+      const detected = detectRouteType(pricing.routeGroups, fromLocation, toLocation);
       if (detected && detected !== routeType) {
         setRouteType(detected);
       }
@@ -92,7 +90,7 @@ export function usePricingCalculator() {
         tripDate: new Date(tripDate),
         tripTime,
         isRoundTrip: routeType === 'travel' ? isRoundTrip : false, // Force false for internal
-      });
+      }, pricing);
     } catch (error) {
       console.error("Calculation error:", error);
       return null;
@@ -117,7 +115,7 @@ export function usePricingCalculator() {
     else if (!toLocation) errors.push('يرجى اختيار الوجهة');
 
     // Passenger validation
-    const vehicleInfo = vehiclePricing.find(v => v.category === vehicleCategory);
+    const vehicleInfo = pricing.vehiclePricing.find(v => v.category === vehicleCategory);
     if (vehicleInfo) {
       if (passengerCount > vehicleInfo.maxPassengers) {
         errors.push(`عدد الركاب يتجاوز السعة القصوى (${vehicleInfo.maxPassengers})`);
@@ -176,7 +174,7 @@ export function usePricingCalculator() {
   const whatsappLink = useMemo(() => {
     if (!calculationResult) return '';
     const message = generateWhatsAppMessage(calculationResult);
-    return `https://wa.me/${pricingConfig.whatsappNumber}?text=${message}`;
+    return `https://wa.me/${pricing.pricingConfig.whatsappNumber}?text=${message}`;
   }, [calculationResult]);
 
   // --- Handlers ---
@@ -184,9 +182,9 @@ export function usePricingCalculator() {
   const setPassengerCount = (count: number) => {
     setPassengerCountState(count);
     // Smart Vehicle Switch
-    const currentVehicle = vehiclePricing.find(v => v.category === vehicleCategory);
+    const currentVehicle = pricing.vehiclePricing.find(v => v.category === vehicleCategory);
     if (currentVehicle && count > currentVehicle.maxPassengers) {
-      const suitableVehicle = vehiclePricing.find(v => v.maxPassengers >= count);
+      const suitableVehicle = pricing.vehiclePricing.find(v => v.maxPassengers >= count);
       if (suitableVehicle) {
         setVehicleCategory(suitableVehicle.category);
       }

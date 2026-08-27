@@ -118,4 +118,4 @@ Arabic site. `document.dir === 'rtl'`.
 - **Lenis + GSAP sync**: `SmoothScrollProvider` adds `lenis.raf` to `gsap.ticker` and disables lag smoothing. `ScrollTrigger.update` fires on every Lenis scroll event.
 - **ScrollToTop**: `App.tsx` contains a `ScrollToTop` component with `ResizeObserver` that calls `ScrollTrigger.refresh()` on content height changes.
 - **Hover detection**: `useHoverCapable` → `canHover()` detects fine pointers to prevent sticky hover on touch devices. Used by `useTiltEffect`.
-- **Data-driven**: Cars, routes, pricing, FAQs stored in `src/data/` as typed TS objects — not fetched from API.
+- **Data-driven**: Cars, routes, pricing, FAQs are served from SQLite via the Hono API at `/api/data` and `/api/pricing`. `src/data/*` is only the initial static fallback for first paint, overwritten on mount by `useData()` from `DataProvider`.

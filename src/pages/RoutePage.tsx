@@ -4,11 +4,11 @@ import { MapPin, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
-import { routeData } from '@/data/routeData';
-import { contactInfo } from '@/data/content';
+import { useData } from '@/context/DataProvider';
 import { NotFound } from './NotFound';
 
 export function RoutePage() {
+    const { routeData, contactInfo } = useData();
     const { id } = useParams();
     const data = id ? routeData[id] : null;
     const containerRef = useRef<HTMLDivElement>(null);

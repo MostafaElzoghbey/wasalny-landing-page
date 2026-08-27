@@ -24,6 +24,7 @@ export interface Route {
   from: string;
   to: string;
   duration: string;
+  description?: string;
   price?: string;
 }
 
@@ -99,3 +100,5 @@ export interface ServiceOption {
   readonly icon: ServiceOptionIcon;
   readonly priceEGP?: number;
 }
+
+export type { RouteType, VehicleCategory, Location, RouteGroup, VehiclePricing } from './pricing';

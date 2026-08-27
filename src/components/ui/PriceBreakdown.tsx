@@ -1,6 +1,7 @@
 import React from 'react';
-import { type PriceCalculationResult, formatPrice } from '@/utils/pricingCalculator';
 import { Info, MessageCircle, AlertCircle } from 'lucide-react';
+import { useData } from '@/context/DataProvider';
+import { type PriceCalculationResult, formatPrice } from '@/utils/pricingCalculator';
 
 interface PriceBreakdownProps {
   result: PriceCalculationResult | null;
@@ -11,6 +12,8 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
   result,
   whatsappLink,
 }) => {
+  const { pricing } = useData();
+
   if (!result) {
     return (
       <div className="bg-[hsl(var(--card))] rounded-2xl shadow-xl p-6 border border-[hsl(var(--border))] h-full flex flex-col justify-center items-center text-center opacity-60">
@@ -88,7 +91,7 @@ export const PriceBreakdown: React.FC<PriceBreakdownProps> = ({
           <div className="flex justify-between items-end">
             <span className="text-lg font-bold text-gray-900 dark:text-white">الإجمالي</span>
             <span className="text-3xl font-extrabold text-primary">
-              {formatPrice(breakdown.total)}
+              {formatPrice(breakdown.total, pricing.pricingConfig)}
             </span>
           </div>
 

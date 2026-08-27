@@ -28,6 +28,7 @@ import { IOSInstallBanner } from '@/components/ui/IOSInstallBanner';
 // Pages
 import { RoutePage } from '@/pages/RoutePage';
 import { NotFound } from '@/pages/NotFound';
+import { AdminApp } from '@/admin/AdminApp';
 
 // Data
 import { cars, logoImage } from '@/data/cars';
@@ -162,6 +163,7 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/routes/:id" element={<RoutePage />} />
+            <Route path="/admin" element={<AdminApp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />

@@ -6,12 +6,13 @@ import gsap from 'gsap';
 import { ScrollTrigger, rtlX } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
 
+import { useData } from '@/context/DataProvider';
+import type { Route } from '@/types';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { routes } from '@/data/content';
 import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
 
 interface RouteCardProps {
-  route: typeof routes[0];
+  route: Route;
 }
 
 const RouteCard = ({ route }: RouteCardProps) => {
@@ -99,6 +100,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
 };
 
 export function RoutesSection() {
+  const { routes } = useData();
   const path1Ref = useRef<SVGPathElement>(null);
   const path2Ref = useRef<SVGPathElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);

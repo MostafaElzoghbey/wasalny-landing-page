@@ -1,7 +1,8 @@
 import { Car, AlertCircle, Users, CheckCircle2 } from 'lucide-react';
-import { vehiclePricing, type VehicleCategory } from '@/data/pricing';
+import type { VehicleCategory } from '@/types/pricing';
 import { cars } from '@/data/cars';
 import { cn } from '@/lib/utils';
+import { useData } from '@/context/DataProvider';
 
 interface VehiclePassengerProps {
   vehicleCategory: VehicleCategory;
@@ -14,6 +15,7 @@ export const VehiclePassengerCard = ({
   vehicleCategory, setVehicleCategory,
   passengerCount, setPassengerCount
 }: VehiclePassengerProps) => {
+  const { pricing: { vehiclePricing } } = useData();
   const selectedVehicle = vehiclePricing.find((v) => v.category === vehicleCategory);
 
   // Helper to get image for category
