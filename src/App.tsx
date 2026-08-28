@@ -149,30 +149,44 @@ function HomePage() {
 }
 
 function AppContent() {
+  const { pathname } = useLocation();
+  const isAdmin = pathname.startsWith('/admin');
   const [isLoading, setIsLoading] = useState(true);
+
+  if (isAdmin) {
+    return (
+      <ThemeProvider>
+        <PWAInstallProvider>
+          <SmoothScrollProvider>
+            <ScrollToTop />
+            <AdminApp />
+          </SmoothScrollProvider>
+        </PWAInstallProvider>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider>
       <PWAInstallProvider>
-      <JsonLd cars={cars} />
-      {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
-      <SmoothScrollProvider>
-        <ScrollToTop />
-        <div className="min-h-screen">
-          <Header />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/routes/:id" element={<RoutePage />} />
-            <Route path="/admin" element={<AdminApp />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Footer />
-          <FloatingCTA />
-          <PWAInstallBanner logoSrc={logoImage} />
-          <ReloadPrompt />
-          <IOSInstallBanner logoSrc={logoImage} />
-        </div>
-      </SmoothScrollProvider>
+        <JsonLd cars={cars} />
+        {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
+        <SmoothScrollProvider>
+          <ScrollToTop />
+          <div className="min-h-screen">
+            <Header />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/routes/:id" element={<RoutePage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Footer />
+            <FloatingCTA />
+            <PWAInstallBanner logoSrc={logoImage} />
+            <ReloadPrompt />
+            <IOSInstallBanner logoSrc={logoImage} />
+          </div>
+        </SmoothScrollProvider>
       </PWAInstallProvider>
     </ThemeProvider>
   );
