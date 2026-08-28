@@ -115,7 +115,7 @@ Changes persist to SQLite and appear immediately on the public site. Admin authe
 
 ## Environment variables
 
-- `VITE_BASE_URL` / `BASE_URL`: base URL used by the frontend and/or server to locate the API. In development Vite proxies `/api` to the local Hono server, so this is typically not needed locally.
+  - `VITE_BASE_URL` / `BASE_URL`: API base URL for the frontend. **Defaults to same-origin (relative `/api`), so it works with no configuration in development (Vite proxy) and in production (single Hono server).** Set it only when the API is hosted on a different origin than the frontend (e.g. a separate Node host).
 - `PORT`: port for the production server (defaults to `8787`).
 - `NODE_ENV`: set to `production` by `npm run start`.
 

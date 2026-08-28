@@ -20,9 +20,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    // Build the frontend with the local API base so its /api calls resolve to
-    // the server we start here, then boot the Hono server that serves dist/.
-    command: 'VITE_BASE_URL=http://localhost:8787 npm run build && npm run start',
+    command: 'npm run build && npm run start',
     url: 'http://localhost:8787',
     reuseExistingServer: false,
     timeout: 120_000,
