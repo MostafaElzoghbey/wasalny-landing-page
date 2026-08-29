@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import type { Faq } from '@/types';
+import type { FaqWithId } from '@/types';
 import {
   adminGetFaqs,
   adminCreateFaq,
@@ -8,21 +8,18 @@ import {
 } from '@/data/api';
 import { Field, ErrorText, Panel, PrimaryButton, DangerButton } from './ui';
 
-interface AdminFaq extends Faq {
-  id: string;
-}
-
 export function FaqAdmin() {
-  const [faqs, setFaqs] = useState<AdminFaq[]>([]);
+  const [faqs, setFaqs] = useState<FaqWithId[]>([]);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     try {
-      const list = (await adminGetFaqs()) as AdminFaq[];
+      const list = await adminGetFaqs();
       setFaqs(list);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load FAQs');
@@ -49,13 +46,14 @@ export function FaqAdmin() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Delete this FAQ?')) return;
     setError(null);
     try {
       await adminDeleteFaq(id);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to delete FAQ');
+    } finally {
+      setConfirmId(null);
     }
   }
 
@@ -100,7 +98,32 @@ export function FaqAdmin() {
                 <p className="font-medium text-[hsl(var(--foreground))]">{f.question}</p>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{f.answer}</p>
               </div>
-              <DangerButton onClick={() => handleDelete(f.id)}>Delete</DangerButton>
+              {confirmId === f.id ? (
+                <div className="flex items-center gap-2">
+                  <DangerButton
+                    type="button"
+                    data-testid="faq-delete-confirm"
+                    onClick={() => handleDelete(f.id)}
+                  >
+                    Confirm
+                  </DangerButton>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmId(null)}
+                    className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <DangerButton
+                  type="button"
+                  data-testid="faq-delete"
+                  onClick={() => setConfirmId(f.id)}
+                >
+                  Delete
+                </DangerButton>
+              )}
             </li>
           ))}
           {faqs.length === 0 && (

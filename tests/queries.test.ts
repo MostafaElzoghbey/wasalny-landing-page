@@ -112,6 +112,6 @@ describe('queries', () => {
 
     const faqs = getFaqs(db);
     expect(faqs).toHaveLength(1);
-    expect(faqs[0]).toEqual({ question: 'Q?', answer: 'A.' });
+    expect(faqs[0]).toEqual({ id: created.id, question: 'Q?', answer: 'A.' });
   });
 });

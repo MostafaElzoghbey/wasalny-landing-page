@@ -47,10 +47,6 @@ async function ensureLoggedIn(page: Page): Promise<void> {
 test('admin can create a FAQ, see it on the public site, and delete it', async ({
   page,
 }) => {
-  // The FAQ delete button triggers a native window.confirm() dialog. Playwright
-  // auto-dismisses dialogs (which would cancel the delete), so accept it.
-  page.on('dialog', (dialog) => dialog.accept());
-
   const uniqueQuestion = `E2E FAQ ${Date.now()}`;
   const answer = 'e2e answer';
 
@@ -103,17 +99,15 @@ test('admin can create a FAQ, see it on the public site, and delete it', async (
   });
   await expect(cleanupItem).toBeVisible();
 
-  // The delete button lives inside the list item; click it via the DOM, then
-  // the native confirm dialog is auto-accepted above.
-  await page.evaluate((q) => {
-    const items = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-testid="faq-item"]'),
-    );
-    const item = items.find((el) => el.textContent?.includes(q));
-    const btn = item?.querySelector<HTMLButtonElement>('button');
-    if (!btn) throw new Error(`Delete button for "${q}" not found`);
-    btn.click();
-  }, uniqueQuestion);
-
+  // Two-step in-app confirm: Delete (opens Confirm/Cancel), then Confirm.
+  // Use auto-waiting clicks scoped to this item so we never race React's
+  // re-render between the two steps.
+  await cleanupItem.getByTestId('faq-delete').click();
+  await cleanupItem.getByTestId('faq-delete-confirm').click();
+  // The confirm button only disappears after handleDelete finishes (API call +
+  // list reload), so waiting for it to detach proves we assert the FINAL state —
+  // not the brief "Loading…" flash where the row is momentarily unmounted
+  // (which would otherwise yield a false pass).
+  await expect(cleanupItem.getByTestId('faq-delete-confirm')).toHaveCount(0);
   await expect(cleanupItem).toHaveCount(0);
 });

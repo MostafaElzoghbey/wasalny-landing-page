@@ -405,10 +405,11 @@ export function deleteFaq(db: Database.Database, id: string): void {
   db.prepare('DELETE FROM faqs WHERE id = ?').run(id);
 }
 
-/** Read all FAQs as `Faq[]` (no id), matching the frontend `Faq` shape. */
-export function getFaqs(db: Database.Database): Faq[] {
-  const rows = db.prepare('SELECT * FROM faqs').all() as FaqRow[];
-  return rows.map((r) => ({ question: r.question, answer: r.answer }));
+/** Read all FAQs including their `id`, so the admin UI can target specific
+ *  rows for update/delete. Mirrors the `FaqRecord` shape. */
+export function getFaqs(db: Database.Database): FaqRecord[] {
+  const rows = db.prepare('SELECT id, question, answer FROM faqs').all() as FaqRecord[];
+  return rows;
 }
 
 // ---------------------------------------------------------------------------

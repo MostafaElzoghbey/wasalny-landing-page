@@ -47,6 +47,10 @@ export interface Faq {
   answer: string;
 }
 
+export interface FaqWithId extends Faq {
+  id: string;
+}
+
 export interface RouteData {
   id: string;
   title: string;
