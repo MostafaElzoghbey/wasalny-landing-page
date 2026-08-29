@@ -36,10 +36,10 @@ export function FaqAdmin() {
     e.preventDefault();
     setError(null);
     try {
-      await adminCreateFaq({ question, answer });
+      const created = await adminCreateFaq({ question, answer });
+      setFaqs((prev) => [...prev, created]);
       setQuestion('');
       setAnswer('');
-      await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to create FAQ');
     }
@@ -47,11 +47,12 @@ export function FaqAdmin() {
 
   async function handleDelete(id: string) {
     setError(null);
+    setFaqs((prev) => prev.filter((f) => f.id !== id));
     try {
       await adminDeleteFaq(id);
-      await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to delete FAQ');
+      await load();
     } finally {
       setConfirmId(null);
     }
@@ -84,7 +85,7 @@ export function FaqAdmin() {
         </PrimaryButton>
       </form>
 
-      {loading ? (
+      {faqs.length === 0 && loading ? (
         <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading…</p>
       ) : (
         <ul className="space-y-2">
