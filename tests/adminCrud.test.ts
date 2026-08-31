@@ -341,7 +341,7 @@ describe('adminCrud', () => {
       }>;
       const group = body.find((r) => r.id === 'rg-put-1');
       expect(group?.nameAr).toBe('خط محدث');
-      expect(group?.bidirectional).toBe(false);
+      expect(group?.bidirectional).toBe(true);
       expect(group?.pricing).toEqual(newPricing);
     });
 

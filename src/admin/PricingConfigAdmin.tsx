@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { adminSetPricingConfig, fetchPricing } from '@/data/api';
-import { CURRENCY_AR } from '@/data/pricing';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 
 function normalizeWhatsappNumber(raw: string): string {
@@ -75,15 +74,6 @@ export function PricingConfigAdmin() {
   return (
     <div data-testid="pricing-config-panel">
       <Panel title="إعدادات الحجز — Pricing Config">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span
-            data-testid="pricing-config-currency-badge"
-            className="inline-flex items-center rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-3 py-1 text-xs font-semibold text-[hsl(var(--foreground))]"
-          >
-            {CURRENCY_AR} (ثابت)
-          </span>
-          <span className="text-xs text-[hsl(var(--muted-foreground))]">العملة ثابتة بالجنيه المصري</span>
-        </div>
 
         {error && <ErrorText message={error} />}
 
@@ -120,7 +110,7 @@ export function PricingConfigAdmin() {
               data-testid="pricing-config-help"
               className="text-xs text-[hsl(var(--muted-foreground))] mt-1"
             >
-              هذا الرقم يُستخدم للحجز عبر واتساب — سيظهر رابط wa.me للعميل
+              هذا الرقم يُستخدم للحجز عبر واتساب
             </p>
 
             <div className="mt-4">

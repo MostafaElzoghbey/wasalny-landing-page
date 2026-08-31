@@ -72,17 +72,30 @@ export function getVehiclePricing(
 
 /**
  * Get available "from" locations based on route type
+ * Derived from routeGroups so newly created groups appear immediately.
  */
 export function getFromLocations(
   locations: Location[],
+  routeGroups: RouteGroup[],
   routeType: RouteType,
 ): Location[] {
-  if (routeType === 'internal') {
-    return locations.filter((loc) =>
-      ['damietta', 'new-damietta', 'ras-elbar', 'faraskour', 'ezbet-elborg'].includes(loc.id),
-    );
+  const fromIds = new Set<string>();
+  for (const g of routeGroups) {
+    if (g.type !== routeType) continue;
+    for (const id of g.fromLocations) fromIds.add(id);
+    if (g.bidirectional) {
+      for (const id of g.toLocations) fromIds.add(id);
+    }
   }
-  return locations;
+  if (fromIds.size === 0) {
+    if (routeType === 'internal') {
+      return locations.filter((loc) =>
+        ['damietta', 'new-damietta', 'ras-elbar', 'faraskour', 'ezbet-elborg'].includes(loc.id),
+      );
+    }
+    return locations;
+  }
+  return locations.filter((loc) => fromIds.has(loc.id));
 }
 
 /**

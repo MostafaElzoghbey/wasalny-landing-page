@@ -256,7 +256,7 @@ function readRouteGroups(db: Database.Database): RouteGroup[] {
     id: row.id,
     type: row.type,
     nameAr: row.nameAr,
-    bidirectional: row.bidirectional === 1,
+    bidirectional: row.type === 'travel',
     fromLocations: parseJson<string[]>(row.from_locations),
     toLocations: parseJson<string[]>(row.to_locations),
     pricing: readRoutePricing(db, row.id),
@@ -522,6 +522,7 @@ export function deleteRouteGroup(db: Database.Database, id: string): void {
 
 /** Insert or replace a route group row. */
 export function upsertRouteGroup(db: Database.Database, rg: RouteGroup): void {
+  const bidirectional = rg.type === 'travel';
   db.prepare(
     `INSERT OR REPLACE INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations)
      VALUES (?, ?, ?, ?, ?, ?)`,
@@ -529,7 +530,7 @@ export function upsertRouteGroup(db: Database.Database, rg: RouteGroup): void {
     rg.id,
     rg.type,
     rg.nameAr,
-    rg.bidirectional ? 1 : 0,
+    bidirectional ? 1 : 0,
     JSON.stringify(rg.fromLocations),
     JSON.stringify(rg.toLocations),
   );

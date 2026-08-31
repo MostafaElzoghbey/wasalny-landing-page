@@ -40,8 +40,8 @@ export function usePricingCalculator() {
 
   // Available "From" locations based on route type
   const availableFromLocations = useMemo(() => {
-    return getFromLocations(pricing.locations, routeType);
-  }, [routeType]);
+    return getFromLocations(pricing.locations, pricing.routeGroups, routeType);
+  }, [pricing.locations, pricing.routeGroups, routeType]);
 
   // Available "To" locations based on route type and selected "from"
   const availableToLocations = useMemo(() => {

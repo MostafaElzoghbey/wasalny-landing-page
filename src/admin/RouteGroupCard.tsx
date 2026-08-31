@@ -8,7 +8,6 @@ import {
   cloneGroup,
   formatPrice,
   minPrice,
-  splitList,
   validatePricing,
 } from './routeGroupPricing';
 
@@ -79,7 +78,12 @@ export function RouteGroupCard({
     }
     setSaving(true);
     try {
-      const payload: RouteGroup = { ...draft, nameAr: draft.nameAr.trim(), id: group.id };
+      const payload: RouteGroup = {
+        ...draft,
+        nameAr: draft.nameAr.trim(),
+        id: group.id,
+        bidirectional: draft.type === 'travel',
+      };
       await adminUpdateRouteGroup(group.id, payload);
       onUpdated(payload);
       setEditing(false);
@@ -125,11 +129,6 @@ export function RouteGroupCard({
             >
               {group.type}
             </span>
-            {group.bidirectional && (
-              <span className="rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-2 py-0.5 text-xs font-medium text-[hsl(var(--muted-foreground))]">
-                ↔ bidirectional
-              </span>
-            )}
           </div>
           <p className="mt-1 truncate text-xs text-[hsl(var(--muted-foreground))]">
             {fromSummary || group.fromLocations.join(', ')} → {toSummary || group.toLocations.join(', ')}
@@ -210,32 +209,74 @@ export function RouteGroupCard({
                   <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Type</span>
                   <select
                     value={draft.type}
-                    onChange={(e) => setDraft((p) => ({ ...p, type: e.target.value as RouteGroup['type'] }))}
+                    onChange={(e) => {
+                      const nextType = e.target.value as RouteGroup['type'];
+                      setDraft((p) => ({ ...p, type: nextType, bidirectional: nextType === 'travel' }));
+                    }}
                     className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
                   >
                     <option value="travel">travel</option>
                     <option value="internal">internal</option>
                   </select>
                 </label>
-                <Field
-                  label="From Locations (IDs, comma)"
-                  value={draft.fromLocations.join(', ')}
-                  onChange={(v) => setDraft((p) => ({ ...p, fromLocations: splitList(v) }))}
-                />
-                <Field
-                  label="To Locations (IDs, comma)"
-                  value={draft.toLocations.join(', ')}
-                  onChange={(v) => setDraft((p) => ({ ...p, toLocations: splitList(v) }))}
-                />
-                <label className="mb-3 flex items-center gap-2 text-sm font-medium text-[hsl(var(--foreground))]">
-                  <input
-                    type="checkbox"
-                    checked={draft.bidirectional}
-                    onChange={(e) => setDraft((p) => ({ ...p, bidirectional: e.target.checked }))}
-                    className="h-4 w-4"
-                  />
-                  Bidirectional
-                </label>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">From Locations</span>
+                  <div className="max-h-36 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
+                    {locations.map((loc) => (
+                      <label
+                        key={loc.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-[hsl(var(--muted))]"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={draft.fromLocations.includes(loc.id)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setDraft((p) => ({
+                              ...p,
+                              fromLocations: checked
+                                ? [...p.fromLocations, loc.id]
+                                : p.fromLocations.filter((x) => x !== loc.id),
+                            }));
+                          }}
+                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
+                        />
+                        <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
+                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">To Locations</span>
+                  <div className="max-h-36 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
+                    {locations.map((loc) => (
+                      <label
+                        key={loc.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-[hsl(var(--muted))]"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={draft.toLocations.includes(loc.id)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setDraft((p) => ({
+                              ...p,
+                              toLocations: checked
+                                ? [...p.toLocations, loc.id]
+                                : p.toLocations.filter((x) => x !== loc.id),
+                            }));
+                          }}
+                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
+                        />
+                        <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
+                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <PricingEdit pricing={draft.pricing} onChange={setDraftPrice} />

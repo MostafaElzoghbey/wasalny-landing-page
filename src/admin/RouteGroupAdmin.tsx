@@ -18,13 +18,6 @@ const VEHICLE_CATEGORIES: VehicleCategory[] = [
   'minibus',
 ];
 
-function splitList(value: string): string[] {
-  return value
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
-
 function emptyPricing(): RouteGroup['pricing'] {
   return {
     sedan: { oneWay: 0, roundTrip: 0 },
@@ -42,9 +35,8 @@ export function RouteGroupAdmin() {
   const [id, setId] = useState('');
   const [type, setType] = useState<RouteGroup['type']>('travel');
   const [nameAr, setNameAr] = useState('');
-  const [fromLocations, setFromLocations] = useState('');
-  const [toLocations, setToLocations] = useState('');
-  const [bidirectional, setBidirectional] = useState(true);
+  const [fromLocations, setFromLocations] = useState<string[]>([]);
+  const [toLocations, setToLocations] = useState<string[]>([]);
   const [prices, setPrices] = useState<Record<VehicleCategory, { oneWay: string; roundTrip: string }>>({
     sedan: { oneWay: '0', roundTrip: '0' },
     suv: { oneWay: '0', roundTrip: '0' },
@@ -102,21 +94,25 @@ export function RouteGroupAdmin() {
       }
     }
     try {
+      if (fromLocations.length === 0 || toLocations.length === 0) {
+        setCreateError('Select at least one From and one To location');
+        return;
+      }
+      const bidirectional = type === 'travel';
       const body: RouteGroup = {
         id: id.trim(),
         type,
         nameAr: nameAr.trim(),
-        fromLocations: splitList(fromLocations),
-        toLocations: splitList(toLocations),
+        fromLocations,
+        toLocations,
         bidirectional,
         pricing,
       };
       await adminCreateRouteGroup(body);
       setId('');
       setNameAr('');
-      setFromLocations('');
-      setToLocations('');
-      setBidirectional(true);
+      setFromLocations([]);
+      setToLocations([]);
       setPrices({
         sedan: { oneWay: '0', roundTrip: '0' },
         suv: { oneWay: '0', roundTrip: '0' },
@@ -154,11 +150,9 @@ export function RouteGroupAdmin() {
         {createOpen && (
           <form onSubmit={handleCreate} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
             {createError && <ErrorText message={createError} />}
-            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-3">
               <Field label="ID" value={id} onChange={setId} required />
               <Field label="Name (AR)" value={nameAr} onChange={setNameAr} required />
-              <Field label="From Locations (IDs, comma)" value={fromLocations} onChange={setFromLocations} />
-              <Field label="To Locations (IDs, comma)" value={toLocations} onChange={setToLocations} />
               <label className="mb-3 block">
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Type</span>
                 <select
@@ -173,15 +167,98 @@ export function RouteGroupAdmin() {
                   ))}
                 </select>
               </label>
-              <label className="mb-3 flex items-center gap-2 text-sm font-medium text-[hsl(var(--foreground))]">
-                <input
-                  type="checkbox"
-                  checked={bidirectional}
-                  onChange={(e) => setBidirectional(e.target.checked)}
-                  className="h-4 w-4"
-                />
-                Bidirectional
-              </label>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">From Locations</span>
+                <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر من المواقع الحالية (أنشئها أولاً في تبويب Locations)</p>
+                <div
+                  data-testid="route-group-from-picker"
+                  className="max-h-40 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
+                >
+                  {locations.length === 0 ? (
+                    <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>
+                  ) : (
+                    locations.map((loc) => (
+                      <label
+                        key={loc.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={fromLocations.includes(loc.id)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setFromLocations((prev) =>
+                              checked ? [...prev, loc.id] : prev.filter((x) => x !== loc.id),
+                            );
+                          }}
+                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
+                        />
+                        <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
+                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                        <span
+                          className={
+                            loc.type === 'travel'
+                              ? 'shrink-0 rounded-full bg-primary-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
+                              : 'shrink-0 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
+                          }
+                        >
+                          {loc.type}
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                {fromLocations.length > 0 && (
+                  <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{fromLocations.length} selected</p>
+                )}
+              </div>
+              <div>
+                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">To Locations</span>
+                <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر الوجهات المتاحة</p>
+                <div
+                  data-testid="route-group-to-picker"
+                  className="max-h-40 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
+                >
+                  {locations.length === 0 ? (
+                    <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>
+                  ) : (
+                    locations.map((loc) => (
+                      <label
+                        key={loc.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={toLocations.includes(loc.id)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setToLocations((prev) =>
+                              checked ? [...prev, loc.id] : prev.filter((x) => x !== loc.id),
+                            );
+                          }}
+                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
+                        />
+                        <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
+                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                        <span
+                          className={
+                            loc.type === 'travel'
+                              ? 'shrink-0 rounded-full bg-primary-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
+                              : 'shrink-0 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
+                          }
+                        >
+                          {loc.type}
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                {toLocations.length > 0 && (
+                  <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{toLocations.length} selected</p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
