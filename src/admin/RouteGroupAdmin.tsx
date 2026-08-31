@@ -37,6 +37,8 @@ export function RouteGroupAdmin() {
   const [nameAr, setNameAr] = useState('');
   const [fromLocations, setFromLocations] = useState<string[]>([]);
   const [toLocations, setToLocations] = useState<string[]>([]);
+  const [fromSearch, setFromSearch] = useState('');
+  const [toSearch, setToSearch] = useState('');
   const [prices, setPrices] = useState<Record<VehicleCategory, { oneWay: string; roundTrip: string }>>({
     sedan: { oneWay: '0', roundTrip: '0' },
     suv: { oneWay: '0', roundTrip: '0' },
@@ -172,14 +174,29 @@ export function RouteGroupAdmin() {
               <div>
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">From Locations</span>
                 <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر من المواقع الحالية (أنشئها أولاً في تبويب Locations)</p>
+                <input
+                  type="text"
+                  value={fromSearch}
+                  onChange={(e) => setFromSearch(e.target.value)}
+                  placeholder="بحث..."
+                  className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                />
                 <div
                   data-testid="route-group-from-picker"
-                  className="max-h-40 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
+                  className="max-h-56 overflow-y-auto scroll-smooth rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 overscroll-contain shadow-inner"
+                  style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}
                 >
-                  {locations.length === 0 ? (
-                    <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>
-                  ) : (
-                    locations.map((loc) => (
+                  {(() => {
+                    const filtered = locations.filter(
+                      (loc) =>
+                        !toLocations.includes(loc.id) &&
+                        (fromSearch === '' ||
+                          loc.nameAr.toLowerCase().includes(fromSearch.toLowerCase()) ||
+                          loc.id.toLowerCase().includes(fromSearch.toLowerCase())),
+                    );
+                    if (locations.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>;
+                    if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                    return filtered.map((loc) => (
                       <label
                         key={loc.id}
                         className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
@@ -193,7 +210,7 @@ export function RouteGroupAdmin() {
                               checked ? [...prev, loc.id] : prev.filter((x) => x !== loc.id),
                             );
                           }}
-                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
+                          className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
                         />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
                         <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
@@ -207,8 +224,8 @@ export function RouteGroupAdmin() {
                           {loc.type}
                         </span>
                       </label>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </div>
                 {fromLocations.length > 0 && (
                   <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{fromLocations.length} selected</p>
@@ -217,14 +234,29 @@ export function RouteGroupAdmin() {
               <div>
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">To Locations</span>
                 <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر الوجهات المتاحة</p>
+                <input
+                  type="text"
+                  value={toSearch}
+                  onChange={(e) => setToSearch(e.target.value)}
+                  placeholder="بحث..."
+                  className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--muted-foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                />
                 <div
                   data-testid="route-group-to-picker"
-                  className="max-h-40 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
+                  className="max-h-56 overflow-y-auto scroll-smooth rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 overscroll-contain shadow-inner"
+                  style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}
                 >
-                  {locations.length === 0 ? (
-                    <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>
-                  ) : (
-                    locations.map((loc) => (
+                  {(() => {
+                    const filtered = locations.filter(
+                      (loc) =>
+                        !fromLocations.includes(loc.id) &&
+                        (toSearch === '' ||
+                          loc.nameAr.toLowerCase().includes(toSearch.toLowerCase()) ||
+                          loc.id.toLowerCase().includes(toSearch.toLowerCase())),
+                    );
+                    if (locations.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>;
+                    if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                    return filtered.map((loc) => (
                       <label
                         key={loc.id}
                         className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
@@ -238,7 +270,7 @@ export function RouteGroupAdmin() {
                               checked ? [...prev, loc.id] : prev.filter((x) => x !== loc.id),
                             );
                           }}
-                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
+                          className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
                         />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
                         <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
@@ -252,8 +284,8 @@ export function RouteGroupAdmin() {
                           {loc.type}
                         </span>
                       </label>
-                    ))
-                  )}
+                    ));
+                  })()}
                 </div>
                 {toLocations.length > 0 && (
                   <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{toLocations.length} selected</p>

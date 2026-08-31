@@ -33,6 +33,8 @@ export function RouteGroupCard({
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [fromSearch, setFromSearch] = useState('');
+  const [toSearch, setToSearch] = useState('');
 
   const locName = (id: string) => locations.find((l) => l.id === id)?.nameAr ?? id;
   const fromSummary = group.fromLocations.map(locName).join('، ');
@@ -41,12 +43,16 @@ export function RouteGroupCard({
   function enterEdit(): void {
     setDraft(cloneGroup(group));
     setError(null);
+    setFromSearch('');
+    setToSearch('');
     setEditing(true);
   }
 
   function cancelEdit(): void {
     setDraft(cloneGroup(group));
     setError(null);
+    setFromSearch('');
+    setToSearch('');
     setEditing(false);
   }
 
@@ -223,58 +229,92 @@ export function RouteGroupCard({
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">From Locations</span>
-                  <div className="max-h-36 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
-                    {locations.map((loc) => (
-                      <label
-                        key={loc.id}
-                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-[hsl(var(--muted))]"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={draft.fromLocations.includes(loc.id)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setDraft((p) => ({
-                              ...p,
-                              fromLocations: checked
-                                ? [...p.fromLocations, loc.id]
-                                : p.fromLocations.filter((x) => x !== loc.id),
-                            }));
-                          }}
-                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
-                        />
-                        <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
-                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
-                      </label>
-                    ))}
+                  <input
+                    type="text"
+                    value={fromSearch}
+                    onChange={(e) => setFromSearch(e.target.value)}
+                    placeholder="بحث..."
+                    className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                  />
+                  <div className="max-h-56 overflow-y-auto scroll-smooth rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 overscroll-contain shadow-inner" style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}>
+                    {(() => {
+                      const filtered = locations.filter(
+                        (loc) =>
+                          !draft.toLocations.includes(loc.id) &&
+                          (fromSearch === '' ||
+                            loc.nameAr.toLowerCase().includes(fromSearch.toLowerCase()) ||
+                            loc.id.toLowerCase().includes(fromSearch.toLowerCase())),
+                      );
+                      if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                      return filtered.map((loc) => (
+                        <label
+                          key={loc.id}
+                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={draft.fromLocations.includes(loc.id)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setDraft((p) => ({
+                                ...p,
+                                fromLocations: checked
+                                  ? [...p.fromLocations, loc.id]
+                                  : p.fromLocations.filter((x) => x !== loc.id),
+                              }));
+                            }}
+                            className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
+                          />
+                          <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
+                          <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                        </label>
+                      ));
+                    })()}
                   </div>
                 </div>
                 <div>
                   <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">To Locations</span>
-                  <div className="max-h-36 overflow-y-auto rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
-                    {locations.map((loc) => (
-                      <label
-                        key={loc.id}
-                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-[hsl(var(--muted))]"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={draft.toLocations.includes(loc.id)}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setDraft((p) => ({
-                              ...p,
-                              toLocations: checked
-                                ? [...p.toLocations, loc.id]
-                                : p.toLocations.filter((x) => x !== loc.id),
-                            }));
-                          }}
-                          className="h-4 w-4 rounded border-[hsl(var(--border))]"
-                        />
+                  <input
+                    type="text"
+                    value={toSearch}
+                    onChange={(e) => setToSearch(e.target.value)}
+                    placeholder="بحث..."
+                    className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                  />
+                  <div className="max-h-56 overflow-y-auto scroll-smooth rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 overscroll-contain shadow-inner" style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}>
+                    {(() => {
+                      const filtered = locations.filter(
+                        (loc) =>
+                          !draft.fromLocations.includes(loc.id) &&
+                          (toSearch === '' ||
+                            loc.nameAr.toLowerCase().includes(toSearch.toLowerCase()) ||
+                            loc.id.toLowerCase().includes(toSearch.toLowerCase())),
+                      );
+                      if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                      return filtered.map((loc) => (
+                        <label
+                          key={loc.id}
+                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-[hsl(var(--muted))]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={draft.toLocations.includes(loc.id)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setDraft((p) => ({
+                                ...p,
+                                toLocations: checked
+                                  ? [...p.toLocations, loc.id]
+                                  : p.toLocations.filter((x) => x !== loc.id),
+                              }));
+                            }}
+                            className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
+                          />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
                         <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
                       </label>
-                    ))}
+                    ));
+                    })()}
                   </div>
                 </div>
               </div>
