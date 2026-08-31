@@ -14,15 +14,15 @@ import { RoutePricingAdmin } from './RoutePricingAdmin';
 import { VehiclePricingAdmin } from './VehiclePricingAdmin';
 
 type SectionKey =
-  | 'faqs'
   | 'cars'
-  | 'routeData'
   | 'locations'
   | 'routeGroups'
+  | 'routeData'
   | 'pricingConfig'
-  | 'content'
+  | 'vehiclePricing'
   | 'routePricing'
-  | 'vehiclePricing';
+  | 'faqs'
+  | 'content';
 
 interface NavItem {
   key: SectionKey;
@@ -31,15 +31,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'faqs', label: 'FAQs', testid: 'admin-nav-faqs' },
   { key: 'cars', label: 'Cars' },
-  { key: 'routeData', label: 'Route Data' },
   { key: 'locations', label: 'Locations' },
   { key: 'routeGroups', label: 'Route Groups' },
+  { key: 'routeData', label: 'Route Data' },
   { key: 'pricingConfig', label: 'Pricing Config' },
-  { key: 'content', label: 'Content' },
-  { key: 'routePricing', label: 'Route Pricing' },
   { key: 'vehiclePricing', label: 'Vehicle Pricing' },
+  { key: 'routePricing', label: 'Route Pricing' },
+  { key: 'faqs', label: 'FAQs', testid: 'admin-nav-faqs' },
+  { key: 'content', label: 'Content' },
 ];
 
 export function AdminApp() {
@@ -167,15 +167,15 @@ export function AdminApp() {
         <p className="mt-4 text-xs text-[hsl(var(--muted-foreground))]">Signed in as {email}</p>
       </aside>
       <main className="flex-1 overflow-y-auto p-6">
-        {active === 'faqs' && <FaqAdmin />}
         {active === 'cars' && <CarAdmin />}
-        {active === 'routeData' && <RouteDataAdmin />}
         {active === 'locations' && <LocationAdmin />}
         {active === 'routeGroups' && <RouteGroupAdmin />}
+        {active === 'routeData' && <RouteDataAdmin />}
         {active === 'pricingConfig' && <PricingConfigAdmin />}
-        {active === 'content' && <ContentAdmin />}
-        {active === 'routePricing' && <RoutePricingAdmin />}
         {active === 'vehiclePricing' && <VehiclePricingAdmin />}
+        {active === 'routePricing' && <RoutePricingAdmin />}
+        {active === 'faqs' && <FaqAdmin />}
+        {active === 'content' && <ContentAdmin />}
       </main>
     </div>
   );
