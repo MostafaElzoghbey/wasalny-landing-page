@@ -10,8 +10,6 @@ import { LocationAdmin } from './LocationAdmin';
 import { RouteGroupAdmin } from './RouteGroupAdmin';
 import { PricingConfigAdmin } from './PricingConfigAdmin';
 import { ContentAdmin } from './ContentAdmin';
-import { RoutePricingAdmin } from './RoutePricingAdmin';
-import { VehiclePricingAdmin } from './VehiclePricingAdmin';
 
 type SectionKey =
   | 'cars'
@@ -19,8 +17,6 @@ type SectionKey =
   | 'routeGroups'
   | 'routeData'
   | 'pricingConfig'
-  | 'vehiclePricing'
-  | 'routePricing'
   | 'faqs'
   | 'content';
 
@@ -36,8 +32,6 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'routeGroups', label: 'Route Groups' },
   { key: 'routeData', label: 'Route Data' },
   { key: 'pricingConfig', label: 'Pricing Config' },
-  { key: 'vehiclePricing', label: 'Vehicle Pricing' },
-  { key: 'routePricing', label: 'Route Pricing' },
   { key: 'faqs', label: 'FAQs', testid: 'admin-nav-faqs' },
   { key: 'content', label: 'Content' },
 ];
@@ -172,8 +166,6 @@ export function AdminApp() {
         {active === 'routeGroups' && <RouteGroupAdmin />}
         {active === 'routeData' && <RouteDataAdmin />}
         {active === 'pricingConfig' && <PricingConfigAdmin />}
-        {active === 'vehiclePricing' && <VehiclePricingAdmin />}
-        {active === 'routePricing' && <RoutePricingAdmin />}
         {active === 'faqs' && <FaqAdmin />}
         {active === 'content' && <ContentAdmin />}
       </main>

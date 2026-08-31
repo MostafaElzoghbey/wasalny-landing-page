@@ -72,10 +72,7 @@ export interface PublicData {
 
 /** Shape returned by `getPricingData` — consumed by the pricing API. */
 export interface PricingConfig {
-  currency: string;
-  currencyAr: string;
   whatsappNumber: string;
-  contactEmail: string;
 }
 
 export interface PricingData {

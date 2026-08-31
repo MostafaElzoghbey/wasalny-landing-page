@@ -35,7 +35,7 @@ describe('seed', () => {
     );
     expect(count(db, 'route_pricing')).toBe(expectedRoutePricing);
     expect(count(db, 'vehicle_pricing')).toBe(vehiclePricing.length);
-    expect(count(db, 'pricing_config')).toBe(4);
+    expect(count(db, 'pricing_config')).toBe(1);
     expect(count(db, 'content')).toBe(9);
 
     // Sanity: the 9 content keys are exactly the ones enumerated in the task.
@@ -57,7 +57,7 @@ describe('seed', () => {
     );
 
     // Touch the imported values so the assertions stay coupled to the source.
-    expect(pricingConfig.currency).toBeTypeOf('string');
+    expect(pricingConfig.whatsappNumber).toBeTypeOf('string');
     expect(carCategories.length).toBeGreaterThan(0);
     expect(carImages).toBeTypeOf('object');
     expect(mockupImages).toBeTypeOf('object');

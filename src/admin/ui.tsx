@@ -9,6 +9,10 @@ interface FieldProps {
   type?: string;
   textarea?: boolean;
   required?: boolean;
+  placeholder?: string;
+  dir?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  autoComplete?: string;
 }
 
 export function Field({
@@ -19,6 +23,10 @@ export function Field({
   type = 'text',
   textarea = false,
   required = false,
+  placeholder,
+  dir,
+  inputMode,
+  autoComplete,
 }: FieldProps) {
   const inputClass =
     'w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none';
@@ -33,6 +41,8 @@ export function Field({
           data-testid={testid}
           value={value}
           required={required}
+          placeholder={placeholder}
+          dir={dir}
           onChange={(e) => onChange(e.target.value)}
           className={cn(inputClass, 'min-h-[72px] resize-y')}
           rows={3}
@@ -43,6 +53,10 @@ export function Field({
           type={type}
           value={value}
           required={required}
+          placeholder={placeholder}
+          dir={dir}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
           onChange={(e) => onChange(e.target.value)}
           className={inputClass}
         />

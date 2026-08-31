@@ -7,6 +7,7 @@ import { migrate } from '../server/db/migrate.js';
 import { hashPassword } from '../server/auth/passwords.js';
 import { createCar } from '../server/db/queries.js';
 import { adminCrud } from '../server/routes/adminCrud.js';
+import { publicApi } from '../server/routes/public.js';
 
 const SESSION_ID = 'test-session';
 const ADMIN_ID = 'admin-test';
@@ -245,8 +246,8 @@ describe('adminCrud', () => {
       expect(body.some((r) => r.id === 'rg-1')).toBe(true);
     });
 
-    it('POST /route-pricing returns 200', async () => {
-      const group = await adminCrud.request('/route-groups', {
+    it('POST /route-groups with pricing persists pricing (create writes pricing)', async () => {
+      const res = await adminCrud.request('/route-groups', {
         method: 'POST',
         headers: { 'content-type': 'application/json', cookie: COOKIE },
         body: JSON.stringify({
@@ -256,44 +257,195 @@ describe('adminCrud', () => {
           bidirectional: true,
           fromLocations: ['loc-1'],
           toLocations: ['loc-2'],
-        }),
-      });
-      expect(group.status).toBe(200);
-
-      const res = await adminCrud.request('/route-pricing', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', cookie: COOKIE },
-        body: JSON.stringify({
-          routeGroupId: 'rg-1',
-          vehicleCategory: 'sedan',
-          oneWay: 100,
-          roundTrip: 180,
+          pricing: {
+            sedan: { oneWay: 100, roundTrip: 180 },
+            suv: { oneWay: 120, roundTrip: 200 },
+            family_cruiser: { oneWay: 150, roundTrip: 250 },
+            minibus: { oneWay: 200, roundTrip: 320 },
+          },
         }),
       });
       expect(res.status).toBe(200);
-    });
 
-    it('POST /vehicle-pricing returns 200', async () => {
-      const res = await adminCrud.request('/vehicle-pricing', {
+      const list = await adminCrud.request('/route-groups', { headers: { cookie: COOKIE } });
+      const body = (await list.json()) as Array<{
+        id: string;
+        pricing: { sedan: { oneWay: number; roundTrip: number } };
+      }>;
+      const group = body.find((r) => r.id === 'rg-1');
+      expect(group?.pricing.sedan.oneWay).toBe(100);
+      expect(group?.pricing.sedan.roundTrip).toBe(180);
+    });
+  });
+
+  describe('route-group-put', () => {
+    const FULL_PRICING = {
+      sedan: { oneWay: 100, roundTrip: 180 },
+      suv: { oneWay: 120, roundTrip: 200 },
+      family_cruiser: { oneWay: 150, roundTrip: 250 },
+      minibus: { oneWay: 200, roundTrip: 320 },
+    };
+
+    async function createGroup(id: string): Promise<void> {
+      const res = await adminCrud.request('/route-groups', {
         method: 'POST',
         headers: { 'content-type': 'application/json', cookie: COOKIE },
         body: JSON.stringify({
-          category: 'sedan',
-          categoryAr: 'سيدان',
-          maxPassengers: 4,
-          minPassengers: 1,
+          id,
+          type: 'travel',
+          nameAr: 'خط',
+          bidirectional: true,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+          pricing: FULL_PRICING,
         }),
       });
       expect(res.status).toBe(200);
+    }
+
+    it('S1: PUT /route-groups/:id with new pricing persists and GET shows it', async () => {
+      await createGroup('rg-put-1');
+
+      const newPricing = {
+        sedan: { oneWay: 111, roundTrip: 222 },
+        suv: { oneWay: 333, roundTrip: 444 },
+        family_cruiser: { oneWay: 555, roundTrip: 666 },
+        minibus: { oneWay: 777, roundTrip: 888 },
+      };
+      const res = await adminCrud.request('/route-groups/rg-put-1', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'rg-put-1',
+          type: 'travel',
+          nameAr: 'خط محدث',
+          bidirectional: false,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+          pricing: newPricing,
+        }),
+      });
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/route-groups', { headers: { cookie: COOKIE } });
+      const body = (await list.json()) as Array<{
+        id: string;
+        nameAr: string;
+        bidirectional: boolean;
+        pricing: {
+          sedan: { oneWay: number; roundTrip: number };
+          suv: { oneWay: number; roundTrip: number };
+          family_cruiser: { oneWay: number; roundTrip: number };
+          minibus: { oneWay: number; roundTrip: number };
+        };
+      }>;
+      const group = body.find((r) => r.id === 'rg-put-1');
+      expect(group?.nameAr).toBe('خط محدث');
+      expect(group?.bidirectional).toBe(false);
+      expect(group?.pricing).toEqual(newPricing);
     });
 
-    it('POST /pricing-config returns 200', async () => {
+    it('S2: PUT with negative price returns 400 and DB unchanged (rollback)', async () => {
+      await createGroup('rg-put-2');
+
+      const res = await adminCrud.request('/route-groups/rg-put-2', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'rg-put-2',
+          type: 'travel',
+          nameAr: 'خط',
+          bidirectional: true,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+          pricing: {
+            ...FULL_PRICING,
+            sedan: { oneWay: -5, roundTrip: 180 },
+          },
+        }),
+      });
+      expect(res.status).toBe(400);
+      const errBody = (await res.json()) as { error: string };
+      expect(typeof errBody.error).toBe('string');
+
+      // DB unchanged: nameAr still original, pricing still original.
+      const list = await adminCrud.request('/route-groups', { headers: { cookie: COOKIE } });
+      const body = (await list.json()) as Array<{
+        id: string;
+        nameAr: string;
+        pricing: { sedan: { oneWay: number; roundTrip: number } };
+      }>;
+      const group = body.find((r) => r.id === 'rg-put-2');
+      expect(group?.nameAr).toBe('خط');
+      expect(group?.pricing.sedan.oneWay).toBe(100);
+    });
+
+    it('S3: DELETE /route-groups/:id cascades pricing (0 rows remain)', async () => {
+      await createGroup('rg-put-3');
+
+      const res = await adminCrud.request('/route-groups/rg-put-3', {
+        method: 'DELETE',
+        headers: { cookie: COOKIE },
+      });
+      expect(res.status).toBe(200);
+
+      const count = db
+        .prepare('SELECT COUNT(*) AS n FROM route_pricing WHERE route_group_id = ?')
+        .get('rg-put-3') as { n: number };
+      expect(count.n).toBe(0);
+
+      const groupCount = db
+        .prepare('SELECT COUNT(*) AS n FROM route_groups WHERE id = ?')
+        .get('rg-put-3') as { n: number };
+      expect(groupCount.n).toBe(0);
+    });
+  });
+
+  describe('pricing-config-admin', () => {
+    it('S1: POST {whatsappNumber} returns 200 and GET /pricing returns normalized', async () => {
+      const post = await adminCrud.request('/pricing-config', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'whatsappNumber', value: '+20 100-123 4567 ' }),
+      });
+      expect(post.status).toBe(200);
+
+      const get = await publicApi.request('/pricing');
+      expect(get.status).toBe(200);
+      const data = (await get.json()) as { pricingConfig: { whatsappNumber: string } };
+      expect(data.pricingConfig.whatsappNumber).toBe('+201001234567');
+    });
+
+    it('S2: POST {whatsappNumber, value:"abc"} returns 400 and DB unchanged', async () => {
       const res = await adminCrud.request('/pricing-config', {
         method: 'POST',
         headers: { 'content-type': 'application/json', cookie: COOKIE },
-        body: JSON.stringify({ key: 'currency', value: 'EGP' }),
+        body: JSON.stringify({ key: 'whatsappNumber', value: 'abc' }),
       });
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('invalid whatsappNumber');
+      const row = db
+        .prepare('SELECT value FROM pricing_config WHERE key = ?')
+        .get('whatsappNumber') as { value: string } | undefined;
+      expect(row).toBeUndefined();
+    });
+
+    it('S3: legacy keys (currency, currencyAr, contactEmail) all return 400 and DB unchanged', async () => {
+      for (const key of ['currency', 'currencyAr', 'contactEmail']) {
+        const res = await adminCrud.request('/pricing-config', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', cookie: COOKIE },
+          body: JSON.stringify({ key, value: 'test' }),
+        });
+        expect(res.status).toBe(400);
+        const body = (await res.json()) as { error: string };
+        expect(body.error).toBe('unsupported pricing key');
+      }
+      const count = db
+        .prepare('SELECT COUNT(*) AS n FROM pricing_config')
+        .get() as { n: number };
+      expect(count.n).toBe(0);
     });
   });
 });

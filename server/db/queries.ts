@@ -264,15 +264,11 @@ function readRouteGroups(db: Database.Database): RouteGroup[] {
 }
 
 function readPricingConfig(db: Database.Database): PricingConfig {
-  const rows = db
-    .prepare('SELECT key, value FROM pricing_config')
-    .all() as Array<{ key: string; value: string }>;
-  const map = new Map(rows.map((r) => [r.key, r.value]));
+  const row = db
+    .prepare('SELECT value FROM pricing_config WHERE key = ?')
+    .get('whatsappNumber') as { value: string } | undefined;
   return {
-    currency: map.get('currency') ?? '',
-    currencyAr: map.get('currencyAr') ?? '',
-    whatsappNumber: map.get('whatsappNumber') ?? '',
-    contactEmail: map.get('contactEmail') ?? '',
+    whatsappNumber: row?.value ?? '',
   };
 }
 
@@ -524,7 +520,7 @@ export function deleteRouteGroup(db: Database.Database, id: string): void {
   db.prepare('DELETE FROM route_groups WHERE id = ?').run(id);
 }
 
-/** Insert or replace a route group row (pricing is managed via upsertRoutePrice). */
+/** Insert or replace a route group row. */
 export function upsertRouteGroup(db: Database.Database, rg: RouteGroup): void {
   db.prepare(
     `INSERT OR REPLACE INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations)
@@ -539,33 +535,52 @@ export function upsertRouteGroup(db: Database.Database, rg: RouteGroup): void {
   );
 }
 
-/** Insert or replace a single vehicle price for a route group. */
-export function upsertRoutePrice(
-  db: Database.Database,
-  routeGroupId: string,
-  vehicleCategory: VehicleCategory,
-  oneWay: number,
-  roundTrip: number,
-): void {
-  db.prepare(
-    `INSERT OR REPLACE INTO route_pricing (route_group_id, vehicle_category, one_way, round_trip)
-     VALUES (?, ?, ?, ?)`,
-  ).run(routeGroupId, vehicleCategory, oneWay, roundTrip);
+const VEHICLE_CATEGORIES: readonly VehicleCategory[] = [
+  'sedan',
+  'suv',
+  'family_cruiser',
+  'minibus',
+];
+
+/** True when every category has integer oneWay/roundTrip prices >= 0. */
+export function isValidPricing(
+  pricing: RouteGroup['pricing'],
+): boolean {
+  for (const category of VEHICLE_CATEGORIES) {
+    const entry = pricing[category];
+    if (
+      !Number.isInteger(entry.oneWay) ||
+      !Number.isInteger(entry.roundTrip) ||
+      entry.oneWay < 0 ||
+      entry.roundTrip < 0
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
-// ---------------------------------------------------------------------------
-// VehiclePricing CRUD
-// ---------------------------------------------------------------------------
-
-/** Insert or replace a vehicle pricing row. */
-export function upsertVehiclePricing(
+/**
+ * Atomically upsert a route group and all four of its route_pricing rows in a
+ * single transaction. If any statement throws, the whole transaction rolls
+ * back so the group and its pricing stay consistent.
+ */
+export function upsertRouteGroupWithPricing(
   db: Database.Database,
-  vp: VehiclePricing,
+  rg: RouteGroup,
 ): void {
-  db.prepare(
-    `INSERT OR REPLACE INTO vehicle_pricing (category, categoryAr, max_passengers, min_passengers)
-     VALUES (?, ?, ?, ?)`,
-  ).run(vp.category, vp.categoryAr, vp.maxPassengers, vp.minPassengers);
+  const run = db.transaction(() => {
+    upsertRouteGroup(db, rg);
+    const upsertPrice = db.prepare(
+      `INSERT OR REPLACE INTO route_pricing (route_group_id, vehicle_category, one_way, round_trip)
+       VALUES (?, ?, ?, ?)`,
+    );
+    for (const category of VEHICLE_CATEGORIES) {
+      const entry = rg.pricing[category];
+      upsertPrice.run(rg.id, category, entry.oneWay, entry.roundTrip);
+    }
+  });
+  run();
 }
 
 // ---------------------------------------------------------------------------

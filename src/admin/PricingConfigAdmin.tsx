@@ -1,57 +1,140 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { adminSetPricingConfig } from '@/data/api';
-import { Field, ErrorText, Panel, PrimaryButton } from './ui';
+import { adminSetPricingConfig, fetchPricing } from '@/data/api';
+import { CURRENCY_AR } from '@/data/pricing';
+import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 
-const KEYS = ['currency', 'currencyAr', 'whatsappNumber', 'contactEmail'] as const;
+function normalizeWhatsappNumber(raw: string): string {
+  return raw.replace(/[\s-]/g, '').trim();
+}
+
+function isValidWhatsappNumber(normalized: string): boolean {
+  return /^\+?[0-9]{7,15}$/.test(normalized);
+}
 
 export function PricingConfigAdmin() {
-  const [key, setKey] = useState<(typeof KEYS)[number]>('currency');
-  const [value, setValue] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchPricing();
+        if (!cancelled) {
+          setWhatsappNumber(data.pricingConfig.whatsappNumber ?? '');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load pricing config');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setSaved(false);
+
+    const normalized = normalizeWhatsappNumber(whatsappNumber);
+
+    if (!normalized) {
+      setError('رقم واتساب مطلوب');
+      return;
+    }
+
+    if (!isValidWhatsappNumber(normalized)) {
+      setError('رقم غير صالح — يجب أن يكون 7 إلى 15 رقمًا، يسمح بـ + في البداية (مثال: +201005656117)');
+      return;
+    }
+
+    setSaving(true);
     try {
-      await adminSetPricingConfig(key, value);
+      await adminSetPricingConfig('whatsappNumber', normalized);
+      setWhatsappNumber(normalized);
       setSaved(true);
-      setValue('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save pricing config');
+    } finally {
+      setSaving(false);
     }
   }
 
   return (
-    <Panel title="Pricing Config">
-      {error && <ErrorText message={error} />}
-      {saved && (
-        <p className="mb-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40">
-          Saved.
-        </p>
-      )}
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-4 sm:grid-cols-3">
-        <label className="mb-3 block">
-          <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Key</span>
-          <select
-            value={key}
-            onChange={(e) => setKey(e.target.value as (typeof KEYS)[number])}
-            className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
+    <div data-testid="pricing-config-panel">
+      <Panel title="إعدادات الحجز — Pricing Config">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <span
+            data-testid="pricing-config-currency-badge"
+            className="inline-flex items-center rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-3 py-1 text-xs font-semibold text-[hsl(var(--foreground))]"
           >
-            {KEYS.map((k) => (
-              <option key={k} value={k}>
-                {k}
-              </option>
-            ))}
-          </select>
-        </label>
-        <Field label="Value" value={value} onChange={setValue} required />
-        <div className="flex items-end">
-          <PrimaryButton type="submit">Save</PrimaryButton>
+            {CURRENCY_AR} (ثابت)
+          </span>
+          <span className="text-xs text-[hsl(var(--muted-foreground))]">العملة ثابتة بالجنيه المصري</span>
         </div>
-      </form>
-    </Panel>
+
+        {error && <ErrorText message={error} />}
+
+        {saved && (
+          <p
+            data-testid="pricing-config-saved"
+            className="mb-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40"
+          >
+            Saved.
+          </p>
+        )}
+
+        {loading ? (
+          <p className="py-4 text-sm text-[hsl(var(--muted-foreground))]">جاري التحميل…</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="max-w-md" noValidate>
+            <Field
+              label="رقم واتساب للحجز"
+              testid="pricing-config-whatsapp-input"
+              type="tel"
+              value={whatsappNumber}
+              onChange={(v) => {
+                setWhatsappNumber(v);
+                if (saved) setSaved(false);
+                if (error) setError(null);
+              }}
+              placeholder="+20..."
+              dir="ltr"
+              inputMode="tel"
+              autoComplete="tel"
+              required
+            />
+            <p
+              data-testid="pricing-config-help"
+              className="text-xs text-[hsl(var(--muted-foreground))] mt-1"
+            >
+              هذا الرقم يُستخدم للحجز عبر واتساب — سيظهر رابط wa.me للعميل
+            </p>
+
+            <div className="mt-4">
+              <PrimaryButton
+                type="submit"
+                data-testid="pricing-config-save"
+                disabled={saving}
+              >
+                {saving ? 'جاري الحفظ…' : 'Save'}
+              </PrimaryButton>
+            </div>
+          </form>
+        )}
+      </Panel>
+    </div>
   );
 }

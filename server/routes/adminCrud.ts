@@ -20,17 +20,16 @@ import {
   upsertLocation,
   deleteLocation,
   upsertRouteGroup,
+  upsertRouteGroupWithPricing,
+  isValidPricing,
   deleteRouteGroup,
-  upsertRoutePrice,
-  upsertVehiclePricing,
   setPricingConfig,
   getPublicData,
   getPricingData,
 } from '../db/queries.js';
 import { requireAdmin } from '../middleware/auth.js';
 import type { CarInput } from '../types.js';
-import type { RouteData, Faq, Location, RouteGroup, VehiclePricing } from '@/types';
-import type { VehicleCategory } from '@/types/pricing';
+import type { RouteData, Faq, Location, RouteGroup } from '@/types';
 
 export const adminCrud = new Hono();
 
@@ -217,7 +216,49 @@ adminCrud.get('/route-groups', requireAdmin, (c) => {
 adminCrud.post('/route-groups', requireAdmin, async (c) => {
   const db = getDb();
   const body = await c.req.json<RouteGroup>();
-  upsertRouteGroup(db, body);
+  if (body.id === undefined || body.nameAr === undefined) {
+    return c.json({ error: 'id and nameAr are required' }, 400);
+  }
+  if (body.pricing !== undefined && !isValidPricing(body.pricing)) {
+    return c.json({ error: 'pricing must be non-negative integers' }, 400);
+  }
+  if (body.pricing !== undefined) {
+    upsertRouteGroupWithPricing(db, body);
+  } else {
+    upsertRouteGroup(db, body);
+  }
+  return c.json({ ok: true }, 200);
+});
+
+adminCrud.put('/route-groups/:id', requireAdmin, async (c) => {
+  const db = getDb();
+  const id = c.req.param('id');
+  if (id === undefined) {
+    return c.json({ error: 'id is required' }, 400);
+  }
+  const body = await c.req.json<RouteGroup>();
+  if (body.id !== undefined && body.id !== id) {
+    return c.json({ error: 'id in body does not match path' }, 400);
+  }
+  if (body.nameAr === undefined || body.nameAr.trim() === '') {
+    return c.json({ error: 'nameAr is required' }, 400);
+  }
+  if (body.type !== 'travel' && body.type !== 'internal') {
+    return c.json({ error: 'type must be travel or internal' }, 400);
+  }
+  if (typeof body.bidirectional !== 'boolean') {
+    return c.json({ error: 'bidirectional must be a boolean' }, 400);
+  }
+  if (
+    !Array.isArray(body.fromLocations) ||
+    !Array.isArray(body.toLocations)
+  ) {
+    return c.json({ error: 'fromLocations and toLocations must be arrays' }, 400);
+  }
+  if (!isValidPricing(body.pricing)) {
+    return c.json({ error: 'pricing must be non-negative integers' }, 400);
+  }
+  upsertRouteGroupWithPricing(db, { ...body, id });
   return c.json({ ok: true }, 200);
 });
 
@@ -232,52 +273,19 @@ adminCrud.delete('/route-groups/:id', requireAdmin, (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// RoutePricing
-// ---------------------------------------------------------------------------
-
-adminCrud.post('/route-pricing', requireAdmin, async (c) => {
-  const db = getDb();
-  const body = await c.req.json<{
-    routeGroupId: string;
-    vehicleCategory: VehicleCategory;
-    oneWay: number;
-    roundTrip: number;
-  }>();
-  if (
-    body.routeGroupId === undefined ||
-    body.vehicleCategory === undefined ||
-    body.oneWay === undefined ||
-    body.roundTrip === undefined
-  ) {
-    return c.json(
-      { error: 'routeGroupId, vehicleCategory, oneWay and roundTrip are required' },
-      400,
-    );
-  }
-  upsertRoutePrice(
-    db,
-    body.routeGroupId,
-    body.vehicleCategory,
-    body.oneWay,
-    body.roundTrip,
-  );
-  return c.json({ ok: true }, 200);
-});
-
-// ---------------------------------------------------------------------------
-// VehiclePricing
-// ---------------------------------------------------------------------------
-
-adminCrud.post('/vehicle-pricing', requireAdmin, async (c) => {
-  const db = getDb();
-  const body = await c.req.json<VehiclePricing>();
-  upsertVehiclePricing(db, body);
-  return c.json({ ok: true }, 200);
-});
-
-// ---------------------------------------------------------------------------
 // PricingConfig
 // ---------------------------------------------------------------------------
+
+const PRICING_KEY_WHATSAPP = 'whatsappNumber' as const;
+
+/** E.164-ish: optional +, 7-15 digits (after stripping whitespace/dashes). */
+const PHONE_DIGITS_RE = /^\+?[0-9]{7,15}$/;
+
+function normalizeWhatsAppNumber(raw: string): string | null {
+  const stripped = raw.replace(/[\s-]/g, '');
+  if (!PHONE_DIGITS_RE.test(stripped)) return null;
+  return stripped.startsWith('+') ? stripped : `+${stripped}`;
+}
 
 adminCrud.post('/pricing-config', requireAdmin, async (c) => {
   const db = getDb();
@@ -285,6 +293,17 @@ adminCrud.post('/pricing-config', requireAdmin, async (c) => {
   if (body.key === undefined || body.value === undefined) {
     return c.json({ error: 'key and value are required' }, 400);
   }
-  setPricingConfig(db, body.key, body.value);
+
+  // Allowlist: only whatsappNumber is accepted.
+  if (body.key !== PRICING_KEY_WHATSAPP) {
+    return c.json({ error: 'unsupported pricing key' }, 400);
+  }
+
+  const normalized = normalizeWhatsAppNumber(body.value);
+  if (normalized === null) {
+    return c.json({ error: 'invalid whatsappNumber' }, 400);
+  }
+
+  setPricingConfig(db, PRICING_KEY_WHATSAPP, normalized);
   return c.json({ ok: true }, 200);
 });

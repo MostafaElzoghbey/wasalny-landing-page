@@ -6,7 +6,8 @@ import type {
   RouteGroup,
   VehiclePricing,
 } from '@/types/pricing';
-import type { PricingData, PricingConfig } from '@/data/api';
+import type { PricingData } from '@/data/api';
+import { CURRENCY_AR } from '@/data/pricing';
 
 export interface TripDetails {
   fromLocation: string;
@@ -195,8 +196,8 @@ export function calculatePrice(tripDetails: TripDetails, pricing: PricingData): 
   };
 }
 
-export function formatPrice(price: number, pricingConfig: PricingConfig): string {
-  return `${Math.round(price)} ${pricingConfig.currencyAr}`;
+export function formatPrice(price: number): string {
+  return `${Math.round(price)} ${CURRENCY_AR}`;
 }
 
 export function generateWhatsAppMessage(

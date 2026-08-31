@@ -66,23 +66,34 @@ describe('queries', () => {
     expect(data.cars[0].seoDescription).toBeUndefined();
   });
 
-  it('getPricingData returns a shaped pricingConfig after inserting 4 pricing_config rows', () => {
+  it('getPricingData returns a shaped pricingConfig after inserting pricing_config rows', () => {
     const insert = db.prepare(
       'INSERT INTO pricing_config (key, value) VALUES (?, ?)',
     );
+    insert.run('whatsappNumber', '201005656117');
+
+    const data = getPricingData(db);
+
+    expect(data.pricingConfig).toEqual({
+      whatsappNumber: '201005656117',
+    });
+  });
+
+  it('getPricingData pricingConfig contains only whatsappNumber key', () => {
+    const insert = db.prepare(
+      'INSERT INTO pricing_config (key, value) VALUES (?, ?)',
+    );
+    insert.run('whatsappNumber', '201005656117');
     insert.run('currency', 'EGP');
     insert.run('currencyAr', 'جنيه');
-    insert.run('whatsappNumber', '201005656117');
     insert.run('contactEmail', 'booking@wasalny.com');
 
     const data = getPricingData(db);
 
     expect(data.pricingConfig).toEqual({
-      currency: 'EGP',
-      currencyAr: 'جنيه',
       whatsappNumber: '201005656117',
-      contactEmail: 'booking@wasalny.com',
     });
+    expect(Object.keys(data.pricingConfig)).toEqual(['whatsappNumber']);
   });
 
   it('createCar then getPublicData round-trips a car with parsed JSON columns', () => {

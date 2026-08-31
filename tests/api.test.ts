@@ -75,14 +75,11 @@ describe('public API', () => {
     expect((body.faqs as unknown[]).length).toBe(1);
   });
 
-  it('GET /pricing returns correctly-shaped pricing data reflecting inserted config', async () => {
+  it('GET /pricing returns correctly-shaped pricing data with only whatsappNumber in pricingConfig', async () => {
     const insert = db.prepare(
       'INSERT INTO pricing_config (key, value) VALUES (?, ?)',
     );
-    insert.run('currency', 'EGP');
-    insert.run('currencyAr', 'جنيه');
     insert.run('whatsappNumber', '201005656117');
-    insert.run('contactEmail', 'booking@wasalny.com');
 
     const res = await publicApi.request('/pricing');
     expect(res.status).toBe(200);
@@ -95,9 +92,7 @@ describe('public API', () => {
     expect(body.pricingConfig).not.toBeNull();
 
     const config = body.pricingConfig as Record<string, unknown>;
-    expect(config.currency).toBe('EGP');
-    expect(config.currencyAr).toBe('جنيه');
     expect(config.whatsappNumber).toBe('201005656117');
-    expect(config.contactEmail).toBe('booking@wasalny.com');
+    expect(Object.keys(config)).toEqual(['whatsappNumber']);
   });
 });

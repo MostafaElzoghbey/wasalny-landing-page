@@ -65,9 +65,7 @@ export function seed(db: Database.Database = getDb()): void {
     const insPricingConfig = db.prepare(
       'INSERT INTO pricing_config (key, value) VALUES (?, ?)',
     );
-    for (const [key, value] of Object.entries(pricingConfig)) {
-      insPricingConfig.run(key, String(value));
-    }
+    insPricingConfig.run('whatsappNumber', pricingConfig.whatsappNumber);
 
     const insCar = db.prepare(
       'INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
