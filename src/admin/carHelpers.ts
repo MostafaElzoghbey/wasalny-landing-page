@@ -33,23 +33,23 @@ export function cloneCar(car: Car): Car {
 
 export function validateCar(car: Partial<Car>): string | null {
   if (car.name === undefined || car.name.trim() === '') {
-    return 'Name is required';
+    return 'الاسم مطلوب';
   }
   if (car.nameAr === undefined || car.nameAr.trim() === '') {
-    return 'Name (AR) is required';
+    return 'الاسم (عربي) مطلوب';
   }
   if (car.categoryAr === undefined || car.categoryAr.trim() === '') {
-    return 'Category (AR) is required';
+    return 'الفئة (عربي) مطلوبة';
   }
   if (car.category !== undefined) {
     const allowed: readonly string[] = CAR_CATEGORIES;
     if (!allowed.includes(car.category)) {
-      return 'Invalid category';
+      return 'فئة غير صالحة';
     }
   }
   if (car.passengers !== undefined) {
     if (!Number.isInteger(car.passengers) || car.passengers < 0) {
-      return 'Passengers must be a non-negative integer';
+      return 'عدد الركاب يجب أن يكون عددًا صحيحًا غير سالب';
     }
   }
   return null;

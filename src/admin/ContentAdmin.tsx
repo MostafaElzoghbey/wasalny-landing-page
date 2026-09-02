@@ -35,7 +35,7 @@ export function ContentAdmin() {
         }
       })
       .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load content');
+        if (!cancelled) setError(e instanceof Error ? e.message : 'فشل تحميل المحتوى');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -57,29 +57,29 @@ export function ContentAdmin() {
       await adminUpdateContent('contactInfo', info);
       setSaved(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save content');
+      setError(err instanceof Error ? err.message : 'فشل حفظ المحتوى');
     }
   }
 
   return (
-    <Panel title="Content — Contact Info">
+    <Panel title="المحتوى — معلومات الاتصال">
       {error && <ErrorText message={error} />}
       {saved && (
         <p className="mb-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40">
-          Saved.
+          تم الحفظ.
         </p>
       )}
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading…</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-          <Field label="Phone" value={info.phone} onChange={(v) => update('phone', v)} />
-          <Field label="WhatsApp" value={info.whatsapp} onChange={(v) => update('whatsapp', v)} />
-          <Field label="Email" type="email" value={info.email} onChange={(v) => update('email', v)} />
-          <Field label="Facebook" value={info.facebook} onChange={(v) => update('facebook', v)} />
-          <Field label="Address" value={info.address} onChange={(v) => update('address', v)} />
+          <Field label="الهاتف" value={info.phone} onChange={(v) => update('phone', v)} />
+          <Field label="واتساب" value={info.whatsapp} onChange={(v) => update('whatsapp', v)} />
+          <Field label="البريد الإلكتروني" type="email" value={info.email} onChange={(v) => update('email', v)} />
+          <Field label="فيسبوك" value={info.facebook} onChange={(v) => update('facebook', v)} />
+          <Field label="العنوان" value={info.address} onChange={(v) => update('address', v)} />
           <div className="flex items-end">
-            <PrimaryButton type="submit">Save Contact Info</PrimaryButton>
+            <PrimaryButton type="submit">حفظ معلومات الاتصال</PrimaryButton>
           </div>
         </form>
       )}

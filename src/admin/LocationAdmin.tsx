@@ -24,7 +24,7 @@ export function LocationAdmin() {
     try {
       setItems(await adminGetLocations());
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load locations');
+      setError(e instanceof Error ? e.message : 'فشل تحميل المواقع');
     } finally {
       setLoading(false);
     }
@@ -45,7 +45,7 @@ export function LocationAdmin() {
     e.preventDefault();
     setCreateError(null);
     if (id.trim() === '' || name.trim() === '' || nameAr.trim() === '') {
-      setCreateError('ID, Name and Name (AR) are required');
+      setCreateError('المعرّف والاسم والاسم (عربي) مطلوبة');
       return;
     }
     try {
@@ -55,7 +55,7 @@ export function LocationAdmin() {
       setCreateOpen(false);
       await load();
     } catch (e) {
-      setCreateError(e instanceof Error ? e.message : 'Failed to create location');
+      setCreateError(e instanceof Error ? e.message : 'فشل إنشاء الموقع');
     }
   }
 
@@ -69,7 +69,7 @@ export function LocationAdmin() {
   }
 
   return (
-    <Panel title="Locations">
+    <Panel title="المواقع">
       {error && <ErrorText message={error} />}
 
       <div className="mb-6 overflow-hidden rounded-xl border border-[hsl(var(--border))]">
@@ -77,11 +77,11 @@ export function LocationAdmin() {
           type="button"
           data-testid="location-create-toggle"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[hsl(var(--muted))/0.4]"
+          className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]"
         >
-          <span className="text-sm font-semibold text-[hsl(var(--foreground))]">New Location</span>
+          <span className="text-sm font-semibold text-[hsl(var(--foreground))]">موقع جديد</span>
           <span className="flex items-center gap-2">
-            <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'Hide' : 'Show'}</span>
+            <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'إخفاء' : 'عرض'}</span>
             <svg
               width="14"
               height="14"
@@ -99,11 +99,11 @@ export function LocationAdmin() {
           <form onSubmit={(e) => void handleCreate(e)} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
             {createError && <ErrorText message={createError} />}
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-              <Field label="ID" value={id} onChange={setId} required />
-              <Field label="Name" value={name} onChange={setName} required />
-              <Field label="Name (AR)" value={nameAr} onChange={setNameAr} required />
+              <Field label="المعرّف" value={id} onChange={setId} required />
+              <Field label="الاسم" value={name} onChange={setName} required />
+              <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
               <label className="mb-3 block">
-                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Type</span>
+                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">النوع</span>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as Location['type'])}
@@ -118,14 +118,14 @@ export function LocationAdmin() {
               </label>
             </div>
             <PrimaryButton type="submit" data-testid="location-create-submit">
-              Create Location
+              إنشاء موقع
             </PrimaryButton>
           </form>
         )}
       </div>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading…</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <ul className="space-y-3">
           {items.map((l) => (
@@ -138,7 +138,7 @@ export function LocationAdmin() {
               onDeleted={handleDeleted}
             />
           ))}
-          {items.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">No locations yet.</li>}
+          {items.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد مواقع بعد.</li>}
         </ul>
       )}
     </Panel>

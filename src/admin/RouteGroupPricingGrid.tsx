@@ -16,11 +16,11 @@ export function PricingDisplay({ pricing }: DisplayProps) {
           </p>
           <div className="space-y-1 text-sm">
             <p data-testid={`route-group-price-${cat}-oneWay`} className="flex justify-between">
-              <span className="text-[hsl(var(--muted-foreground))]">One way</span>
+              <span className="text-[hsl(var(--muted-foreground))]">ذهاب فقط</span>
               <span className="font-medium text-[hsl(var(--foreground))]">{formatPrice(pricing[cat].oneWay)}</span>
             </p>
             <p data-testid={`route-group-price-${cat}-roundTrip`} className="flex justify-between">
-              <span className="text-[hsl(var(--muted-foreground))]">Round trip</span>
+              <span className="text-[hsl(var(--muted-foreground))]">ذهاب وعودة</span>
               <span className="font-medium text-[hsl(var(--foreground))]">{formatPrice(pricing[cat].roundTrip)}</span>
             </p>
           </div>
@@ -42,14 +42,14 @@ export function PricingEdit({ pricing, onChange }: EditProps) {
         <div key={cat} className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
           <p className="mb-1 text-xs font-semibold text-[hsl(var(--muted-foreground))]">{CATEGORY_LABEL[cat]}</p>
           <Field
-            label="One Way"
+            label="ذهاب فقط"
             testid={`route-group-price-${cat}-oneWay`}
             type="number"
             value={String(pricing[cat].oneWay)}
             onChange={(v) => onChange(cat, 'oneWay', v)}
           />
           <Field
-            label="Round Trip"
+            label="ذهاب وعودة"
             testid={`route-group-price-${cat}-roundTrip`}
             type="number"
             value={String(pricing[cat].roundTrip)}

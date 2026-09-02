@@ -19,7 +19,7 @@ export function FaqAdmin() {
       const list = await adminGetFaqs();
       setFaqs(list);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load FAQs');
+      setError(e instanceof Error ? e.message : 'فشل تحميل الأسئلة الشائعة');
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,7 @@ export function FaqAdmin() {
     e.preventDefault();
     setError(null);
     if (question.trim() === '' || answer.trim() === '') {
-      setError('Question and answer are required');
+      setError('السؤال والإجابة مطلوبان');
       return;
     }
     try {
@@ -42,7 +42,7 @@ export function FaqAdmin() {
       setQuestion('');
       setAnswer('');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create FAQ');
+      setError(e instanceof Error ? e.message : 'فشل إنشاء السؤال');
     }
   }
 
@@ -57,24 +57,24 @@ export function FaqAdmin() {
     try {
       await adminDeleteFaq(id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to delete FAQ');
+      setError(e instanceof Error ? e.message : 'فشل حذف السؤال');
       await load();
     }
   }
 
   return (
-    <Panel title="FAQs">
+    <Panel title="الأسئلة الشائعة">
       {error && <ErrorText message={error} />}
       <form onSubmit={handleCreate} className="mb-6 rounded-lg border border-[hsl(var(--border))] p-4">
-        <Field label="Question" testid="faq-question" value={question} onChange={setQuestion} required />
-        <Field label="Answer" testid="faq-answer" value={answer} onChange={setAnswer} textarea required />
+        <Field label="السؤال" testid="faq-question" value={question} onChange={setQuestion} required />
+        <Field label="الإجابة" testid="faq-answer" value={answer} onChange={setAnswer} textarea required />
         <PrimaryButton type="submit" data-testid="faq-create-submit">
-          Create FAQ
+          إنشاء سؤال
         </PrimaryButton>
       </form>
 
       {faqs.length === 0 && loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading…</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <ul className="space-y-2">
           {faqs.map((f) => (
@@ -88,7 +88,7 @@ export function FaqAdmin() {
             />
           ))}
           {faqs.length === 0 && (
-            <li className="text-sm text-[hsl(var(--muted-foreground))]">No FAQs yet.</li>
+            <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد أسئلة بعد.</li>
           )}
         </ul>
       )}

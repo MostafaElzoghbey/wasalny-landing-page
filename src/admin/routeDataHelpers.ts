@@ -25,7 +25,7 @@ export function cloneRouteData(group: RouteData): RouteData {
 
 export function validateRouteData(data: RouteData): string | null {
   if (data.title.trim() === '') {
-    return 'Title is required';
+    return 'العنوان مطلوب';
   }
   return null;
 }

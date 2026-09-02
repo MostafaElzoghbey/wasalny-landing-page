@@ -57,7 +57,7 @@ export function RouteGroupAdmin() {
       setItems(groups);
       setLocations(locs);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load route groups');
+      setError(e instanceof Error ? e.message : 'فشل تحميل مجموعات المسارات');
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export function RouteGroupAdmin() {
     e.preventDefault();
     setCreateError(null);
     if (id.trim() === '' || nameAr.trim() === '') {
-      setCreateError('ID and Name (AR) are required');
+      setCreateError('المعرّف والاسم (عربي) مطلوبان');
       return;
     }
     const pricing = VEHICLE_CATEGORIES.reduce(
@@ -91,13 +91,13 @@ export function RouteGroupAdmin() {
     for (const cat of VEHICLE_CATEGORIES) {
       const p = pricing[cat];
       if (!Number.isInteger(p.oneWay) || !Number.isInteger(p.roundTrip) || p.oneWay < 0 || p.roundTrip < 0) {
-        setCreateError('Pricing must be non-negative integers');
+        setCreateError('يجب أن تكون الأسعار أعدادًا صحيحة غير سالبة');
         return;
       }
     }
     try {
       if (fromLocations.length === 0 || toLocations.length === 0) {
-        setCreateError('Select at least one From and one To location');
+        setCreateError('اختر موقعًا واحدًا على الأقل في كل من الانطلاق والوجهة');
         return;
       }
       const bidirectional = type === 'travel';
@@ -123,7 +123,7 @@ export function RouteGroupAdmin() {
       });
       await load();
     } catch (e) {
-      setCreateError(e instanceof Error ? e.message : 'Failed to create route group');
+      setCreateError(e instanceof Error ? e.message : 'فشل إنشاء مجموعة المسار');
     }
   }
 
@@ -137,26 +137,26 @@ export function RouteGroupAdmin() {
   }
 
   return (
-    <Panel title="Route Groups">
+    <Panel title="مجموعات المسارات">
       {error && <ErrorText message={error} />}
 
       <div className="mb-6 overflow-hidden rounded-xl border border-[hsl(var(--border))]">
         <button
           type="button"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[hsl(var(--muted))/0.4]"
+          className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]"
         >
-          <span className="text-sm font-semibold text-[hsl(var(--foreground))]">New Route Group</span>
-          <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'Hide' : 'Show'}</span>
+          <span className="text-sm font-semibold text-[hsl(var(--foreground))]">مجموعة مسار جديدة</span>
+          <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'إخفاء' : 'عرض'}</span>
         </button>
         {createOpen && (
           <form onSubmit={handleCreate} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
             {createError && <ErrorText message={createError} />}
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-3">
-              <Field label="ID" value={id} onChange={setId} required />
-              <Field label="Name (AR)" value={nameAr} onChange={setNameAr} required />
+              <Field label="المعرّف" value={id} onChange={setId} required />
+              <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
               <label className="mb-3 block">
-                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Type</span>
+                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">النوع</span>
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as RouteGroup['type'])}
@@ -164,7 +164,7 @@ export function RouteGroupAdmin() {
                 >
                   {TYPES.map((t) => (
                     <option key={t} value={t}>
-                      {t}
+                      {t === 'travel' ? 'سفر' : 'داخلي'}
                     </option>
                   ))}
                 </select>
@@ -172,8 +172,8 @@ export function RouteGroupAdmin() {
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">From Locations</span>
-                <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر من المواقع الحالية (أنشئها أولاً في تبويب Locations)</p>
+                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الانطلاق</span>
+                <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر من المواقع الحالية (أنشئها أولاً في تبويب المواقع)</p>
                 <input
                   type="text"
                   value={fromSearch}
@@ -194,8 +194,8 @@ export function RouteGroupAdmin() {
                           loc.nameAr.toLowerCase().includes(fromSearch.toLowerCase()) ||
                           loc.id.toLowerCase().includes(fromSearch.toLowerCase())),
                     );
-                    if (locations.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>;
-                    if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                    if (locations.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">لا توجد مواقع</p>;
+                    if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">لا توجد مواقع مطابقة</p>;
                     return filtered.map((loc) => (
                       <label
                         key={loc.id}
@@ -221,18 +221,18 @@ export function RouteGroupAdmin() {
                               : 'shrink-0 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
                           }
                         >
-                          {loc.type}
+                          {loc.type === 'travel' ? 'سفر' : 'داخلي'}
                         </span>
                       </label>
                     ));
                   })()}
                 </div>
                 {fromLocations.length > 0 && (
-                  <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{fromLocations.length} selected</p>
+                  <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{fromLocations.length} محدد</p>
                 )}
               </div>
               <div>
-                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">To Locations</span>
+                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الوصول</span>
                 <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر الوجهات المتاحة</p>
                 <input
                   type="text"
@@ -254,8 +254,8 @@ export function RouteGroupAdmin() {
                           loc.nameAr.toLowerCase().includes(toSearch.toLowerCase()) ||
                           loc.id.toLowerCase().includes(toSearch.toLowerCase())),
                     );
-                    if (locations.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No locations</p>;
-                    if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                    if (locations.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">لا توجد مواقع</p>;
+                    if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">لا توجد مواقع مطابقة</p>;
                     return filtered.map((loc) => (
                       <label
                         key={loc.id}
@@ -281,14 +281,14 @@ export function RouteGroupAdmin() {
                               : 'shrink-0 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
                           }
                         >
-                          {loc.type}
+                          {loc.type === 'travel' ? 'سفر' : 'داخلي'}
                         </span>
                       </label>
                     ));
                   })()}
                 </div>
                 {toLocations.length > 0 && (
-                  <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{toLocations.length} selected</p>
+                  <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{toLocations.length} محدد</p>
                 )}
               </div>
             </div>
@@ -296,22 +296,22 @@ export function RouteGroupAdmin() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {VEHICLE_CATEGORIES.map((category) => (
                 <div key={category} className="rounded-lg border border-[hsl(var(--border))] p-2">
-                  <p className="mb-1 text-xs font-semibold text-[hsl(var(--muted-foreground))]">{category}</p>
-                  <Field label="One Way" type="number" value={prices[category].oneWay} onChange={(v) => setPrice(category, 'oneWay', v)} />
-                  <Field label="Round Trip" type="number" value={prices[category].roundTrip} onChange={(v) => setPrice(category, 'roundTrip', v)} />
+                  <p className="mb-1 text-xs font-semibold text-[hsl(var(--muted-foreground))]">{category === 'sedan' ? 'سيدان' : category === 'suv' ? 'دفع رباعي' : category === 'family_cruiser' ? 'عائلي' : 'ميكروباص'}</p>
+                  <Field label="ذهاب فقط" type="number" value={prices[category].oneWay} onChange={(v) => setPrice(category, 'oneWay', v)} />
+                  <Field label="ذهاب وعودة" type="number" value={prices[category].roundTrip} onChange={(v) => setPrice(category, 'roundTrip', v)} />
                 </div>
               ))}
             </div>
 
             <PrimaryButton type="submit" data-testid="route-group-create">
-              Create Route Group
+              إنشاء مجموعة المسار
             </PrimaryButton>
           </form>
         )}
       </div>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading…</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <ul className="space-y-3">
           {items.map((g) => (
@@ -326,7 +326,7 @@ export function RouteGroupAdmin() {
             />
           ))}
           {items.length === 0 && (
-            <li className="text-sm text-[hsl(var(--muted-foreground))]">No route groups yet.</li>
+            <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد مجموعات مسارات بعد.</li>
           )}
         </ul>
       )}

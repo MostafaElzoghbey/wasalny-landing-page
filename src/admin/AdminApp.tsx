@@ -27,13 +27,13 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: 'cars', label: 'Cars' },
-  { key: 'locations', label: 'Locations' },
-  { key: 'routeGroups', label: 'Route Groups' },
-  { key: 'routeData', label: 'Route Data' },
-  { key: 'pricingConfig', label: 'Pricing Config' },
-  { key: 'faqs', label: 'FAQs', testid: 'admin-nav-faqs' },
-  { key: 'content', label: 'Content' },
+  { key: 'cars', label: 'السيارات' },
+  { key: 'locations', label: 'المواقع' },
+  { key: 'routeGroups', label: 'مجموعات المسارات' },
+  { key: 'routeData', label: 'بيانات المسارات' },
+  { key: 'pricingConfig', label: 'إعدادات التسعير' },
+  { key: 'faqs', label: 'الأسئلة الشائعة', testid: 'admin-nav-faqs' },
+  { key: 'content', label: 'المحتوى' },
 ];
 
 export function AdminApp() {
@@ -72,10 +72,10 @@ export function AdminApp() {
         const me = await fetchAdminMe();
         setEmail(me ? me.email : loginEmail);
       } else {
-        setLoginError('Invalid email or password.');
+        setLoginError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
       }
     } catch (err) {
-      setLoginError(err instanceof Error ? err.message : 'Login failed.');
+      setLoginError(err instanceof Error ? err.message : 'فشل تسجيل الدخول.');
     } finally {
       setBusy(false);
     }
@@ -88,8 +88,8 @@ export function AdminApp() {
 
   if (!checked) {
     return (
-      <div className="flex min-h-screen items-center justify-center" dir="ltr">
-        <p className="text-[hsl(var(--muted-foreground))]">Loading…</p>
+      <div className="flex min-h-screen items-center justify-center" dir="rtl">
+        <p className="text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       </div>
     );
   }
@@ -98,13 +98,13 @@ export function AdminApp() {
     return (
       <div
         className="flex min-h-screen items-center justify-center bg-[hsl(var(--background))] p-4"
-        dir="ltr"
+        dir="rtl"
       >
         <form onSubmit={handleLogin} className="card w-full max-w-sm p-6">
-          <h1 className="mb-4 text-xl font-bold text-[hsl(var(--foreground))]">Admin Login</h1>
+          <h1 className="mb-4 text-xl font-bold text-[hsl(var(--foreground))]">تسجيل دخول الإدارة</h1>
           {loginError && <ErrorText message={loginError} />}
           <Field
-            label="Email"
+            label="البريد الإلكتروني"
             testid="admin-email"
             type="email"
             value={loginEmail}
@@ -112,7 +112,7 @@ export function AdminApp() {
             required
           />
           <Field
-            label="Password"
+            label="كلمة المرور"
             testid="admin-password"
             type="password"
             value={loginPassword}
@@ -120,7 +120,7 @@ export function AdminApp() {
             required
           />
           <PrimaryButton type="submit" data-testid="admin-login-submit" disabled={busy}>
-            {busy ? 'Signing in…' : 'Login'}
+            {busy ? 'جارٍ تسجيل الدخول…' : 'تسجيل الدخول'}
           </PrimaryButton>
         </form>
       </div>
@@ -130,10 +130,10 @@ export function AdminApp() {
   return (
     <div
       className="flex min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"
-      dir="ltr"
+      dir="rtl"
     >
       <aside className="w-60 shrink-0 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4">
-        <h2 className="mb-4 text-lg font-bold">Wasalny Admin</h2>
+        <h2 className="mb-4 text-lg font-bold">لوحة تحكم وصلني</h2>
         <nav className="flex flex-col gap-1">
           {NAV_ITEMS.map((item) => (
             <button
@@ -141,7 +141,7 @@ export function AdminApp() {
               data-testid={item.testid}
               onClick={() => setActive(item.key)}
               className={cn(
-                'rounded-lg px-3 py-2 text-left text-sm font-medium transition',
+                'rounded-lg px-3 py-2 text-right text-sm font-medium transition',
                 active === item.key
                   ? 'bg-primary-600 text-white'
                   : 'hover:bg-[hsl(var(--muted))]',
@@ -156,9 +156,9 @@ export function AdminApp() {
           onClick={handleLogout}
           className="mt-4 w-full rounded-lg border border-[hsl(var(--border))] px-3 py-2 text-sm font-medium hover:bg-[hsl(var(--muted))]"
         >
-          Logout
+          تسجيل الخروج
         </button>
-        <p className="mt-4 text-xs text-[hsl(var(--muted-foreground))]">Signed in as {email}</p>
+        <p className="mt-4 text-xs text-[hsl(var(--muted-foreground))]">مسجّل الدخول باسم {email}</p>
       </aside>
       <main className="flex-1 overflow-y-auto p-6">
         {active === 'cars' && <CarAdmin />}

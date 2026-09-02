@@ -74,7 +74,7 @@ export function RouteGroupCard({
   async function handleSave(): Promise<void> {
     setError(null);
     if (draft.nameAr.trim() === '') {
-      setError('Name (AR) is required');
+      setError('الاسم (عربي) مطلوب');
       return;
     }
     const pErr = validatePricing(draft.pricing);
@@ -94,7 +94,7 @@ export function RouteGroupCard({
       onUpdated(payload);
       setEditing(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update route group');
+      setError(e instanceof Error ? e.message : 'فشل تحديث مجموعة المسار');
     } finally {
       setSaving(false);
     }
@@ -106,7 +106,7 @@ export function RouteGroupCard({
       await adminDeleteRouteGroup(group.id);
       onDeleted(group.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to delete');
+      setError(e instanceof Error ? e.message : 'فشل الحذف');
     } finally {
       setConfirmDelete(false);
     }
@@ -121,7 +121,7 @@ export function RouteGroupCard({
         type="button"
         data-testid={`route-group-expand-${group.id}`}
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[hsl(var(--muted))/0.5]"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-right transition-colors hover:bg-[hsl(var(--muted))/0.5]"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -133,13 +133,13 @@ export function RouteGroupCard({
                   : 'rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white'
               }
             >
-              {group.type}
+              {group.type === 'travel' ? 'سفر' : 'داخلي'}
             </span>
           </div>
           <p className="mt-1 truncate text-xs text-[hsl(var(--muted-foreground))]">
             {fromSummary || group.fromLocations.join(', ')} → {toSummary || group.toLocations.join(', ')}
             <span className="mx-2 text-[hsl(var(--border))]">|</span>
-            <span className="font-medium text-[hsl(var(--foreground))]">from {formatPrice(minPrice(group.pricing))}</span>
+            <span className="font-medium text-[hsl(var(--foreground))]">ابتداءً من {formatPrice(minPrice(group.pricing))}</span>
             <span className="mx-1 text-[hsl(var(--muted-foreground))]">·</span>
             <span className="font-mono text-xs">{group.id}</span>
           </p>
@@ -170,12 +170,12 @@ export function RouteGroupCard({
             <>
               <div className="mb-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">FROM</p>
+                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الانطلاق</p>
                   <p className="text-[hsl(var(--foreground))]">{fromSummary || '—'}</p>
                   <p className="mt-1 font-mono text-xs text-[hsl(var(--muted-foreground))]">{group.fromLocations.join(', ')}</p>
                 </div>
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">TO</p>
+                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الوصول</p>
                   <p className="text-[hsl(var(--foreground))]">{toSummary || '—'}</p>
                   <p className="mt-1 font-mono text-xs text-[hsl(var(--muted-foreground))]">{group.toLocations.join(', ')}</p>
                 </div>
@@ -185,24 +185,24 @@ export function RouteGroupCard({
 
               <div className="flex flex-wrap gap-2">
                 <PrimaryButton type="button" data-testid={`route-group-edit-${group.id}`} onClick={enterEdit}>
-                  Edit
+                  تعديل
                 </PrimaryButton>
                 {confirmDelete ? (
                   <div className="flex items-center gap-2">
                     <DangerButton type="button" data-testid={`route-group-delete-confirm-${group.id}`} onClick={handleDelete}>
-                      Confirm delete
+                      تأكيد الحذف
                     </DangerButton>
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(false)}
                       className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
                     >
-                      Cancel
+                      إلغاء
                     </button>
                   </div>
                 ) : (
                   <DangerButton type="button" data-testid={`route-group-delete-${group.id}`} onClick={() => setConfirmDelete(true)}>
-                    Delete
+                    حذف
                   </DangerButton>
                 )}
               </div>
@@ -210,9 +210,9 @@ export function RouteGroupCard({
           ) : (
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-                <Field label="Name (AR)" value={draft.nameAr} onChange={(v) => setDraft((p) => ({ ...p, nameAr: v }))} required />
+                <Field label="الاسم (عربي)" value={draft.nameAr} onChange={(v) => setDraft((p) => ({ ...p, nameAr: v }))} required />
                 <label className="mb-3 block">
-                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Type</span>
+                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">النوع</span>
                   <select
                     value={draft.type}
                     onChange={(e) => {
@@ -221,14 +221,14 @@ export function RouteGroupCard({
                     }}
                     className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
                   >
-                    <option value="travel">travel</option>
-                    <option value="internal">internal</option>
+                    <option value="travel">سفر</option>
+                    <option value="internal">داخلي</option>
                   </select>
                 </label>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">From Locations</span>
+                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الانطلاق</span>
                   <input
                     type="text"
                     value={fromSearch}
@@ -245,7 +245,7 @@ export function RouteGroupCard({
                             loc.nameAr.toLowerCase().includes(fromSearch.toLowerCase()) ||
                             loc.id.toLowerCase().includes(fromSearch.toLowerCase())),
                       );
-                      if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                      if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">لا توجد مواقع مطابقة</p>;
                       return filtered.map((loc) => (
                         <label
                           key={loc.id}
@@ -273,7 +273,7 @@ export function RouteGroupCard({
                   </div>
                 </div>
                 <div>
-                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">To Locations</span>
+                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الوصول</span>
                   <input
                     type="text"
                     value={toSearch}
@@ -290,7 +290,7 @@ export function RouteGroupCard({
                             loc.nameAr.toLowerCase().includes(toSearch.toLowerCase()) ||
                             loc.id.toLowerCase().includes(toSearch.toLowerCase())),
                       );
-                      if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">No matching locations</p>;
+                      if (filtered.length === 0) return <p className="py-2 text-center text-xs text-[hsl(var(--muted-foreground))]">لا توجد مواقع مطابقة</p>;
                       return filtered.map((loc) => (
                         <label
                           key={loc.id}
@@ -323,7 +323,7 @@ export function RouteGroupCard({
 
               <div className="flex flex-wrap gap-2">
                 <PrimaryButton type="button" data-testid={`route-group-save-${group.id}`} onClick={handleSave} disabled={saving}>
-                  {saving ? 'Saving…' : 'Save'}
+                  {saving ? 'جارٍ الحفظ…' : 'حفظ'}
                 </PrimaryButton>
                 <button
                   type="button"

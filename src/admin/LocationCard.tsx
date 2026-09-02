@@ -55,7 +55,7 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
       onUpdated(normalized);
       setEditing(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to update location');
+      setError(e instanceof Error ? e.message : 'فشل تحديث الموقع');
     } finally {
       setSaving(false);
     }
@@ -67,7 +67,7 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
       await adminDeleteLocation(group.id);
       onDeleted(group.id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to delete');
+      setError(e instanceof Error ? e.message : 'فشل الحذف');
     } finally {
       setConfirmDelete(false);
     }
@@ -82,7 +82,7 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
         type="button"
         data-testid={`location-expand-${group.id}`}
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[hsl(var(--muted))/0.5]"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-right transition-colors hover:bg-[hsl(var(--muted))/0.5]"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -126,26 +126,26 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
             <>
               <div className="mb-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">NAME</p>
+                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الاسم</p>
                   <p className="text-[hsl(var(--foreground))]">{group.name}</p>
                 </div>
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">NAME (AR)</p>
+                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الاسم (عربي)</p>
                   <p className="text-[hsl(var(--foreground))]">{group.nameAr}</p>
                 </div>
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">TYPE</p>
-                  <p className="text-[hsl(var(--foreground))]">{group.type}</p>
+                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">النوع</p>
+                  <p className="text-[hsl(var(--foreground))]">{group.type === 'travel' ? 'سفر' : 'داخلي'}</p>
                 </div>
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">ID</p>
+                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">المعرّف</p>
                   <p className="font-mono text-xs text-[hsl(var(--foreground))]">{group.id}</p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <PrimaryButton type="button" data-testid={`location-edit-${group.id}`} onClick={enterEdit}>
-                  Edit
+                  تعديل
                 </PrimaryButton>
                 {confirmDelete ? (
                   <div className="flex items-center gap-2">
@@ -154,38 +154,38 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
                       data-testid={`location-delete-confirm-${group.id}`}
                       onClick={() => void handleDelete()}
                     >
-                      Confirm delete
+                      تأكيد الحذف
                     </DangerButton>
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(false)}
                       className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
                     >
-                      Cancel
+                      إلغاء
                     </button>
                   </div>
                 ) : (
                   <DangerButton type="button" data-testid={`location-delete-${group.id}`} onClick={() => setConfirmDelete(true)}>
-                    Delete
+                    حذف
                   </DangerButton>
                 )}
               </div>
             </>
           ) : (
             <div className="space-y-3">
-              <p className="font-mono text-xs text-[hsl(var(--muted-foreground))]">ID: {group.id} (immutable)</p>
+              <p className="font-mono text-xs text-[hsl(var(--muted-foreground))]">المعرّف: {group.id} (غير قابل للتعديل)</p>
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-                <Field label="Name" value={draft.name} onChange={(v) => setDraft((p) => ({ ...p, name: v }))} required />
-                <Field label="Name (AR)" value={draft.nameAr} onChange={(v) => setDraft((p) => ({ ...p, nameAr: v }))} required />
+                <Field label="الاسم" value={draft.name} onChange={(v) => setDraft((p) => ({ ...p, name: v }))} required />
+                <Field label="الاسم (عربي)" value={draft.nameAr} onChange={(v) => setDraft((p) => ({ ...p, nameAr: v }))} required />
                 <label className="mb-3 block">
-                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Type</span>
+                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">النوع</span>
                   <select
                     value={draft.type}
                     onChange={(e) => setDraft((p) => ({ ...p, type: e.target.value as Location['type'] }))}
                     className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
                   >
-                    <option value="travel">travel</option>
-                    <option value="internal">internal</option>
+                    <option value="travel">سفر</option>
+                    <option value="internal">داخلي</option>
                   </select>
                 </label>
               </div>
@@ -196,7 +196,7 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
                   onClick={() => void handleSave()}
                   disabled={saving}
                 >
-                  {saving ? 'Saving…' : 'Save'}
+                  {saving ? 'جارٍ الحفظ…' : 'حفظ'}
                 </PrimaryButton>
                 <button
                   type="button"
@@ -204,7 +204,7 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
                   onClick={cancelEdit}
                   className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
                 >
-                  Cancel
+                  إلغاء
                 </button>
               </div>
             </div>

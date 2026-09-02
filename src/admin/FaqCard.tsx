@@ -43,11 +43,11 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
     const q = draftQuestion.trim();
     const a = draftAnswer.trim();
     if (q === '') {
-      setLocalError('Question is required');
+      setLocalError('السؤال مطلوب');
       return;
     }
     if (a === '') {
-      setLocalError('Answer is required');
+      setLocalError('الإجابة مطلوبة');
       return;
     }
     setSaving(true);
@@ -56,7 +56,7 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
       onUpdated({ ...faq, question: q, answer: a });
       setEditing(false);
     } catch (e) {
-      setLocalError(e instanceof Error ? e.message : 'Failed to update FAQ');
+      setLocalError(e instanceof Error ? e.message : 'فشل تحديث السؤال');
     } finally {
       setSaving(false);
     }
@@ -71,7 +71,7 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
         type="button"
         data-testid={`faq-expand-${faq.id}`}
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[hsl(var(--muted))/0.5]"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-right transition-colors hover:bg-[hsl(var(--muted))/0.5]"
       >
         <div className="min-w-0 flex-1">
           <p data-testid={`faq-question-${faq.id}`} className="truncate font-medium text-[hsl(var(--foreground))]">
@@ -119,7 +119,7 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
                   data-testid={`faq-edit-${faq.id}`}
                   onClick={enterEdit}
                 >
-                  Edit
+                  تعديل
                 </PrimaryButton>
                 {confirmDelete ? (
                   <div className="flex items-center gap-2">
@@ -131,14 +131,14 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
                         onDeleted(faq.id);
                       }}
                     >
-                      Confirm
+                      تأكيد
                     </DangerButton>
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(false)}
                       className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
                     >
-                      Cancel
+                      إلغاء
                     </button>
                   </div>
                 ) : (
@@ -147,7 +147,7 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
                     data-testid="faq-delete"
                     onClick={() => setConfirmDelete(true)}
                   >
-                    Delete
+                    حذف
                   </DangerButton>
                 )}
               </div>
@@ -155,14 +155,14 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
           ) : (
             <div className="space-y-3">
               <Field
-                label="Question"
+                label="السؤال"
                 testid={`faq-edit-question-${faq.id}`}
                 value={draftQuestion}
                 onChange={setDraftQuestion}
                 required
               />
               <Field
-                label="Answer"
+                label="الإجابة"
                 testid={`faq-edit-answer-${faq.id}`}
                 value={draftAnswer}
                 onChange={setDraftAnswer}
@@ -176,7 +176,7 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
                   onClick={() => void handleSave()}
                   disabled={saving}
                 >
-                  {saving ? 'Saving…' : 'Save'}
+                  {saving ? 'جارٍ الحفظ…' : 'حفظ'}
                 </PrimaryButton>
                 <button
                   type="button"
@@ -184,7 +184,7 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
                   onClick={cancelEdit}
                   className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
                 >
-                  Cancel
+                  إلغاء
                 </button>
               </div>
             </div>

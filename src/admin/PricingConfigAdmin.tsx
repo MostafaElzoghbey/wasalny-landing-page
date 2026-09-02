@@ -30,7 +30,7 @@ export function PricingConfigAdmin() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load pricing config');
+          setError(err instanceof Error ? err.message : 'فشل تحميل إعدادات التسعير');
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -65,7 +65,7 @@ export function PricingConfigAdmin() {
       setWhatsappNumber(normalized);
       setSaved(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save pricing config');
+      setError(err instanceof Error ? err.message : 'فشل حفظ إعدادات التسعير');
     } finally {
       setSaving(false);
     }
@@ -73,7 +73,7 @@ export function PricingConfigAdmin() {
 
   return (
     <div data-testid="pricing-config-panel">
-      <Panel title="إعدادات الحجز — Pricing Config">
+      <Panel title="إعدادات الحجز">
 
         {error && <ErrorText message={error} />}
 
@@ -82,7 +82,7 @@ export function PricingConfigAdmin() {
             data-testid="pricing-config-saved"
             className="mb-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40"
           >
-            Saved.
+            تم الحفظ.
           </p>
         )}
 
@@ -119,7 +119,7 @@ export function PricingConfigAdmin() {
                 data-testid="pricing-config-save"
                 disabled={saving}
               >
-                {saving ? 'جاري الحفظ…' : 'Save'}
+                {saving ? 'جارٍ الحفظ…' : 'حفظ'}
               </PrimaryButton>
             </div>
           </form>

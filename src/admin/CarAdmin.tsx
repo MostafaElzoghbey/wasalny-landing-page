@@ -29,7 +29,7 @@ export function CarAdmin() {
     try {
       setCars(await adminGetCars());
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load cars');
+      setError(e instanceof Error ? e.message : 'فشل تحميل السيارات');
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export function CarAdmin() {
       resetForm();
       await load();
     } catch (e) {
-      setCreateError(e instanceof Error ? e.message : 'Failed to create car');
+      setCreateError(e instanceof Error ? e.message : 'فشل إنشاء السيارة');
     }
   }
 
@@ -84,28 +84,28 @@ export function CarAdmin() {
   }
 
   return (
-    <Panel title="Cars">
+    <Panel title="السيارات">
       {error && <ErrorText message={error} />}
 
       <div className="mb-6 overflow-hidden rounded-xl border border-[hsl(var(--border))]">
         <button
           type="button"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-[hsl(var(--muted))/0.4]"
+          className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]"
         >
-          <span className="text-sm font-semibold text-[hsl(var(--foreground))]">New Car</span>
-          <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'Hide' : 'Show'}</span>
+          <span className="text-sm font-semibold text-[hsl(var(--foreground))]">سيارة جديدة</span>
+          <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'إخفاء' : 'عرض'}</span>
         </button>
         {createOpen && (
           <form onSubmit={handleCreate} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
             {createError && <ErrorText message={createError} />}
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-              <Field label="ID (optional)" value={id} onChange={setId} />
-              <Field label="Name" value={name} onChange={setName} required />
-              <Field label="Name (AR)" value={nameAr} onChange={setNameAr} required />
-              <Field label="Category AR" value={categoryAr} onChange={setCategoryAr} required />
+              <Field label="المعرّف (اختياري)" value={id} onChange={setId} />
+              <Field label="الاسم" value={name} onChange={setName} required />
+              <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
+              <Field label="الفئة (عربي)" value={categoryAr} onChange={setCategoryAr} required />
               <label className="mb-3 block">
-                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">Category</span>
+                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">الفئة</span>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as Car['category'])}
@@ -118,18 +118,18 @@ export function CarAdmin() {
                   ))}
                 </select>
               </label>
-              <Field label="Passengers" type="number" value={passengers} onChange={setPassengers} required />
-              <Field label="Description" value={description} onChange={setDescription} textarea />
-              <Field label="Images (comma separated)" value={images} onChange={setImages} />
-              <Field label="Features (comma separated)" value={features} onChange={setFeatures} />
+              <Field label="عدد الركاب" type="number" value={passengers} onChange={setPassengers} required />
+              <Field label="الوصف" value={description} onChange={setDescription} textarea />
+              <Field label="الصور (مفصولة بفواصل)" value={images} onChange={setImages} />
+              <Field label="المميزات (مفصولة بفواصل)" value={features} onChange={setFeatures} />
             </div>
-            <PrimaryButton type="submit">Create Car</PrimaryButton>
+            <PrimaryButton type="submit">إنشاء سيارة</PrimaryButton>
           </form>
         )}
       </div>
 
       {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Loading…</p>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <ul className="space-y-3">
           {cars.map((c) => (
@@ -142,7 +142,7 @@ export function CarAdmin() {
               onDeleted={handleDeleted}
             />
           ))}
-          {cars.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">No cars yet.</li>}
+          {cars.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد سيارات بعد.</li>}
         </ul>
       )}
     </Panel>

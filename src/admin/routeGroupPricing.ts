@@ -9,10 +9,10 @@ export const VEHICLE_CATEGORIES: VehicleCategory[] = [
 ];
 
 export const CATEGORY_LABEL: Record<VehicleCategory, string> = {
-  sedan: 'Sedan',
-  suv: 'SUV',
-  family_cruiser: 'Family Cruiser',
-  minibus: 'Minibus',
+  sedan: 'سيدان',
+  suv: 'دفع رباعي',
+  family_cruiser: 'عائلي',
+  minibus: 'ميكروباص',
 };
 
 export function formatPrice(n: number): string {
@@ -23,10 +23,10 @@ export function validatePricing(pricing: RouteGroup['pricing']): string | null {
   for (const cat of VEHICLE_CATEGORIES) {
     const p = pricing[cat];
     if (!Number.isInteger(p.oneWay) || !Number.isInteger(p.roundTrip)) {
-      return 'Pricing must be integers';
+      return 'يجب أن تكون الأسعار أعدادًا صحيحة';
     }
     if (p.oneWay < 0 || p.roundTrip < 0) {
-      return 'Pricing must be >= 0';
+      return 'يجب أن تكون الأسعار أكبر من أو تساوي صفر';
     }
   }
   return null;
