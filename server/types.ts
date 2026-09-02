@@ -107,5 +107,6 @@ export type RouteDataRecord = RouteData;
 export type CarPatch = Partial<CarInput>;
 export type FaqPatch = Partial<FaqInput>;
 export type RouteDataPatch = Partial<RouteDataInput>;
+export type LocationPatch = Partial<Location>;
 
 export type { Location, RouteGroup, VehiclePricing, VehicleCategory };

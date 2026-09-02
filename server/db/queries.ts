@@ -36,6 +36,7 @@ import type {
   CarPatch,
   FaqPatch,
   RouteDataPatch,
+  LocationPatch,
 } from '../types.js';
 
 // ---------------------------------------------------------------------------
@@ -503,6 +504,25 @@ export function upsertLocation(db: Database.Database, loc: Location): void {
   db.prepare(
     'INSERT OR REPLACE INTO locations (id, name, nameAr, type) VALUES (?, ?, ?, ?)',
   ).run(loc.id, loc.name, loc.nameAr, loc.type);
+}
+
+/** Partially update a location by id. Only provided fields are written. */
+export function updateLocation(
+  db: Database.Database,
+  id: string,
+  patch: LocationPatch,
+): void {
+  const fields: Array<[string, unknown]> = [];
+  if (patch.name !== undefined) fields.push(['name', patch.name]);
+  if (patch.nameAr !== undefined) fields.push(['nameAr', patch.nameAr]);
+  if (patch.type !== undefined) fields.push(['type', patch.type]);
+
+  if (fields.length === 0) return;
+
+  const setClause = fields.map(([col]) => `${col} = ?`).join(', ');
+  const values = fields.map(([, val]) => val);
+  values.push(id);
+  db.prepare(`UPDATE locations SET ${setClause} WHERE id = ?`).run(...values);
 }
 
 /** Delete a location by id. */

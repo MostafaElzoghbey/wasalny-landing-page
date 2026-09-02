@@ -278,6 +278,61 @@ describe('adminCrud', () => {
     });
   });
 
+  describe('locations PUT', () => {
+    async function createLocation(id: string): Promise<void> {
+      const res = await adminCrud.request('/locations', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ id, name: 'Cairo', nameAr: 'القاهرة', type: 'travel' }),
+      });
+      expect(res.status).toBe(200);
+    }
+
+    it('S1: PUT /locations/:id with new name persists and GET shows it', async () => {
+      await createLocation('loc-put-1');
+
+      const res = await adminCrud.request('/locations/loc-put-1', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ name: 'New' }),
+      });
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/locations', { headers: { cookie: COOKIE } });
+      const body = (await list.json()) as Array<{ id: string; name: string }>;
+      const loc = body.find((l) => l.id === 'loc-put-1');
+      expect(loc?.name).toBe('New');
+    });
+
+    it('S2: PUT with invalid type returns 400 and DB unchanged', async () => {
+      await createLocation('loc-put-2');
+
+      const res = await adminCrud.request('/locations/loc-put-2', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ type: 'invalid' }),
+      });
+      expect(res.status).toBe(400);
+      const errBody = (await res.json()) as { error: string };
+      expect(typeof errBody.error).toBe('string');
+
+      // DB unchanged: name still original.
+      const list = await adminCrud.request('/locations', { headers: { cookie: COOKIE } });
+      const body = (await list.json()) as Array<{ id: string; name: string }>;
+      const loc = body.find((l) => l.id === 'loc-put-2');
+      expect(loc?.name).toBe('Cairo');
+    });
+
+    it('S3: PUT /locations/:id without a session cookie returns 401', async () => {
+      const res = await adminCrud.request('/locations/loc-put-3', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: 'New' }),
+      });
+      expect(res.status).toBe(401);
+    });
+  });
+
   describe('route-group-put', () => {
     const FULL_PRICING = {
       sedan: { oneWay: 100, roundTrip: 180 },

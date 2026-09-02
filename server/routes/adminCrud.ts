@@ -18,6 +18,7 @@ import {
   updateContentValue,
   getContentValue,
   upsertLocation,
+  updateLocation,
   deleteLocation,
   upsertRouteGroup,
   upsertRouteGroupWithPricing,
@@ -191,6 +192,26 @@ adminCrud.post('/locations', requireAdmin, async (c) => {
   const db = getDb();
   const body = await c.req.json<Location>();
   upsertLocation(db, body);
+  return c.json({ ok: true }, 200);
+});
+
+adminCrud.put('/locations/:id', requireAdmin, async (c) => {
+  const db = getDb();
+  const id = c.req.param('id');
+  if (id === undefined) {
+    return c.json({ error: 'id is required' }, 400);
+  }
+  const patch = await c.req.json<Partial<Location>>();
+  if (patch.name !== undefined && patch.name.trim() === '') {
+    return c.json({ error: 'name must not be empty' }, 400);
+  }
+  if (patch.nameAr !== undefined && patch.nameAr.trim() === '') {
+    return c.json({ error: 'nameAr must not be empty' }, 400);
+  }
+  if (patch.type !== undefined && patch.type !== 'travel' && patch.type !== 'internal') {
+    return c.json({ error: 'type must be travel or internal' }, 400);
+  }
+  updateLocation(db, id, patch);
   return c.json({ ok: true }, 200);
 });
 

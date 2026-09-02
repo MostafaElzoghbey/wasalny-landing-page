@@ -112,6 +112,21 @@ Arabic site. `document.dir === 'rtl'`.
 - `useEffect` for animations — use `useGSAP` instead
 - Redundant `gsap.registerPlugin(ScrollTrigger)` in components — already in `@/lib/gsap.ts`
 
+## Admin Pattern — Expandable Inline Edit (Wave 2-6, verified Wave 7)
+
+List admins use a unified expand / inline-edit / two-step delete pattern. Extract the card to `*Card.tsx` + helpers to `*Helpers.ts` when the admin file approaches the 250 pure-LOC ceiling.
+
+- **Card**: `CarCard`, `LocationCard`, `RouteDataCard`, `FaqCard`, `RouteGroupCard` each own `expanded` (parent-controlled), `editing` (internal), `draft` (clone of group), `confirmDelete`, `saving`, `error`. Header is a `<button data-testid="*-expand-{id}">` that toggles `expanded`. Body shows read-only summary (Edit/Delete) or edit form (Save/Cancel). Save calls `adminUpdate*` (PUT), then `onUpdated` patches parent list without reload. Cancel discards draft (re-clones from props). Delete is two-step: Delete -> Confirm/Cancel. Confirm calls `adminDelete*` then `onDeleted` removes from parent list.
+- **Parent**: holds `expandedId` (single open at a time), `items[]`, `handleUpdated` (`map` replace), `handleDeleted` (`filter` + clear `expandedId` if deleted).
+- **Validation**: via `carHelpers.validateCar`, `locationHelpers.validateLocation`, `routeDataHelpers.validateRouteData`, inline `FaqCard` checks. Error shown via `<ErrorText>`. Data-testid per card: `car-card-{id}`, `car-expand-{id}`, `car-edit-{id}`, `car-save-{id}`, `car-cancel-{id}`, `car-delete-{id}`, `car-delete-confirm-{id}` (same scheme for location/routedata/faq with `faq-delete`/`faq-delete-confirm` generic).
+- **LOC**: `CarCard.tsx` 250, `LocationCard.tsx` 206, `RouteDataCard.tsx` 133, `FaqCard.tsx` 186 pure LOC (all ≤250). Keep under ceiling by extracting `*Helpers.ts` and `ui.tsx` primitives.
+
+### Singleton Config — No-Change Justification (ContentAdmin, PricingConfigAdmin)
+
+`ContentAdmin` (88 LOC) edits a single `contactInfo` object (`phone, whatsapp, email, address, facebook`) loaded via `adminGetContent('contactInfo')` and saved via `adminUpdateContent('contactInfo', info)` PATCH `/content`. `PricingConfigAdmin` (130 LOC, 116 pure) edits a singleton `whatsappNumber` string loaded via `fetchPricing()` and saved via `adminSetPricingConfig('whatsappNumber', normalized)` POST `/pricing-config`. Both render a single `<form>` with `Save Contact Info` / `Save` and inline validation (`PricingConfigAdmin` has `normalizeWhatsappNumber` + E.164 regex `^\+?[0-9]{7,15}$`, required check, help text `هذا الرقم يُستخدم للحجز عبر واتساب`, `type="tel" dir="ltr"`).
+
+Adding card expansion here would be an anti-pattern: there is no list to expand, no per-item identity, no toggle, no two-step delete. A collapsible card around one row would add a click, hide the form by default, break the existing `Save` affordance, and duplicate the validation already on the form — all cost, no gain. The singleton save path is already the inline-edit equivalent. Intentionally no change; verified green in Wave 7.
+
 ## Architecture Notes
 
 - **Lazy loading**: All below-fold sections use `React.lazy` in `App.tsx` with `Suspense` boundaries.

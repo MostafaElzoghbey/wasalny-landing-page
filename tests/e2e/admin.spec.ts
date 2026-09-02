@@ -74,11 +74,13 @@ test('admin can create a FAQ, see it on the public site, and delete it', async (
   await page.getByTestId('faq-answer').fill(answer);
   await page.getByTestId('faq-create-submit').click();
 
-  // g. It appears in the admin list (persisted via the API).
-  const adminItem = page.locator('[data-testid="faq-item"]', {
+  // g. It appears in the admin list (persisted via the API). The FAQ starts
+  // collapsed so look for the question in the card header, not in the expanded
+  // faq-item div.
+  const adminCard = page.locator('[data-testid^="faq-card-"]', {
     hasText: uniqueQuestion,
   });
-  await expect(adminItem).toBeVisible();
+  await expect(adminCard).toBeVisible();
 
   // h. Persistence to the public site: the question text is rendered in the DOM
   // (the public FAQ accordion always shows the question; only the answer is
@@ -94,20 +96,16 @@ test('admin can create a FAQ, see it on the public site, and delete it', async (
   await ensureLoggedIn(page);
   await page.getByTestId('admin-nav-faqs').click();
 
-  const cleanupItem = page.locator('[data-testid="faq-item"]', {
+  const cleanupCard = page.locator('[data-testid^="faq-card-"]', {
     hasText: uniqueQuestion,
   });
-  await expect(cleanupItem).toBeVisible();
+  await expect(cleanupCard).toBeVisible();
+
+  await cleanupCard.getByRole('button').first().click();
+  await expect(cleanupCard.locator('[data-testid="faq-item"]')).toBeVisible();
 
   // Two-step in-app confirm: Delete (opens Confirm/Cancel), then Confirm.
-  // Use auto-waiting clicks scoped to this item so we never race React's
-  // re-render between the two steps.
-  await cleanupItem.getByTestId('faq-delete').click();
-  await cleanupItem.getByTestId('faq-delete-confirm').click();
-  // The confirm button only disappears after handleDelete finishes (API call +
-  // list reload), so waiting for it to detach proves we assert the FINAL state —
-  // not the brief "Loading…" flash where the row is momentarily unmounted
-  // (which would otherwise yield a false pass).
-  await expect(cleanupItem.getByTestId('faq-delete-confirm')).toHaveCount(0);
-  await expect(cleanupItem).toHaveCount(0);
+  await cleanupCard.getByTestId('faq-delete').click();
+  await cleanupCard.getByTestId('faq-delete-confirm').click();
+  await expect(cleanupCard).toHaveCount(0);
 });
