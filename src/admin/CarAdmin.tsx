@@ -1,28 +1,35 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import type { Car } from '@/types';
-import { adminCreateCar, adminGetCars } from '@/data/api';
+import { adminCreateCar, adminGetCars, adminReorderCars } from '@/data/api';
+import { ChipInput } from '@/components/ui/ChipInput';
+import { ImageDropzone } from '@/components/ui/ImageDropzone';
+import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
-import { CarCard } from './CarCard';
-import { CAR_CATEGORIES, splitList } from './carHelpers';
+import { CarCategoryGroup } from './CarCategoryGroup';
+import { CAR_CATEGORIES } from './carHelpers';
+
+const CATEGORY_LABELS: Record<Car['category'], string> = { sedan: 'سيدان', suv: 'دفع رباعي', family_cruiser: 'عائلية', minibus: 'ميني باص', wedding: 'زفاف' };
 
 export function CarAdmin() {
   const [cars, setCars] = useState<Car[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [nameAr, setNameAr] = useState('');
   const [category, setCategory] = useState<Car['category']>('sedan');
   const [categoryAr, setCategoryAr] = useState('');
   const [description, setDescription] = useState('');
   const [passengers, setPassengers] = useState('4');
-  const [images, setImages] = useState('');
-  const [features, setFeatures] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [features, setFeatures] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expandedCategories, setExpandedCategories] = useState<Set<Car['category']>>(() => new Set(CAR_CATEGORIES as unknown as Car['category'][]));
+  const dragIdRef = useRef<string | null>(null);
 
   async function load(): Promise<void> {
     setLoading(true);
@@ -34,65 +41,52 @@ export function CarAdmin() {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    void load();
-  }, []);
-
+  useEffect(() => { void load(); }, []);
   function resetForm(): void {
-    setId('');
-    setName('');
-    setNameAr('');
-    setCategory('sedan');
-    setCategoryAr('');
-    setDescription('');
-    setPassengers('4');
-    setImages('');
-    setFeatures('');
+    setName(''); setNameAr(''); setCategory('sedan'); setCategoryAr(''); setDescription(''); setPassengers('4'); setImages([]); setFeatures([]);
   }
-
   async function handleCreate(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    setCreateError(null);
+    e.preventDefault(); setCreateError(null);
     try {
-      const body: Omit<Car, 'id'> & { id?: string } = {
-        name,
-        nameAr,
-        category,
-        categoryAr,
-        description,
-        passengers: Number(passengers) || 0,
-        images: splitList(images),
-        features: splitList(features),
-      };
-      if (id.trim().length > 0) body.id = id.trim();
-      await adminCreateCar(body);
-      resetForm();
-      await load();
-    } catch (e) {
-      setCreateError(e instanceof Error ? e.message : 'فشل إنشاء السيارة');
-    }
+      const body: Car = { id: generateId('car'), name, nameAr, category, categoryAr, description, passengers: Number(passengers) || 0, images, features, displayOrder: 0 };
+      await adminCreateCar(body); resetForm(); await load();
+    } catch (e) { setCreateError(e instanceof Error ? e.message : 'فشل إنشاء السيارة'); }
   }
-
-  function handleUpdated(next: Car): void {
-    setCars((prev) => prev.map((c) => (c.id === next.id ? next : c)));
+  function handleUpdated(next: Car): void { setCars((prev) => prev.map((c) => (c.id === next.id ? next : c))); }
+  function handleDeleted(deletedId: string): void { setCars((prev) => prev.filter((c) => c.id !== deletedId)); if (expandedId === deletedId) setExpandedId(null); }
+  async function doReorder(next: Car[]): Promise<void> {
+    const prev = [...cars]; const ids = next.map((c) => c.id); setCars(next); setReorderError(null);
+    try { await adminReorderCars(ids); } catch (e) { setCars(prev); setReorderError(e instanceof Error ? e.message : 'فشل إعادة الترتيب'); }
   }
-
-  function handleDeleted(deletedId: string): void {
-    setCars((prev) => prev.filter((c) => c.id !== deletedId));
-    if (expandedId === deletedId) setExpandedId(null);
+  const grouped = CAR_CATEGORIES.map((cat) => ({ category: cat, cars: cars.filter((c) => c.category === cat).sort((a, b) => a.displayOrder - b.displayOrder) }));
+  function toggleCategory(cat: Car['category']): void {
+    setExpandedCategories((prev) => { const next = new Set(prev); if (next.has(cat)) next.delete(cat); else next.add(cat); return next; });
   }
-
+  function handleMove(id: string, cat: Car['category'], dir: -1 | 1): void {
+    const group = grouped.find((g) => g.category === cat); if (!group) return;
+    const idx = group.cars.findIndex((c) => c.id === id); const target = idx + dir;
+    if (idx === -1 || target < 0 || target >= group.cars.length) return;
+    const reordered = [...group.cars]; const [moved] = reordered.splice(idx, 1); reordered.splice(target, 0, moved);
+    const next = CAR_CATEGORIES.flatMap((c) => (c === cat ? reordered : (grouped.find((g) => g.category === c)?.cars ?? [])));
+    void doReorder(next);
+  }
+  function handleDrop(e: React.DragEvent<HTMLDivElement>, targetId: string, cat: Car['category']): void {
+    e.preventDefault(); const draggedId = dragIdRef.current; dragIdRef.current = null;
+    if (!draggedId || draggedId === targetId) return;
+    const dragged = cars.find((c) => c.id === draggedId); if (!dragged || dragged.category !== cat) return;
+    const group = grouped.find((g) => g.category === cat); if (!group) return;
+    const from = group.cars.findIndex((c) => c.id === draggedId); const to = group.cars.findIndex((c) => c.id === targetId);
+    if (from === -1 || to === -1) return;
+    const reordered = [...group.cars]; const [moved] = reordered.splice(from, 1); reordered.splice(to, 0, moved);
+    const next = CAR_CATEGORIES.flatMap((c) => (c === cat ? reordered : (grouped.find((g) => g.category === c)?.cars ?? [])));
+    void doReorder(next);
+  }
   return (
     <Panel title="السيارات">
       {error && <ErrorText message={error} />}
-
+      {reorderError && <ErrorText message={reorderError} />}
       <div className="mb-6 overflow-hidden rounded-xl border border-[hsl(var(--border))]">
-        <button
-          type="button"
-          onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]"
-        >
+        <button type="button" onClick={() => setCreateOpen((v) => !v)} className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]">
           <span className="text-sm font-semibold text-[hsl(var(--foreground))]">سيارة جديدة</span>
           <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'إخفاء' : 'عرض'}</span>
         </button>
@@ -100,50 +94,30 @@ export function CarAdmin() {
           <form onSubmit={handleCreate} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
             {createError && <ErrorText message={createError} />}
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-              <Field label="المعرّف (اختياري)" value={id} onChange={setId} />
               <Field label="الاسم" value={name} onChange={setName} required />
               <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
               <Field label="الفئة (عربي)" value={categoryAr} onChange={setCategoryAr} required />
               <label className="mb-3 block">
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">الفئة</span>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as Car['category'])}
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
-                >
-                  {CAR_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                <select value={category} onChange={(e) => setCategory(e.target.value as Car['category'])} className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none">
+                  {CAR_CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
                 </select>
               </label>
               <Field label="عدد الركاب" type="number" value={passengers} onChange={setPassengers} required />
               <Field label="الوصف" value={description} onChange={setDescription} textarea />
-              <Field label="الصور (مفصولة بفواصل)" value={images} onChange={setImages} />
-              <Field label="المميزات (مفصولة بفواصل)" value={features} onChange={setFeatures} />
+              <div className="sm:col-span-2"><ImageDropzone mode="multiple" value={images} onChange={(v) => setImages(v as string[])} maxImages={10} testId="car-images" label="الصور" /></div>
+              <ChipInput label="المميزات" value={features} onChange={setFeatures} placeholder="اكتب واضغط Enter" testId="chip-input-features" />
             </div>
             <PrimaryButton type="submit">إنشاء سيارة</PrimaryButton>
           </form>
         )}
       </div>
-
-      {loading ? (
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
-      ) : (
-        <ul className="space-y-3">
-          {cars.map((c) => (
-            <CarCard
-              key={c.id}
-              group={c}
-              expanded={expandedId === c.id}
-              onToggle={() => setExpandedId((prev) => (prev === c.id ? null : c.id))}
-              onUpdated={handleUpdated}
-              onDeleted={handleDeleted}
-            />
+      {loading ? <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p> : (
+        <div className="space-y-4">
+          {grouped.map(({ category: cat, cars: groupCars }) => (
+            <CarCategoryGroup key={cat} category={cat} labelAr={CATEGORY_LABELS[cat]} cars={groupCars} expanded={expandedCategories.has(cat)} onToggle={() => toggleCategory(cat)} expandedId={expandedId} onToggleCar={(id) => setExpandedId((prev) => (prev === id ? null : id))} onUpdated={handleUpdated} onDeleted={handleDeleted} onMove={(id, dir) => handleMove(id, cat, dir)} onDragStart={(e, id) => { dragIdRef.current = id; e.dataTransfer.effectAllowed = 'move'; }} onDragOver={(e) => e.preventDefault()} onDrop={(e, targetId) => handleDrop(e, targetId, cat)} />
           ))}
-          {cars.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد سيارات بعد.</li>}
-        </ul>
+        </div>
       )}
     </Panel>
   );

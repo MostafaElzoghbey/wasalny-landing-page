@@ -58,12 +58,18 @@ describe('db migration', () => {
       expect(tables.has(table), `expected table "${table}" after re-migrate`).toBe(true);
     }
 
-    // The schema_migrations bookkeeping row must be inserted exactly once.
-    const count = (
+    // Each migration version must be recorded exactly once.
+    const count0001 = (
       db
-        .prepare("SELECT COUNT(*) AS c FROM schema_migrations WHERE version = '0001'")
+        .prepare("SELECT COUNT(*) AS c FROM schema_migrations WHERE version = '0001_init'")
         .get() as { c: number }
     ).c;
-    expect(count).toBe(1);
+    expect(count0001).toBe(1);
+    const count0002 = (
+      db
+        .prepare("SELECT COUNT(*) AS c FROM schema_migrations WHERE version = '0002_add_display_order'")
+        .get() as { c: number }
+    ).c;
+    expect(count0002).toBe(1);
   });
 });

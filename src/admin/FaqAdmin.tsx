@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { FaqWithId } from '@/types';
-import { adminGetFaqs, adminCreateFaq, adminDeleteFaq } from '@/data/api';
+import { adminGetFaqs, adminCreateFaq, adminDeleteFaq, adminReorderFaqs } from '@/data/api';
+import { ReorderControls } from '@/components/ui/ReorderControls';
 import { Field, ErrorText, Panel, PrimaryButton } from './ui';
 import { FaqCard } from './FaqCard';
 
@@ -10,8 +11,10 @@ export function FaqAdmin() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const dragIdRef = useRef<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -62,9 +65,33 @@ export function FaqAdmin() {
     }
   }
 
+  async function doReorder(next: FaqWithId[]): Promise<void> {
+    const prev = [...faqs];
+    const ids = next.map((f) => f.id);
+    setFaqs(next);
+    setReorderError(null);
+    try {
+      await adminReorderFaqs(ids);
+    } catch (e) {
+      setFaqs(prev);
+      setReorderError(e instanceof Error ? e.message : 'فشل إعادة الترتيب');
+    }
+  }
+
+  function handleMove(id: string, dir: -1 | 1): void {
+    const idx = faqs.findIndex((f) => f.id === id);
+    const target = idx + dir;
+    if (idx === -1 || target < 0 || target >= faqs.length) return;
+    const next = [...faqs];
+    const [moved] = next.splice(idx, 1);
+    next.splice(target, 0, moved);
+    void doReorder(next);
+  }
+
   return (
     <Panel title="الأسئلة الشائعة">
       {error && <ErrorText message={error} />}
+      {reorderError && <ErrorText message={reorderError} />}
       <form onSubmit={handleCreate} className="mb-6 rounded-lg border border-[hsl(var(--border))] p-4">
         <Field label="السؤال" testid="faq-question" value={question} onChange={setQuestion} required />
         <Field label="الإجابة" testid="faq-answer" value={answer} onChange={setAnswer} textarea required />
@@ -77,15 +104,43 @@ export function FaqAdmin() {
         <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <ul className="space-y-2">
-          {faqs.map((f) => (
-            <FaqCard
-              key={f.id}
-              faq={f}
-              expanded={expandedId === f.id}
-              onToggle={() => setExpandedId((prev) => (prev === f.id ? null : f.id))}
-              onUpdated={handleUpdated}
-              onDeleted={(id) => void handleDelete(id)}
-            />
+          {faqs.map((f, idx) => (
+            <li key={f.id} dir="rtl" className="flex items-stretch gap-2 text-right">
+              <ReorderControls
+                id={f.id}
+                index={idx}
+                total={faqs.length}
+                displayOrder={f.displayOrder}
+                onMoveUp={() => handleMove(f.id, -1)}
+                onMoveDown={() => handleMove(f.id, 1)}
+                onDragStart={(e) => {
+                  dragIdRef.current = f.id;
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const draggedId = dragIdRef.current;
+                  dragIdRef.current = null;
+                  if (!draggedId || draggedId === f.id) return;
+                  const from = faqs.findIndex((x) => x.id === draggedId);
+                  if (from === -1) return;
+                  const next = [...faqs];
+                  const [moved] = next.splice(from, 1);
+                  next.splice(idx, 0, moved);
+                  void doReorder(next);
+                }}
+              />
+              <div className="min-w-0 flex-1">
+                <FaqCard
+                  faq={f}
+                  expanded={expandedId === f.id}
+                  onToggle={() => setExpandedId((prev) => (prev === f.id ? null : f.id))}
+                  onUpdated={handleUpdated}
+                  onDeleted={(id) => void handleDelete(id)}
+                />
+              </div>
+            </li>
           ))}
           {faqs.length === 0 && (
             <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد أسئلة بعد.</li>

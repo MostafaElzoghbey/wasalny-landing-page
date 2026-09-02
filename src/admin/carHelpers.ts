@@ -28,6 +28,7 @@ export function cloneCar(car: Car): Car {
     images: [...car.images],
     imageAlts: car.imageAlts ? [...car.imageAlts] : undefined,
     features: [...car.features],
+    displayOrder: car.displayOrder,
   };
 }
 

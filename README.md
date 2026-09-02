@@ -84,15 +84,17 @@ This creates the admin or updates the password if the email already exists.
 
 Then open `/admin` in the browser, log in, and manage content through the dashboard UI:
 
-- Cars
-- FAQs
-- Route Data
-- Locations
-- Route Groups
-- Pricing Config
-- Content
+- Cars — grouped by category (5 collapsible sections, `CarCategoryGroup.tsx`), ordered by `displayOrder`, drag handle or up/down via `ReorderControls.tsx`, chips for features (`ChipInput.tsx`), image dropzone single/multiple (`ImageDropzone.tsx`), automatic id via `generateId('car')` with server fallback
+- FAQs — ordered, `POST /reorder { ids }`
+- Route Data — ordered, `POST /reorder { ids }`
+- Locations — ordered, `POST /reorder { ids }`
+- Route Groups — ordered, `POST /reorder { ids }`
+- Pricing Config — singleton
+- Content — singleton
 
 Changes persist to SQLite and appear immediately on the public site. Admin authentication uses a cookie session (no JWT). The dashboard talks to `/api/admin/*`.
+
+Admin Pattern Wave 8: ids are automatic (`src/utils/id.ts`, `server/db/queries.ts:327`), chips commit on Enter / `،` / paste (`src/components/ui/ChipInput.tsx:103-121`), images via `ImageDropzone` (`src/components/ui/ImageDropzone.tsx:21`), ordering via `display_order` (`server/db/migrations/0002_add_display_order.sql:12`) and `POST /reorder { ids }` (`server/db/queries.ts:714`, `src/data/api.ts:255`), cars grouped per category with `CarCategoryGroup.tsx:39` and `CarAdmin.tsx:61`.
 
 ## API endpoints
 
@@ -112,6 +114,11 @@ Changes persist to SQLite and appear immediately on the public site. Admin authe
 | `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/route-pricing` | Admin CRUD for route pricing |
 | `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/vehicle-pricing` | Admin CRUD for vehicle pricing |
 | `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/pricing-config` | Admin CRUD for pricing config |
+| `POST` | `/api/admin/cars/reorder` | Reorder cars (`{ ids }` → `display_order = index`) |
+| `POST` | `/api/admin/faqs/reorder` | Reorder FAQs |
+| `POST` | `/api/admin/route-data/reorder` | Reorder route data |
+| `POST` | `/api/admin/locations/reorder` | Reorder locations |
+| `POST` | `/api/admin/route-groups/reorder` | Reorder route groups |
 
 ## Environment variables
 

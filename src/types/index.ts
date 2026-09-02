@@ -10,6 +10,7 @@ export interface Car {
   images: string[];
   imageAlts?: string[];
   features: string[];
+  displayOrder: number;
 }
 
 export interface Service {
@@ -49,6 +50,7 @@ export interface Faq {
 
 export interface FaqWithId extends Faq {
   id: string;
+  displayOrder: number;
 }
 
 export interface RouteData {
@@ -63,6 +65,7 @@ export interface RouteData {
   duration: string;
   features: string[];
   faqs: Faq[];
+  displayOrder: number;
 }
 
 export interface BeforeInstallPromptChoice {

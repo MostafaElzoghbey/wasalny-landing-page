@@ -87,17 +87,23 @@ export interface PricingData {
 // ---------------------------------------------------------------------------
 
 /** Car payload. `id` is optional; when omitted the query layer generates one. */
-export type CarInput = Omit<Car, 'id'> & { id?: string };
+export type CarInput = Omit<Car, 'id' | 'displayOrder'> & {
+  id?: string;
+  displayOrder?: number;
+};
 
 /** FAQ payload (the `Faq` type has no `id`, so this is just `Faq`). */
-export type FaqInput = Faq;
+export type FaqInput = Faq & { displayOrder?: number };
 
 /** RouteData payload without the caller-supplied `id`. */
-export type RouteDataInput = Omit<RouteData, 'id'>;
+export type RouteDataInput = Omit<RouteData, 'id' | 'displayOrder'> & {
+  displayOrder?: number;
+};
 
 /** A persisted FAQ row (includes the generated `id`). */
 export interface FaqRecord extends Faq {
   id: string;
+  displayOrder: number;
 }
 
 /** A persisted RouteData row (id is supplied by the caller). */

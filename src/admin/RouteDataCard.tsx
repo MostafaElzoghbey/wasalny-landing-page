@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { RouteData } from '@/types';
 import { adminDeleteRouteData, adminUpdateRouteData } from '@/data/api';
-import { Field, ErrorText, PrimaryButton, DangerButton } from './ui';
-import { cloneRouteData, splitList, validateRouteData } from './routeDataHelpers';
+import { ChipInput } from '@/components/ui/ChipInput';
+import { ImageDropzone } from '@/components/ui/ImageDropzone';
+import { DangerButton, ErrorText, Field, PrimaryButton } from './ui';
+import { cloneRouteData, validateRouteData } from './routeDataHelpers';
 
 interface RouteDataCardProps {
   group: RouteData;
@@ -15,21 +17,18 @@ interface RouteDataCardProps {
 export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted }: RouteDataCardProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<RouteData>(() => cloneRouteData(group));
-  const [featuresDraft, setFeaturesDraft] = useState(() => group.features.join(', '));
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saving, setSaving] = useState(false);
 
   function enterEdit(): void {
     setDraft(cloneRouteData(group));
-    setFeaturesDraft(group.features.join(', '));
     setError(null);
     setConfirmDelete(false);
     setEditing(true);
   }
   function cancelEdit(): void {
     setDraft(cloneRouteData(group));
-    setFeaturesDraft(group.features.join(', '));
     setError(null);
     setConfirmDelete(false);
     setEditing(false);
@@ -41,7 +40,7 @@ export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted 
     if (vErr) { setError(vErr); return; }
     setSaving(true);
     try {
-      const next: RouteData = { ...draft, title: draft.title.trim(), features: splitList(featuresDraft) };
+      const next: RouteData = { ...draft, title: draft.title.trim() };
       const patch = { title: next.title, description: next.description, metaTitle: next.metaTitle, metaDescription: next.metaDescription, heroImage: next.heroImage, priceStart: next.priceStart, distance: next.distance, duration: next.duration, features: next.features };
       await adminUpdateRouteData(group.id, patch);
       onUpdated(next);
@@ -107,13 +106,15 @@ export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted 
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
                 <Field label="العنوان" value={draft.title} onChange={(v) => setDraft((p) => ({ ...p, title: v }))} required />
                 <Field label="عنوان الميتا" value={draft.metaTitle} onChange={(v) => setDraft((p) => ({ ...p, metaTitle: v }))} />
-                <Field label="رابط صورة البطل" value={draft.heroImage} onChange={(v) => setDraft((p) => ({ ...p, heroImage: v }))} />
+                <div className="sm:col-span-2">
+                  <ImageDropzone mode="single" value={draft.heroImage} onChange={(v) => setDraft((p) => ({ ...p, heroImage: v as string }))} testId="routedata-hero" label="صورة البطل" />
+                </div>
                 <Field label="السعر الابتدائي" value={draft.priceStart} onChange={(v) => setDraft((p) => ({ ...p, priceStart: v }))} />
                 <Field label="المسافة" value={draft.distance} onChange={(v) => setDraft((p) => ({ ...p, distance: v }))} />
                 <Field label="المدة" value={draft.duration} onChange={(v) => setDraft((p) => ({ ...p, duration: v }))} />
                 <Field label="وصف الميتا" value={draft.metaDescription} onChange={(v) => setDraft((p) => ({ ...p, metaDescription: v }))} textarea />
                 <Field label="الوصف" value={draft.description} onChange={(v) => setDraft((p) => ({ ...p, description: v }))} textarea />
-                <Field label="المميزات (مفصولة بفواصل)" value={featuresDraft} onChange={setFeaturesDraft} />
+                <ChipInput label="المميزات" value={draft.features} onChange={(v) => setDraft((p) => ({ ...p, features: v }))} placeholder="اكتب واضغط Enter" testId="chip-input-features" />
               </div>
               <div className="flex flex-wrap gap-2">
                 <PrimaryButton type="button" data-testid={`routedata-save-${group.id}`} onClick={handleSave} disabled={saving}>{saving ? 'جارٍ الحفظ…' : 'حفظ'}</PrimaryButton>

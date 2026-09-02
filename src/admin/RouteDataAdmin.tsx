@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { RouteData } from '@/types';
-import { adminGetRouteData, adminCreateRouteData } from '@/data/api';
-import { Field, ErrorText, Panel, PrimaryButton } from './ui';
+import { adminCreateRouteData, adminGetRouteData, adminReorderRouteData } from '@/data/api';
+import { ChipInput } from '@/components/ui/ChipInput';
+import { ImageDropzone } from '@/components/ui/ImageDropzone';
+import { ReorderControls } from '@/components/ui/ReorderControls';
+import { generateId } from '@/utils/id';
+import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { RouteDataCard } from './RouteDataCard';
-import { splitList } from './routeDataHelpers';
 
 export function RouteDataAdmin() {
   const [items, setItems] = useState<RouteData[]>([]);
-  const [id, setId] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
@@ -17,11 +19,13 @@ export function RouteDataAdmin() {
   const [priceStart, setPriceStart] = useState('');
   const [distance, setDistance] = useState('');
   const [duration, setDuration] = useState('');
-  const [features, setFeatures] = useState('');
+  const [features, setFeatures] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const dragIdRef = useRef<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -39,7 +43,6 @@ export function RouteDataAdmin() {
   }, []);
 
   function resetForm() {
-    setId('');
     setTitle('');
     setDescription('');
     setMetaTitle('');
@@ -48,14 +51,15 @@ export function RouteDataAdmin() {
     setPriceStart('');
     setDistance('');
     setDuration('');
-    setFeatures('');
+    setFeatures([]);
   }
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
     setError(null);
     try {
-      const body: Omit<RouteData, 'id'> = {
+      const body: RouteData = {
+        id: generateId('route'),
         title,
         description,
         metaTitle,
@@ -64,10 +68,11 @@ export function RouteDataAdmin() {
         priceStart,
         distance,
         duration,
-        features: splitList(features),
+        features,
         faqs: [],
+        displayOrder: 0,
       };
-      await adminCreateRouteData(id.trim(), body);
+      await adminCreateRouteData(body);
       resetForm();
       setCreateOpen(false);
       await load();
@@ -85,6 +90,29 @@ export function RouteDataAdmin() {
     if (expandedId === deletedId) setExpandedId(null);
   }
 
+  async function doReorder(next: RouteData[]): Promise<void> {
+    const prev = [...items];
+    const ids = next.map((r) => r.id);
+    setItems(next);
+    setReorderError(null);
+    try {
+      await adminReorderRouteData(ids);
+    } catch (e) {
+      setItems(prev);
+      setReorderError(e instanceof Error ? e.message : 'فشل إعادة الترتيب');
+    }
+  }
+
+  function handleMove(id: string, dir: -1 | 1): void {
+    const idx = items.findIndex((r) => r.id === id);
+    const target = idx + dir;
+    if (idx === -1 || target < 0 || target >= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(idx, 1);
+    next.splice(target, 0, moved);
+    void doReorder(next);
+  }
+
   function toggleExpand(itemId: string) {
     setExpandedId((prev) => (prev === itemId ? null : itemId));
   }
@@ -92,6 +120,7 @@ export function RouteDataAdmin() {
   return (
     <Panel title="بيانات المسارات">
       {error && <ErrorText message={error} />}
+      {reorderError && <ErrorText message={reorderError} />}
 
       <div className="mb-4">
         <button
@@ -105,16 +134,17 @@ export function RouteDataAdmin() {
         </button>
         {createOpen && (
           <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-x-4 rounded-lg border border-[hsl(var(--border))] p-4 sm:grid-cols-2">
-            <Field label="المعرّف" value={id} onChange={setId} required />
             <Field label="العنوان" value={title} onChange={setTitle} required />
             <Field label="عنوان الميتا" value={metaTitle} onChange={setMetaTitle} />
             <Field label="السعر الابتدائي" value={priceStart} onChange={setPriceStart} />
             <Field label="المسافة" value={distance} onChange={setDistance} />
             <Field label="المدة" value={duration} onChange={setDuration} />
-            <Field label="رابط صورة البطل" value={heroImage} onChange={setHeroImage} />
+            <div className="sm:col-span-2">
+              <ImageDropzone mode="single" value={heroImage} onChange={(v) => setHeroImage(v as string)} testId="routedata-hero" label="صورة البطل" />
+            </div>
             <Field label="وصف الميتا" value={metaDescription} onChange={setMetaDescription} textarea />
             <Field label="الوصف" value={description} onChange={setDescription} textarea />
-            <Field label="المميزات (مفصولة بفواصل)" value={features} onChange={setFeatures} />
+            <ChipInput label="المميزات" value={features} onChange={setFeatures} placeholder="اكتب واضغط Enter" testId="chip-input-features" />
             <div className="sm:col-span-2">
               <PrimaryButton type="submit">إنشاء بيانات المسار</PrimaryButton>
             </div>
@@ -126,15 +156,43 @@ export function RouteDataAdmin() {
         <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <ul className="space-y-2">
-          {items.map((r) => (
-            <RouteDataCard
-              key={r.id}
-              group={r}
-              expanded={expandedId === r.id}
-              onToggle={() => toggleExpand(r.id)}
-              onUpdated={handleUpdated}
-              onDeleted={handleDeleted}
-            />
+          {items.map((r, idx) => (
+            <li key={r.id} dir="rtl" className="flex items-stretch gap-2 text-right">
+              <ReorderControls
+                id={r.id}
+                index={idx}
+                total={items.length}
+                displayOrder={r.displayOrder}
+                onMoveUp={() => handleMove(r.id, -1)}
+                onMoveDown={() => handleMove(r.id, 1)}
+                onDragStart={(e) => {
+                  dragIdRef.current = r.id;
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const draggedId = dragIdRef.current;
+                  dragIdRef.current = null;
+                  if (!draggedId || draggedId === r.id) return;
+                  const from = items.findIndex((x) => x.id === draggedId);
+                  if (from === -1) return;
+                  const next = [...items];
+                  const [moved] = next.splice(from, 1);
+                  next.splice(idx, 0, moved);
+                  void doReorder(next);
+                }}
+              />
+              <div className="min-w-0 flex-1">
+                <RouteDataCard
+                  group={r}
+                  expanded={expandedId === r.id}
+                  onToggle={() => toggleExpand(r.id)}
+                  onUpdated={handleUpdated}
+                  onDeleted={handleDeleted}
+                />
+              </div>
+            </li>
           ))}
           {items.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد بيانات مسارات بعد.</li>}
         </ul>

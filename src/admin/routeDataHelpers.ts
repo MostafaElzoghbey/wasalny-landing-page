@@ -20,6 +20,7 @@ export function cloneRouteData(group: RouteData): RouteData {
     duration: group.duration,
     features: [...group.features],
     faqs: [...group.faqs],
+    displayOrder: group.displayOrder,
   };
 }
 

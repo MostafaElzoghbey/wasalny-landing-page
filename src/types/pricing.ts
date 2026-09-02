@@ -8,6 +8,7 @@ export interface Location {
   name: string;
   nameAr: string;
   type: RouteType; // Which route type this location belongs to
+  displayOrder: number;
 }
 
 export interface RouteGroup {
@@ -23,6 +24,7 @@ export interface RouteGroup {
     family_cruiser: { oneWay: number; roundTrip: number };
     minibus: { oneWay: number; roundTrip: number };
   };
+  displayOrder: number;
 }
 
 export interface VehiclePricing {

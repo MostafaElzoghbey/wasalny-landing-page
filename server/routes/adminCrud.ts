@@ -3,6 +3,7 @@
 // `requireAdmin` middleware so unauthenticated requests are rejected with 401.
 
 import { Hono } from 'hono';
+import type { Context } from 'hono';
 import { getDb } from '../db/connection.js';
 import {
   createCar,
@@ -27,12 +28,48 @@ import {
   setPricingConfig,
   getPublicData,
   getPricingData,
+  reorderEntities,
 } from '../db/queries.js';
 import { requireAdmin } from '../middleware/auth.js';
 import type { CarInput } from '../types.js';
 import type { RouteData, Faq, Location, RouteGroup } from '@/types';
 
 export const adminCrud = new Hono();
+
+// ---------------------------------------------------------------------------
+// Reorder helper
+// ---------------------------------------------------------------------------
+
+type ReorderTable = 'cars' | 'faqs' | 'route_data' | 'locations' | 'route_groups';
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === 'string');
+}
+
+/**
+ * Shared handler for `POST /<entity>/reorder`. Validates that `ids` is a
+ * non-empty array of unique strings, then applies the new display_order
+ * atomically. Returns 400 on any invalid input, 200 on success.
+ */
+async function reorderRoute(
+  c: Context,
+  table: ReorderTable,
+): Promise<Response> {
+  const db = getDb();
+  const body = await c.req.json<{ ids?: unknown }>();
+  if (!isStringArray(body.ids) || body.ids.length === 0) {
+    return c.json({ error: 'ids must be a non-empty array of strings' }, 400);
+  }
+  if (new Set(body.ids).size !== body.ids.length) {
+    return c.json({ error: 'ids must not contain duplicates' }, 400);
+  }
+  try {
+    reorderEntities(db, table, body.ids);
+  } catch {
+    return c.json({ error: 'one or more ids do not exist' }, 400);
+  }
+  return c.json({ ok: true }, 200);
+}
 
 // ---------------------------------------------------------------------------
 // Cars
@@ -74,6 +111,8 @@ adminCrud.delete('/cars/:id', requireAdmin, (c) => {
   return c.json({ ok: true }, 200);
 });
 
+adminCrud.post('/cars/reorder', requireAdmin, (c) => reorderRoute(c, 'cars'));
+
 // ---------------------------------------------------------------------------
 // FAQs
 // ---------------------------------------------------------------------------
@@ -114,6 +153,8 @@ adminCrud.delete('/faqs/:id', requireAdmin, (c) => {
   return c.json({ ok: true }, 200);
 });
 
+adminCrud.post('/faqs/reorder', requireAdmin, (c) => reorderRoute(c, 'faqs'));
+
 // ---------------------------------------------------------------------------
 // RouteData
 // ---------------------------------------------------------------------------
@@ -126,10 +167,10 @@ adminCrud.get('/route-data', requireAdmin, (c) => {
 adminCrud.post('/route-data', requireAdmin, async (c) => {
   const db = getDb();
   const body = await c.req.json<RouteData>();
-  if (body.id === undefined) {
+  const { id, ...rest } = body;
+  if (id === undefined || id === null || id === '') {
     return c.json({ error: 'id is required' }, 400);
   }
-  const { id, ...rest } = body;
   const route = createRouteData(db, id, rest);
   return c.json(route, 200);
 });
@@ -154,6 +195,8 @@ adminCrud.delete('/route-data/:id', requireAdmin, (c) => {
   deleteRouteData(db, id);
   return c.json({ ok: true }, 200);
 });
+
+adminCrud.post('/route-data/reorder', requireAdmin, (c) => reorderRoute(c, 'route_data'));
 
 // ---------------------------------------------------------------------------
 // Content
@@ -225,6 +268,8 @@ adminCrud.delete('/locations/:id', requireAdmin, (c) => {
   return c.json({ ok: true }, 200);
 });
 
+adminCrud.post('/locations/reorder', requireAdmin, (c) => reorderRoute(c, 'locations'));
+
 // ---------------------------------------------------------------------------
 // RouteGroups
 // ---------------------------------------------------------------------------
@@ -237,8 +282,8 @@ adminCrud.get('/route-groups', requireAdmin, (c) => {
 adminCrud.post('/route-groups', requireAdmin, async (c) => {
   const db = getDb();
   const body = await c.req.json<RouteGroup>();
-  if (body.id === undefined || body.nameAr === undefined) {
-    return c.json({ error: 'id and nameAr are required' }, 400);
+  if (body.nameAr === undefined) {
+    return c.json({ error: 'nameAr is required' }, 400);
   }
   if (body.pricing !== undefined && !isValidPricing(body.pricing)) {
     return c.json({ error: 'pricing must be non-negative integers' }, 400);
@@ -292,6 +337,8 @@ adminCrud.delete('/route-groups/:id', requireAdmin, (c) => {
   deleteRouteGroup(db, id);
   return c.json({ ok: true }, 200);
 });
+
+adminCrud.post('/route-groups/reorder', requireAdmin, (c) => reorderRoute(c, 'route_groups'));
 
 // ---------------------------------------------------------------------------
 // PricingConfig

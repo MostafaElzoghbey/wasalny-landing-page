@@ -46,6 +46,7 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
         name: draft.name.trim(),
         nameAr: draft.nameAr.trim(),
         type: draft.type,
+        displayOrder: group.displayOrder,
       };
       await adminUpdateLocation(group.id, {
         name: normalized.name,

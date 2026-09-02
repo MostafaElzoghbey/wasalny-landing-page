@@ -86,12 +86,14 @@ interface CarRow {
   images: string;
   image_alts: string;
   features: string;
+  display_order: number;
 }
 
 interface FaqRow {
   id: string;
   question: string;
   answer: string;
+  display_order: number;
 }
 
 interface RouteDataRow {
@@ -106,6 +108,7 @@ interface RouteDataRow {
   duration: string;
   features: string;
   faqs: string;
+  display_order: number;
 }
 
 interface LocationRow {
@@ -113,6 +116,7 @@ interface LocationRow {
   name: string;
   nameAr: string;
   type: Location['type'];
+  display_order: number;
 }
 
 interface RouteGroupRow {
@@ -122,6 +126,7 @@ interface RouteGroupRow {
   bidirectional: number;
   from_locations: string;
   to_locations: string;
+  display_order: number;
 }
 
 interface RoutePriceRow {
@@ -154,6 +159,7 @@ function mapCarRow(row: CarRow): Car {
     images: parseJson<string[]>(row.images),
     imageAlts: parseJson<string[]>(row.image_alts),
     features: parseJson<string[]>(row.features),
+    displayOrder: row.display_order,
   };
 }
 
@@ -170,6 +176,7 @@ function mapRouteDataRow(row: RouteDataRow): RouteData {
     duration: row.duration,
     features: parseJson<string[]>(row.features),
     faqs: parseJson<Faq[]>(row.faqs),
+    displayOrder: row.display_order,
   };
 }
 
@@ -184,10 +191,14 @@ function mapRouteDataRow(row: RouteDataRow): RouteData {
 export function getPublicData(db: Database.Database): PublicData {
   const content = readContentMap(db);
 
-  const carRows = db.prepare('SELECT * FROM cars').all() as CarRow[];
-  const faqRows = db.prepare('SELECT * FROM faqs').all() as FaqRow[];
+  const carRows = db
+    .prepare('SELECT * FROM cars ORDER BY display_order ASC, id ASC')
+    .all() as CarRow[];
+  const faqRows = db
+    .prepare('SELECT * FROM faqs ORDER BY display_order ASC, id ASC')
+    .all() as FaqRow[];
   const routeDataRows = db
-    .prepare('SELECT * FROM route_data')
+    .prepare('SELECT * FROM route_data ORDER BY display_order ASC, id ASC')
     .all() as RouteDataRow[];
 
   const routeData: Record<string, RouteData> = {};
@@ -252,7 +263,9 @@ function readRoutePricing(
 }
 
 function readRouteGroups(db: Database.Database): RouteGroup[] {
-  const rows = db.prepare('SELECT * FROM route_groups').all() as RouteGroupRow[];
+  const rows = db
+    .prepare('SELECT * FROM route_groups ORDER BY display_order ASC, id ASC')
+    .all() as RouteGroupRow[];
   return rows.map((row) => ({
     id: row.id,
     type: row.type,
@@ -261,6 +274,7 @@ function readRouteGroups(db: Database.Database): RouteGroup[] {
     fromLocations: parseJson<string[]>(row.from_locations),
     toLocations: parseJson<string[]>(row.to_locations),
     pricing: readRoutePricing(db, row.id),
+    displayOrder: row.display_order,
   }));
 }
 
@@ -278,7 +292,9 @@ function readPricingConfig(db: Database.Database): PricingConfig {
  * Shapes mirror the original `src/data/pricing.ts` exports exactly.
  */
 export function getPricingData(db: Database.Database): PricingData {
-  const locationRows = db.prepare('SELECT * FROM locations').all() as LocationRow[];
+  const locationRows = db
+    .prepare('SELECT * FROM locations ORDER BY display_order ASC, id ASC')
+    .all() as LocationRow[];
   const vehicleRows = db
     .prepare('SELECT * FROM vehicle_pricing')
     .all() as VehiclePricingRow[];
@@ -289,6 +305,7 @@ export function getPricingData(db: Database.Database): PricingData {
       name: r.name,
       nameAr: r.nameAr,
       type: r.type,
+      displayOrder: r.display_order,
     })),
     routeGroups: readRouteGroups(db),
     vehiclePricing: vehicleRows.map((r) => ({
@@ -308,9 +325,16 @@ export function getPricingData(db: Database.Database): PricingData {
 /** Insert a car. Uses `input.id` if provided, otherwise generates one. */
 export function createCar(db: Database.Database, input: CarInput): Car {
   const id = input.id ?? `car-${randomUUID()}`;
+  const displayOrder =
+    input.displayOrder ??
+    (
+      db
+        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM cars')
+        .get() as { next: number }
+    ).next;
   db.prepare(
-    `INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features, display_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     id,
     input.name,
@@ -323,8 +347,9 @@ export function createCar(db: Database.Database, input: CarInput): Car {
     JSON.stringify(input.images),
     JSON.stringify(input.imageAlts ?? []),
     JSON.stringify(input.features),
+    displayOrder,
   );
-  return { ...input, id };
+  return { ...input, id, displayOrder };
 }
 
 /** Partially update a car by id. Only provided fields are written. */
@@ -351,6 +376,8 @@ export function updateCar(
     fields.push(['image_alts', JSON.stringify(patch.imageAlts)]);
   if (patch.features !== undefined)
     fields.push(['features', JSON.stringify(patch.features)]);
+  if (patch.displayOrder !== undefined)
+    fields.push(['display_order', patch.displayOrder]);
 
   if (fields.length === 0) return;
 
@@ -372,12 +399,22 @@ export function deleteCar(db: Database.Database, id: string): void {
 /** Insert a FAQ. Generates an id. */
 export function createFaq(db: Database.Database, input: FaqInput): FaqRecord {
   const id = `faq-${randomUUID()}`;
-  db.prepare('INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)').run(
+  const displayOrder =
+    input.displayOrder ??
+    (
+      db
+        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM faqs')
+        .get() as { next: number }
+    ).next;
+  db.prepare(
+    'INSERT INTO faqs (id, question, answer, display_order) VALUES (?, ?, ?, ?)',
+  ).run(id, input.question, input.answer, displayOrder);
+  return {
     id,
-    input.question,
-    input.answer,
-  );
-  return { id, question: input.question, answer: input.answer };
+    question: input.question,
+    answer: input.answer,
+    displayOrder,
+  };
 }
 
 /** Partially update a FAQ by id. */
@@ -389,6 +426,8 @@ export function updateFaq(
   const fields: Array<[string, unknown]> = [];
   if (patch.question !== undefined) fields.push(['question', patch.question]);
   if (patch.answer !== undefined) fields.push(['answer', patch.answer]);
+  if (patch.displayOrder !== undefined)
+    fields.push(['display_order', patch.displayOrder]);
   if (fields.length === 0) return;
 
   const setClause = fields.map(([col]) => `${col} = ?`).join(', ');
@@ -405,25 +444,40 @@ export function deleteFaq(db: Database.Database, id: string): void {
 /** Read all FAQs including their `id`, so the admin UI can target specific
  *  rows for update/delete. Mirrors the `FaqRecord` shape. */
 export function getFaqs(db: Database.Database): FaqRecord[] {
-  const rows = db.prepare('SELECT id, question, answer FROM faqs').all() as FaqRecord[];
-  return rows;
+  const rows = db
+    .prepare('SELECT id, question, answer, display_order FROM faqs ORDER BY display_order ASC, id ASC')
+    .all() as FaqRow[];
+  return rows.map((r) => ({
+    id: r.id,
+    question: r.question,
+    answer: r.answer,
+    displayOrder: r.display_order,
+  }));
 }
 
 // ---------------------------------------------------------------------------
 // RouteData CRUD
 // ---------------------------------------------------------------------------
 
-/** Insert a route_data row. `id` is supplied by the caller. */
+/** Insert a route_data row. `id` is optional; when omitted one is generated. */
 export function createRouteData(
   db: Database.Database,
-  id: string,
+  id: string | undefined,
   input: RouteDataInput,
 ): RouteData {
+  const resolvedId = id ?? `route-${randomUUID()}`;
+  const displayOrder =
+    input.displayOrder ??
+    (
+      db
+        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_data')
+        .get() as { next: number }
+    ).next;
   db.prepare(
-    `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
-    id,
+    resolvedId,
     input.title,
     input.description,
     input.metaTitle,
@@ -434,8 +488,9 @@ export function createRouteData(
     input.duration,
     JSON.stringify(input.features),
     JSON.stringify(input.faqs),
+    displayOrder,
   );
-  return { id, ...input };
+  return { id: resolvedId, ...input, displayOrder };
 }
 
 /** Partially update a route_data row by id. */
@@ -458,6 +513,8 @@ export function updateRouteData(
   if (patch.features !== undefined)
     fields.push(['features', JSON.stringify(patch.features)]);
   if (patch.faqs !== undefined) fields.push(['faqs', JSON.stringify(patch.faqs)]);
+  if (patch.displayOrder !== undefined)
+    fields.push(['display_order', patch.displayOrder]);
 
   if (fields.length === 0) return;
 
@@ -499,11 +556,22 @@ export function getContentValue(db: Database.Database, key: string): unknown {
 // Locations CRUD
 // ---------------------------------------------------------------------------
 
-/** Insert or replace a location. */
-export function upsertLocation(db: Database.Database, loc: Location): void {
+/** Insert or replace a location. `id` is optional; when omitted one is generated. */
+export function upsertLocation(
+  db: Database.Database,
+  loc: Omit<Location, 'id'> & { id?: string },
+): void {
+  const id = loc.id ?? `loc-${randomUUID()}`;
+  const displayOrder =
+    loc.displayOrder ??
+    (
+      db
+        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM locations')
+        .get() as { next: number }
+    ).next;
   db.prepare(
-    'INSERT OR REPLACE INTO locations (id, name, nameAr, type) VALUES (?, ?, ?, ?)',
-  ).run(loc.id, loc.name, loc.nameAr, loc.type);
+    'INSERT OR REPLACE INTO locations (id, name, nameAr, type, display_order) VALUES (?, ?, ?, ?, ?)',
+  ).run(id, loc.name, loc.nameAr, loc.type, displayOrder);
 }
 
 /** Partially update a location by id. Only provided fields are written. */
@@ -516,6 +584,8 @@ export function updateLocation(
   if (patch.name !== undefined) fields.push(['name', patch.name]);
   if (patch.nameAr !== undefined) fields.push(['nameAr', patch.nameAr]);
   if (patch.type !== undefined) fields.push(['type', patch.type]);
+  if (patch.displayOrder !== undefined)
+    fields.push(['display_order', patch.displayOrder]);
 
   if (fields.length === 0) return;
 
@@ -540,20 +610,33 @@ export function deleteRouteGroup(db: Database.Database, id: string): void {
   db.prepare('DELETE FROM route_groups WHERE id = ?').run(id);
 }
 
-/** Insert or replace a route group row. */
-export function upsertRouteGroup(db: Database.Database, rg: RouteGroup): void {
+/** Insert or replace a route group row. `id` is optional; when omitted one is generated. Returns the resolved id. */
+export function upsertRouteGroup(
+  db: Database.Database,
+  rg: Omit<RouteGroup, 'id'> & { id?: string },
+): string {
+  const id = rg.id ?? `rg-${randomUUID()}`;
   const bidirectional = rg.type === 'travel';
+  const displayOrder =
+    rg.displayOrder ??
+    (
+      db
+        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_groups')
+        .get() as { next: number }
+    ).next;
   db.prepare(
-    `INSERT OR REPLACE INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT OR REPLACE INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations, display_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
   ).run(
-    rg.id,
+    id,
     rg.type,
     rg.nameAr,
     bidirectional ? 1 : 0,
     JSON.stringify(rg.fromLocations),
     JSON.stringify(rg.toLocations),
+    displayOrder,
   );
+  return id;
 }
 
 const VEHICLE_CATEGORIES: readonly VehicleCategory[] = [
@@ -588,17 +671,17 @@ export function isValidPricing(
  */
 export function upsertRouteGroupWithPricing(
   db: Database.Database,
-  rg: RouteGroup,
+  rg: Omit<RouteGroup, 'id'> & { id?: string },
 ): void {
   const run = db.transaction(() => {
-    upsertRouteGroup(db, rg);
+    const id = upsertRouteGroup(db, rg);
     const upsertPrice = db.prepare(
       `INSERT OR REPLACE INTO route_pricing (route_group_id, vehicle_category, one_way, round_trip)
        VALUES (?, ?, ?, ?)`,
     );
     for (const category of VEHICLE_CATEGORIES) {
       const entry = rg.pricing[category];
-      upsertPrice.run(rg.id, category, entry.oneWay, entry.roundTrip);
+      upsertPrice.run(id, category, entry.oneWay, entry.roundTrip);
     }
   });
   run();
@@ -617,4 +700,41 @@ export function setPricingConfig(
   db.prepare(
     'INSERT OR REPLACE INTO pricing_config (key, value) VALUES (?, ?)',
   ).run(key, value);
+}
+
+// ---------------------------------------------------------------------------
+// Reordering
+// ---------------------------------------------------------------------------
+
+/**
+ * Atomically reorder rows of a table by `display_order`. `orderedIds` must be
+ * a permutation of the table's existing ids (no duplicates, no unknowns).
+ * Runs inside a single transaction; any failure rolls back the whole update.
+ */
+export function reorderEntities(
+  db: Database.Database,
+  table: 'cars' | 'faqs' | 'route_data' | 'locations' | 'route_groups',
+  orderedIds: string[],
+): void {
+  if (orderedIds.length === 0) return;
+
+  const unique = new Set(orderedIds);
+  if (unique.size !== orderedIds.length) {
+    throw new Error('reorderEntities: duplicate ids in orderedIds');
+  }
+
+  const run = db.transaction(() => {
+    const update = db.prepare(
+      `UPDATE ${table} SET display_order = ? WHERE id = ?`,
+    );
+    for (let i = 0; i < orderedIds.length; i++) {
+      const result = update.run(i, orderedIds[i]);
+      if (result.changes === 0) {
+        throw new Error(
+          `reorderEntities: id "${orderedIds[i]}" does not exist in ${table}`,
+        );
+      }
+    }
+  });
+  run();
 }

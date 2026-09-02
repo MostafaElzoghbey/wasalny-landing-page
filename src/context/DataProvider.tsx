@@ -4,6 +4,7 @@ import { fetchSiteData, fetchPricing } from '@/data/api';
 import { services, features, routes, stats, contactInfo } from '@/data/content';
 import { faqs } from '@/data/faqs';
 import { routeData } from '@/data/routeData';
+import { cars, carCategories, carImages, mockupImages, logoImage } from '@/data/cars';
 import {
   locations,
   routeGroups,
@@ -22,6 +23,11 @@ export function DataProvider({ children }: { children: React.ReactNode }): React
     routes,
     stats,
     contactInfo,
+    cars,
+    carCategories: [...carCategories],
+    carImages,
+    mockupImages,
+    logoImage,
     faqs,
     routeData,
     pricing: { locations, routeGroups, vehiclePricing, pricingConfig },

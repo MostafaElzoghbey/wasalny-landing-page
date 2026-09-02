@@ -132,6 +132,7 @@ export const cars: Car[] = [
     images: carImages.sedan,
     imageAlts: generateImageAlts(carImages.sedan, 'Sedan'),
     features: ['تكييف متطور', 'مقاعد مريحة', 'شحن USB', 'شاشة لمس في أغلب الفئات'],
+    displayOrder: 0,
   },
   {
     id: 'suv-collection',
@@ -145,6 +146,7 @@ export const cars: Car[] = [
     images: carImages.suv,
     imageAlts: generateImageAlts(carImages.suv, 'SUV'),
     features: ['دفع قوي', 'سقف بانوراما', 'مساحة تخزين واسعة', 'أمان عالي'],
+    displayOrder: 1,
   },
   {
     id: 'family-collection',
@@ -158,6 +160,7 @@ export const cars: Car[] = [
     images: carImages.family_cruiser,
     imageAlts: generateImageAlts(carImages.family_cruiser, 'Family Car'),
     features: ['7 مقاعد كاملة', 'تكييف مركزي', 'مساحة هائلة للحقائب', 'ثبات عالي'],
+    displayOrder: 2,
   },
   {
     id: 'minibus-collection',
@@ -171,6 +174,7 @@ export const cars: Car[] = [
     images: carImages.minibus,
     imageAlts: generateImageAlts(carImages.minibus, 'Minibus'),
     features: ['13 راكب', 'كراسي VIP جلد', 'خصوصية تامة', 'تكييف مركزي'],
+    displayOrder: 3,
   },
   {
     id: 'wedding-collection',
@@ -184,13 +188,14 @@ export const cars: Car[] = [
     images: carImages.wedding,
     imageAlts: generateImageAlts(carImages.wedding, 'Wedding Car'),
     features: ['تزيين احترافي كامل', 'سائق بزي رسمي أنيق', 'استقبال العروسين بأناقة', 'تصوير حر مع السيارة'],
+    displayOrder: 4,
   },
 ];
 
-export const carCategories = [
+export const carCategories: readonly { id: string; nameAr: string; icon: string }[] = [
   { id: 'sedan', nameAr: 'سيدان', icon: 'Car' },
   { id: 'suv', nameAr: 'دفع رباعي', icon: 'Truck' },
   { id: 'family_cruiser', nameAr: 'عائلية', icon: 'Bus' },
   { id: 'minibus', nameAr: 'ميني باص', icon: 'UsersRound' },
   { id: 'wedding', nameAr: 'زفاف', icon: 'Heart' },
-] as const;
+];

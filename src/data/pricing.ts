@@ -7,25 +7,25 @@ export type { RouteType, VehicleCategory, Location, RouteGroup, VehiclePricing }
 // ============================================
 export const locations: Location[] = [
   // Damietta Area (can be used in both Travel and Internal)
-  { id: 'damietta', name: 'Damietta', nameAr: 'دمياط', type: 'travel' },
-  { id: 'new-damietta', name: 'New Damietta', nameAr: 'دمياط الجديدة', type: 'travel' },
-  { id: 'ras-elbar', name: 'Ras El Bar', nameAr: 'رأس البر', type: 'travel' },
-  { id: 'faraskour', name: 'Faraskour', nameAr: 'فارسكور', type: 'travel' },
-  { id: 'ezbet-elborg', name: 'Ezbet El Borg', nameAr: 'عزبة البرج', type: 'travel' },
+  { id: 'damietta', name: 'Damietta', nameAr: 'دمياط', type: 'travel', displayOrder: 0 },
+  { id: 'new-damietta', name: 'New Damietta', nameAr: 'دمياط الجديدة', type: 'travel', displayOrder: 1 },
+  { id: 'ras-elbar', name: 'Ras El Bar', nameAr: 'رأس البر', type: 'travel', displayOrder: 2 },
+  { id: 'faraskour', name: 'Faraskour', nameAr: 'فارسكور', type: 'travel', displayOrder: 3 },
+  { id: 'ezbet-elborg', name: 'Ezbet El Borg', nameAr: 'عزبة البرج', type: 'travel', displayOrder: 4 },
 
   // Cairo Area
-  { id: 'cairo-airport', name: 'Cairo Airport', nameAr: 'مطار القاهرة', type: 'travel' },
-  { id: 'nasr-city', name: 'Nasr City', nameAr: 'مدينة نصر', type: 'travel' },
-  { id: 'new-cairo', name: 'New Cairo', nameAr: 'التجمع', type: 'travel' },
-  { id: 'heliopolis', name: 'Heliopolis', nameAr: 'مصر الجديدة', type: 'travel' },
+  { id: 'cairo-airport', name: 'Cairo Airport', nameAr: 'مطار القاهرة', type: 'travel', displayOrder: 5 },
+  { id: 'nasr-city', name: 'Nasr City', nameAr: 'مدينة نصر', type: 'travel', displayOrder: 6 },
+  { id: 'new-cairo', name: 'New Cairo', nameAr: 'التجمع', type: 'travel', displayOrder: 7 },
+  { id: 'heliopolis', name: 'Heliopolis', nameAr: 'مصر الجديدة', type: 'travel', displayOrder: 8 },
 
   // Alexandria Area
-  { id: 'alexandria', name: 'Alexandria', nameAr: 'الإسكندرية', type: 'travel' },
-  { id: 'borg-alarab-airport', name: 'Borg Al Arab Airport', nameAr: 'مطار برج العرب', type: 'travel' },
+  { id: 'alexandria', name: 'Alexandria', nameAr: 'الإسكندرية', type: 'travel', displayOrder: 9 },
+  { id: 'borg-alarab-airport', name: 'Borg Al Arab Airport', nameAr: 'مطار برج العرب', type: 'travel', displayOrder: 10 },
 
   // West Cairo Area
-  { id: 'sphinx-airport', name: 'Sphinx Airport', nameAr: 'مطار اسفنكس', type: 'travel' },
-  { id: '6th-october', name: '6th of October', nameAr: 'أكتوبر', type: 'travel' },
+  { id: 'sphinx-airport', name: 'Sphinx Airport', nameAr: 'مطار اسفنكس', type: 'travel', displayOrder: 11 },
+  { id: '6th-october', name: '6th of October', nameAr: 'أكتوبر', type: 'travel', displayOrder: 12 },
 ];
 
 // ============================================
@@ -40,6 +40,7 @@ export const routeGroups: RouteGroup[] = [
     toLocations: ['cairo-airport', 'nasr-city', 'new-cairo', 'heliopolis'],
     nameAr: 'دمياط - القاهرة',
     bidirectional: true,
+    displayOrder: 0,
     pricing: {
       sedan: { oneWay: 1800, roundTrip: 2700 },
       suv: { oneWay: 2000, roundTrip: 3000 },
@@ -54,6 +55,7 @@ export const routeGroups: RouteGroup[] = [
     toLocations: ['alexandria'],
     nameAr: 'دمياط - الإسكندرية',
     bidirectional: true,
+    displayOrder: 1,
     pricing: {
       sedan: { oneWay: 1800, roundTrip: 2700 },
       suv: { oneWay: 2000, roundTrip: 3000 },
@@ -68,6 +70,7 @@ export const routeGroups: RouteGroup[] = [
     toLocations: ['borg-alarab-airport'],
     nameAr: 'دمياط - مطار برج العرب',
     bidirectional: true,
+    displayOrder: 2,
     pricing: {
       sedan: { oneWay: 2000, roundTrip: 2700 },
       suv: { oneWay: 2000, roundTrip: 3000 },
@@ -82,6 +85,7 @@ export const routeGroups: RouteGroup[] = [
     toLocations: ['sphinx-airport', '6th-october'],
     nameAr: 'دمياط - غرب القاهرة',
     bidirectional: true,
+    displayOrder: 3,
     pricing: {
       sedan: { oneWay: 2000, roundTrip: 3000 },
       suv: { oneWay: 2000, roundTrip: 3000 },
@@ -98,6 +102,7 @@ export const routeGroups: RouteGroup[] = [
     toLocations: ['new-damietta', 'ras-elbar'],
     nameAr: 'دمياط - دمياط الجديدة / رأس البر',
     bidirectional: true,
+    displayOrder: 4,
     pricing: {
       sedan: { oneWay: 130, roundTrip: 130 }, // No round trip concept
       suv: { oneWay: 130, roundTrip: 130 },
@@ -112,6 +117,7 @@ export const routeGroups: RouteGroup[] = [
     toLocations: ['ezbet-elborg', 'faraskour'],
     nameAr: 'دمياط - عزبة البرج / فارسكور',
     bidirectional: true,
+    displayOrder: 5,
     pricing: {
       sedan: { oneWay: 140, roundTrip: 140 },
       suv: { oneWay: 140, roundTrip: 140 },
@@ -126,6 +132,7 @@ export const routeGroups: RouteGroup[] = [
     toLocations: ['ras-elbar', 'new-damietta'],
     nameAr: 'عزبة البرج / فارسكور - رأس البر / دمياط الجديدة',
     bidirectional: true,
+    displayOrder: 6,
     pricing: {
       sedan: { oneWay: 260, roundTrip: 260 },
       suv: { oneWay: 260, roundTrip: 260 },

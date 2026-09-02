@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import type { Location, RouteGroup, VehicleCategory } from '@/types/pricing';
@@ -6,7 +6,10 @@ import {
   adminCreateRouteGroup,
   adminGetLocations,
   adminGetRouteGroups,
+  adminReorderRouteGroups,
 } from '@/data/api';
+import { ReorderControls } from '@/components/ui/ReorderControls';
+import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { RouteGroupCard } from './RouteGroupCard';
 
@@ -32,7 +35,6 @@ export function RouteGroupAdmin() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [id, setId] = useState('');
   const [type, setType] = useState<RouteGroup['type']>('travel');
   const [nameAr, setNameAr] = useState('');
   const [fromLocations, setFromLocations] = useState<string[]>([]);
@@ -48,7 +50,9 @@ export function RouteGroupAdmin() {
   const [createOpen, setCreateOpen] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [reorderError, setReorderError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const dragIdRef = useRef<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -74,8 +78,8 @@ export function RouteGroupAdmin() {
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
     setCreateError(null);
-    if (id.trim() === '' || nameAr.trim() === '') {
-      setCreateError('المعرّف والاسم (عربي) مطلوبان');
+    if (nameAr.trim() === '') {
+      setCreateError('الاسم (عربي) مطلوب');
       return;
     }
     const pricing = VEHICLE_CATEGORIES.reduce(
@@ -102,16 +106,16 @@ export function RouteGroupAdmin() {
       }
       const bidirectional = type === 'travel';
       const body: RouteGroup = {
-        id: id.trim(),
+        id: generateId('rg'),
         type,
         nameAr: nameAr.trim(),
         fromLocations,
         toLocations,
         bidirectional,
         pricing,
+        displayOrder: 0,
       };
       await adminCreateRouteGroup(body);
-      setId('');
       setNameAr('');
       setFromLocations([]);
       setToLocations([]);
@@ -136,9 +140,33 @@ export function RouteGroupAdmin() {
     if (expandedId === deletedId) setExpandedId(null);
   }
 
+  async function doReorder(next: RouteGroup[]): Promise<void> {
+    const prev = [...items];
+    const ids = next.map((g) => g.id);
+    setItems(next);
+    setReorderError(null);
+    try {
+      await adminReorderRouteGroups(ids);
+    } catch (e) {
+      setItems(prev);
+      setReorderError(e instanceof Error ? e.message : 'فشل إعادة الترتيب');
+    }
+  }
+
+  function handleMove(id: string, dir: -1 | 1): void {
+    const idx = items.findIndex((g) => g.id === id);
+    const target = idx + dir;
+    if (idx === -1 || target < 0 || target >= items.length) return;
+    const next = [...items];
+    const [moved] = next.splice(idx, 1);
+    next.splice(target, 0, moved);
+    void doReorder(next);
+  }
+
   return (
     <Panel title="مجموعات المسارات">
       {error && <ErrorText message={error} />}
+      {reorderError && <ErrorText message={reorderError} />}
 
       <div className="mb-6 overflow-hidden rounded-xl border border-[hsl(var(--border))]">
         <button
@@ -152,8 +180,7 @@ export function RouteGroupAdmin() {
         {createOpen && (
           <form onSubmit={handleCreate} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
             {createError && <ErrorText message={createError} />}
-            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-3">
-              <Field label="المعرّف" value={id} onChange={setId} required />
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
               <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
               <label className="mb-3 block">
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">النوع</span>
@@ -314,16 +341,44 @@ export function RouteGroupAdmin() {
         <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <ul className="space-y-3">
-          {items.map((g) => (
-            <RouteGroupCard
-              key={g.id}
-              group={g}
-              locations={locations}
-              expanded={expandedId === g.id}
-              onToggle={() => setExpandedId((prev) => (prev === g.id ? null : g.id))}
-              onUpdated={handleUpdated}
-              onDeleted={handleDeleted}
-            />
+          {items.map((g, idx) => (
+            <li key={g.id} dir="rtl" className="flex items-stretch gap-2 text-right">
+              <ReorderControls
+                id={g.id}
+                index={idx}
+                total={items.length}
+                displayOrder={g.displayOrder}
+                onMoveUp={() => handleMove(g.id, -1)}
+                onMoveDown={() => handleMove(g.id, 1)}
+                onDragStart={(e) => {
+                  dragIdRef.current = g.id;
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const draggedId = dragIdRef.current;
+                  dragIdRef.current = null;
+                  if (!draggedId || draggedId === g.id) return;
+                  const from = items.findIndex((x) => x.id === draggedId);
+                  if (from === -1) return;
+                  const next = [...items];
+                  const [moved] = next.splice(from, 1);
+                  next.splice(idx, 0, moved);
+                  void doReorder(next);
+                }}
+              />
+              <div className="min-w-0 flex-1">
+                <RouteGroupCard
+                  group={g}
+                  locations={locations}
+                  expanded={expandedId === g.id}
+                  onToggle={() => setExpandedId((prev) => (prev === g.id ? null : g.id))}
+                  onUpdated={handleUpdated}
+                  onDeleted={handleDeleted}
+                />
+              </div>
+            </li>
           ))}
           {items.length === 0 && (
             <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد مجموعات مسارات بعد.</li>

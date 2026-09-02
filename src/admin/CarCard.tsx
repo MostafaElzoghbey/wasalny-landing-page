@@ -2,8 +2,10 @@ import { useState } from 'react';
 
 import type { Car } from '@/types';
 import { adminDeleteCar, adminUpdateCar } from '@/data/api';
+import { ChipInput } from '@/components/ui/ChipInput';
+import { ImageDropzone } from '@/components/ui/ImageDropzone';
 import { DangerButton, ErrorText, Field, PrimaryButton } from './ui';
-import { CAR_CATEGORIES, cloneCar, splitList, validateCar } from './carHelpers';
+import { CAR_CATEGORIES, cloneCar, validateCar } from './carHelpers';
 
 interface CarCardProps {
   group: Car;
@@ -229,16 +231,8 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                 <Field label="وصف تحسين محركات البحث" value={draft.seoDescription ?? ''} onChange={(v) => setDraft((p) => ({ ...p, seoDescription: v }))} />
               </div>
               <Field label="الوصف" value={draft.description} onChange={(v) => setDraft((p) => ({ ...p, description: v }))} textarea />
-              <Field
-                label="الصور (مفصولة بفواصل)"
-                value={draft.images.join(', ')}
-                onChange={(v) => setDraft((p) => ({ ...p, images: splitList(v) }))}
-              />
-              <Field
-                label="المميزات (مفصولة بفواصل)"
-                value={draft.features.join(', ')}
-                onChange={(v) => setDraft((p) => ({ ...p, features: splitList(v) }))}
-              />
+              <ImageDropzone mode="multiple" value={draft.images} onChange={(v) => setDraft((p) => ({ ...p, images: v as string[] }))} maxImages={10} testId="car-images" label="الصور" />
+              <ChipInput label="المميزات" value={draft.features} onChange={(v) => setDraft((p) => ({ ...p, features: v }))} placeholder="اكتب واضغط Enter" testId="chip-input-features" />
 
               <div className="flex flex-wrap gap-2">
                 <PrimaryButton type="button" data-testid={`car-save-${group.id}`} onClick={handleSave} disabled={saving}>

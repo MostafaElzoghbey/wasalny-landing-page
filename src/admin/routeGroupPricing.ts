@@ -54,6 +54,7 @@ export function cloneGroup(group: RouteGroup): RouteGroup {
       family_cruiser: { ...group.pricing.family_cruiser },
       minibus: { ...group.pricing.minibus },
     },
+    displayOrder: group.displayOrder,
   };
 }
 

@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase, Car, Truck, Bus, UsersRound, Heart, Play, Pause } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
-import { cars, carCategories } from '@/data/cars';
+import { useData } from '@/context/DataProvider';
 import { cn } from '@/lib/utils';
 import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
@@ -232,6 +232,7 @@ export function CarouselCard(props: CarouselCardProps) {
 };
 
 export function FleetSection() {
+  const { cars, carCategories } = useData();
   const [activeCategory, setActiveCategory] = useState<CarCategory>('sedan');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -251,7 +252,7 @@ export function FleetSection() {
 
   const activeCar = useMemo(() => {
     return cars.find(car => car.category === activeCategory) || cars[0];
-  }, [activeCategory]);
+  }, [cars, activeCategory]);
 
   const images = activeCar.images;
   const imageAlts = activeCar.imageAlts;
