@@ -92,8 +92,9 @@ export function RouteDataAdmin() {
 
   async function doReorder(next: RouteData[]): Promise<void> {
     const prev = [...items];
-    const ids = next.map((r) => r.id);
-    setItems(next);
+    const nextWithOrder = next.map((r, i) => ({ ...r, displayOrder: i }));
+    const ids = nextWithOrder.map((r) => r.id);
+    setItems(nextWithOrder);
     setReorderError(null);
     try {
       await adminReorderRouteData(ids);

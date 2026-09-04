@@ -67,8 +67,9 @@ export function FaqAdmin() {
 
   async function doReorder(next: FaqWithId[]): Promise<void> {
     const prev = [...faqs];
-    const ids = next.map((f) => f.id);
-    setFaqs(next);
+    const nextWithOrder = next.map((f, i) => ({ ...f, displayOrder: i }));
+    const ids = nextWithOrder.map((f) => f.id);
+    setFaqs(nextWithOrder);
     setReorderError(null);
     try {
       await adminReorderFaqs(ids);

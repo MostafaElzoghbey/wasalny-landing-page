@@ -8,9 +8,7 @@ import { ImageDropzone } from '@/components/ui/ImageDropzone';
 import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { CarCategoryGroup } from './CarCategoryGroup';
-import { CAR_CATEGORIES } from './carHelpers';
-
-const CATEGORY_LABELS: Record<Car['category'], string> = { sedan: 'سيدان', suv: 'دفع رباعي', family_cruiser: 'عائلية', minibus: 'ميني باص', wedding: 'زفاف' };
+import { CAR_CATEGORIES, CATEGORY_LABELS } from './carHelpers';
 
 export function CarAdmin() {
   const [cars, setCars] = useState<Car[]>([]);
@@ -18,7 +16,6 @@ export function CarAdmin() {
   const [createOpen, setCreateOpen] = useState(false);
   const [nameAr, setNameAr] = useState('');
   const [category, setCategory] = useState<Car['category']>('sedan');
-  const [categoryAr, setCategoryAr] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [features, setFeatures] = useState<string[]>([]);
@@ -42,12 +39,12 @@ export function CarAdmin() {
   }
   useEffect(() => { void load(); }, []);
   function resetForm(): void {
-    setNameAr(''); setCategory('sedan'); setCategoryAr(''); setDescription(''); setImages([]); setFeatures([]);
+    setNameAr(''); setCategory('sedan'); setDescription(''); setImages([]); setFeatures([]);
   }
   async function handleCreate(e: FormEvent): Promise<void> {
     e.preventDefault(); setCreateError(null);
     try {
-      const body = { id: generateId('car'), nameAr, category, categoryAr, description, images, features };
+      const body = { id: generateId('car'), nameAr, category, categoryAr: CATEGORY_LABELS[category], description, images, features };
       await adminCreateCar(body as unknown as Omit<Car, 'id'>); resetForm(); await load();
     } catch (e) { setCreateError(e instanceof Error ? e.message : 'فشل إنشاء السيارة'); }
   }
@@ -97,7 +94,6 @@ export function CarAdmin() {
             {createError && <ErrorText message={createError} />}
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
               <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
-              <Field label="الفئة (عربي)" value={categoryAr} onChange={setCategoryAr} required />
               <label className="mb-3 block">
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">الفئة</span>
                 <select value={category} onChange={(e) => setCategory(e.target.value as Car['category'])} className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none">

@@ -8,6 +8,14 @@ export const CAR_CATEGORIES: readonly Car['category'][] = [
   'wedding',
 ] as const;
 
+export const CATEGORY_LABELS: Record<Car['category'], string> = {
+  sedan: 'سيدان',
+  suv: 'دفع رباعي',
+  family_cruiser: 'عائلية',
+  minibus: 'ميني باص',
+  wedding: 'زفاف',
+};
+
 export function splitList(value: string): string[] {
   return value
     .split(',')
@@ -33,9 +41,6 @@ export function cloneCar(car: Car): Car {
 export function validateCar(car: Partial<Car>): string | null {
   if (car.nameAr === undefined || car.nameAr.trim() === '') {
     return 'الاسم (عربي) مطلوب';
-  }
-  if (car.categoryAr === undefined || car.categoryAr.trim() === '') {
-    return 'الفئة (عربي) مطلوبة';
   }
   if (car.category !== undefined) {
     const allowed: readonly string[] = CAR_CATEGORIES;

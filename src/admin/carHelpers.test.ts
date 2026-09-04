@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'test';
 
 import { describe, it, expect } from 'vitest';
 import type { Car } from '@/types';
-import { validateCar, cloneCar, CAR_CATEGORIES } from './carHelpers';
+import { validateCar, cloneCar, CAR_CATEGORIES, CATEGORY_LABELS } from './carHelpers';
 
 describe('carHelpers', () => {
   describe('validateCar', () => {
@@ -32,21 +32,31 @@ describe('carHelpers', () => {
       expect(validateCar(car)).toBe('الاسم (عربي) مطلوب');
     });
 
-    it('returns error when categoryAr is missing', () => {
+    it('does not require categoryAr — auto-derived from category', () => {
       const car: Partial<Car> = {
         nameAr: 'سيدان',
         category: 'sedan',
       };
-      expect(validateCar(car)).toBe('الفئة (عربي) مطلوبة');
+      expect(validateCar(car)).toBeNull();
     });
 
-    it('returns error when categoryAr is empty string', () => {
+    it('does not require categoryAr even when empty string', () => {
       const car: Partial<Car> = {
         nameAr: 'سيدان',
         category: 'sedan',
         categoryAr: '  ',
       };
-      expect(validateCar(car)).toBe('الفئة (عربي) مطلوبة');
+      expect(validateCar(car)).toBeNull();
+    });
+
+    it('CATEGORY_LABELS maps all 5 categories exhaustively', () => {
+      for (const cat of CAR_CATEGORIES) {
+        expect(CATEGORY_LABELS[cat]).toBeTruthy();
+        expect(typeof CATEGORY_LABELS[cat]).toBe('string');
+      }
+      expect(CATEGORY_LABELS['sedan']).toBe('سيدان');
+      expect(CATEGORY_LABELS['suv']).toBe('دفع رباعي');
+      expect(CATEGORY_LABELS['wedding']).toBe('زفاف');
     });
 
     it('returns error for invalid category', () => {

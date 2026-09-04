@@ -142,8 +142,9 @@ export function RouteGroupAdmin() {
 
   async function doReorder(next: RouteGroup[]): Promise<void> {
     const prev = [...items];
-    const ids = next.map((g) => g.id);
-    setItems(next);
+    const nextWithOrder = next.map((g, i) => ({ ...g, displayOrder: i }));
+    const ids = nextWithOrder.map((g) => g.id);
+    setItems(nextWithOrder);
     setReorderError(null);
     try {
       await adminReorderRouteGroups(ids);

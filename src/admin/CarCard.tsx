@@ -5,7 +5,7 @@ import { adminDeleteCar, adminUpdateCar } from '@/data/api';
 import { ChipInput } from '@/components/ui/ChipInput';
 import { ImageDropzone } from '@/components/ui/ImageDropzone';
 import { DangerButton, ErrorText, Field, PrimaryButton } from './ui';
-import { CAR_CATEGORIES, cloneCar, validateCar } from './carHelpers';
+import { CAR_CATEGORIES, CATEGORY_LABELS, cloneCar, validateCar } from './carHelpers';
 
 interface CarCardProps {
   group: Car;
@@ -40,7 +40,7 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
     const normalized: Car = {
       ...draft,
       nameAr: draft.nameAr.trim(),
-      categoryAr: draft.categoryAr.trim(),
+      categoryAr: CATEGORY_LABELS[draft.category],
       description: draft.description.trim(),
       id: group.id,
     };
@@ -120,7 +120,7 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
                     <p className="text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الفئة (عربي)</p>
-                    <p className="text-[hsl(var(--foreground))]">{group.categoryAr}</p>
+                    <p className="text-[hsl(var(--foreground))]">{CATEGORY_LABELS[group.category]}</p>
                   </div>
                   <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
                     <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الوصف</p>
@@ -197,7 +197,10 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                   <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">الفئة</span>
                   <select
                     value={draft.category}
-                    onChange={(e) => setDraft((p) => ({ ...p, category: e.target.value as Car['category'] }))}
+                    onChange={(e) => {
+                      const cat = e.target.value as Car['category'];
+                      setDraft((p) => ({ ...p, category: cat, categoryAr: CATEGORY_LABELS[cat] }));
+                    }}
                     className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
                   >
                     {CAR_CATEGORIES.map((c) => (
@@ -207,7 +210,6 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                     ))}
                   </select>
                 </label>
-                <Field label="الفئة (عربي)" value={draft.categoryAr} onChange={(v) => setDraft((p) => ({ ...p, categoryAr: v }))} required />
                 <Field label="وصف تحسين محركات البحث" value={draft.seoDescription ?? ''} onChange={(v) => setDraft((p) => ({ ...p, seoDescription: v }))} />
               </div>
               <Field label="الوصف" value={draft.description} onChange={(v) => setDraft((p) => ({ ...p, description: v }))} textarea />

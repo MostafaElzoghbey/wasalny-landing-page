@@ -78,8 +78,9 @@ export function LocationAdmin() {
 
   async function doReorder(next: Location[]): Promise<void> {
     const prev = [...items];
-    const ids = next.map((l) => l.id);
-    setItems(next);
+    const nextWithOrder = next.map((l, i) => ({ ...l, displayOrder: i }));
+    const ids = nextWithOrder.map((l) => l.id);
+    setItems(nextWithOrder);
     setReorderError(null);
     try {
       await adminReorderLocations(ids);

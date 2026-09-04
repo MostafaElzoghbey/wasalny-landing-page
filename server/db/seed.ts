@@ -26,14 +26,14 @@ export function seed(db: Database.Database = getDb()): void {
 
   const run = db.transaction(() => {
     const insLocation = db.prepare(
-      'INSERT INTO locations (id, name, nameAr, type) VALUES (?, ?, ?, ?)',
+      'INSERT INTO locations (id, name, nameAr, type, display_order) VALUES (?, ?, ?, ?, ?)',
     );
     for (const l of locations) {
-      insLocation.run(l.id, l.name, l.nameAr, l.type);
+      insLocation.run(l.id, l.name, l.nameAr, l.type, l.displayOrder);
     }
 
     const insRouteGroup = db.prepare(
-      'INSERT INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations, display_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
     );
     for (const rg of routeGroups) {
       insRouteGroup.run(
@@ -43,6 +43,7 @@ export function seed(db: Database.Database = getDb()): void {
         rg.bidirectional ? 1 : 0,
         JSON.stringify(rg.fromLocations),
         JSON.stringify(rg.toLocations),
+        rg.displayOrder,
       );
     }
 
@@ -96,13 +97,13 @@ export function seed(db: Database.Database = getDb()): void {
     insContent.run('mockupImages', JSON.stringify(mockupImages));
     insContent.run('carCategories', JSON.stringify(carCategories));
 
-    const insFaq = db.prepare('INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)');
+    const insFaq = db.prepare('INSERT INTO faqs (id, question, answer, display_order) VALUES (?, ?, ?, ?)');
     faqs.forEach((f, i) => {
-      insFaq.run(`faq-${i + 1}`, f.question, f.answer);
+      insFaq.run(`faq-${i + 1}`, f.question, f.answer, i);
     });
 
     const insRouteData = db.prepare(
-      'INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
     for (const [id, rd] of Object.entries(routeData)) {
       insRouteData.run(
@@ -117,6 +118,7 @@ export function seed(db: Database.Database = getDb()): void {
         rd.duration,
         JSON.stringify(rd.features),
         JSON.stringify(rd.faqs),
+        rd.displayOrder,
       );
     }
   });
