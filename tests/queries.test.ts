@@ -42,20 +42,19 @@ describe('queries', () => {
 
   it('getPublicData returns parsed car rows from the cars table', () => {
     db.prepare(
-      `INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       'car-1',
-      'Test Car',
       'تست',
       'sedan',
       'سيدان',
       'desc',
       null,
-      4,
       '["a"]',
       '[]',
       '["x"]',
+      1,
     );
 
     const data = getPublicData(db);
@@ -98,12 +97,10 @@ describe('queries', () => {
 
   it('createCar then getPublicData round-trips a car with parsed JSON columns', () => {
     const created = createCar(db, {
-      name: 'Sedan',
       nameAr: 'سيدان',
       category: 'sedan',
       categoryAr: 'سيدان',
       description: 'desc',
-      passengers: 4,
       images: ['a', 'b'],
       imageAlts: ['alt-a'],
       features: ['x'],

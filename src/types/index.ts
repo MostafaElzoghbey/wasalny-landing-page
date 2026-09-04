@@ -1,12 +1,11 @@
 export interface Car {
   id: string;
-  name: string;
   nameAr: string;
+  /** flat 5 — no subgroups */
   category: 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
   categoryAr: string;
   description: string;
   seoDescription?: string;
-  passengers: number;
   images: string[];
   imageAlts?: string[];
   features: string[];

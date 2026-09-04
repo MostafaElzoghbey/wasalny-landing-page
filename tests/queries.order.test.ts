@@ -37,17 +37,15 @@ describe('queries ordering', () => {
 
   function insertCar(id: string, displayOrder: number) {
     db.prepare(
-      `INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features, display_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       id,
-      `Car ${id}`,
       `سيارة ${id}`,
       'sedan',
       'سيدان',
       'desc',
       null,
-      4,
       '[]',
       '[]',
       '[]',
@@ -60,14 +58,29 @@ describe('queries ordering', () => {
     insertCar('car-2', 2);
 
     const created = createCar(db, {
-      name: 'Sedan',
       nameAr: 'سيدان',
       category: 'sedan',
       categoryAr: 'سيدان',
       description: 'desc',
-      passengers: 4,
       images: [],
       features: [],
+    });
+
+    expect(created.displayOrder).toBe(3);
+  });
+
+  it('createCar auto-assigns displayOrder = max + 1 when displayOrder is 0', () => {
+    insertCar('car-1', 1);
+    insertCar('car-2', 2);
+
+    const created = createCar(db, {
+      nameAr: 'سيدان',
+      category: 'sedan',
+      categoryAr: 'سيدان',
+      description: 'desc',
+      images: [],
+      features: [],
+      displayOrder: 0,
     });
 
     expect(created.displayOrder).toBe(3);
@@ -102,6 +115,22 @@ describe('queries ordering', () => {
 
     expect(() => reorderEntities(db, 'cars', ['car-a', 'nope'])).toThrow(
       /does not exist/,
+    );
+
+    // The transaction must have rolled back — display_order unchanged.
+    const rows = db
+      .prepare('SELECT id, display_order FROM cars ORDER BY display_order ASC')
+      .all() as Array<{ id: string; display_order: number }>;
+    expect(rows.map((r) => r.id)).toEqual(['car-a', 'car-b']);
+    expect(rows.map((r) => r.display_order)).toEqual([1, 2]);
+  });
+
+  it('reorderEntities throws and rolls back on duplicate ids', () => {
+    insertCar('car-a', 1);
+    insertCar('car-b', 2);
+
+    expect(() => reorderEntities(db, 'cars', ['car-a', 'car-a', 'car-b'])).toThrow(
+      /duplicate/,
     );
 
     // The transaction must have rolled back — display_order unchanged.

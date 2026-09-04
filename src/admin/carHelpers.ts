@@ -18,13 +18,11 @@ export function splitList(value: string): string[] {
 export function cloneCar(car: Car): Car {
   return {
     id: car.id,
-    name: car.name,
     nameAr: car.nameAr,
     category: car.category,
     categoryAr: car.categoryAr,
     description: car.description,
     seoDescription: car.seoDescription,
-    passengers: car.passengers,
     images: [...car.images],
     imageAlts: car.imageAlts ? [...car.imageAlts] : undefined,
     features: [...car.features],
@@ -33,9 +31,6 @@ export function cloneCar(car: Car): Car {
 }
 
 export function validateCar(car: Partial<Car>): string | null {
-  if (car.name === undefined || car.name.trim() === '') {
-    return 'الاسم مطلوب';
-  }
   if (car.nameAr === undefined || car.nameAr.trim() === '') {
     return 'الاسم (عربي) مطلوب';
   }
@@ -46,11 +41,6 @@ export function validateCar(car: Partial<Car>): string | null {
     const allowed: readonly string[] = CAR_CATEGORIES;
     if (!allowed.includes(car.category)) {
       return 'فئة غير صالحة';
-    }
-  }
-  if (car.passengers !== undefined) {
-    if (!Number.isInteger(car.passengers) || car.passengers < 0) {
-      return 'عدد الركاب يجب أن يكون عددًا صحيحًا غير سالب';
     }
   }
   return null;

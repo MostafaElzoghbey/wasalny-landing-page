@@ -83,8 +83,8 @@ adminCrud.get('/cars', requireAdmin, (c) => {
 adminCrud.post('/cars', requireAdmin, async (c) => {
   const db = getDb();
   const body = await c.req.json<CarInput>();
-  if (body.name === undefined || body.category === undefined) {
-    return c.json({ error: 'name and category are required' }, 400);
+  if (body.nameAr === undefined || body.category === undefined) {
+    return c.json({ error: 'nameAr and category are required' }, 400);
   }
   const car = createCar(db, body);
   return c.json(car, 200);

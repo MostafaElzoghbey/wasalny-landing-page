@@ -76,13 +76,11 @@ function getContent<T>(
 
 interface CarRow {
   id: string;
-  name: string;
   nameAr: string;
   category: Car['category'];
   categoryAr: string;
   description: string;
   seo_description: string | null;
-  passengers: number;
   images: string;
   image_alts: string;
   features: string;
@@ -149,13 +147,11 @@ interface VehiclePricingRow {
 function mapCarRow(row: CarRow): Car {
   return {
     id: row.id,
-    name: row.name,
     nameAr: row.nameAr,
     category: row.category,
     categoryAr: row.categoryAr,
     description: row.description,
     seoDescription: row.seo_description ?? undefined,
-    passengers: row.passengers,
     images: parseJson<string[]>(row.images),
     imageAlts: parseJson<string[]>(row.image_alts),
     features: parseJson<string[]>(row.features),
@@ -326,24 +322,23 @@ export function getPricingData(db: Database.Database): PricingData {
 export function createCar(db: Database.Database, input: CarInput): Car {
   const id = input.id ?? `car-${randomUUID()}`;
   const displayOrder =
-    input.displayOrder ??
-    (
-      db
-        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM cars')
-        .get() as { next: number }
-    ).next;
+    input.displayOrder != null && input.displayOrder !== 0
+      ? input.displayOrder
+      : (
+          db
+            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM cars')
+            .get() as { next: number }
+        ).next;
   db.prepare(
-    `INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features, display_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     id,
-    input.name,
     input.nameAr,
     input.category,
     input.categoryAr,
     input.description,
     input.seoDescription ?? null,
-    input.passengers,
     JSON.stringify(input.images),
     JSON.stringify(input.imageAlts ?? []),
     JSON.stringify(input.features),
@@ -359,7 +354,6 @@ export function updateCar(
   patch: CarPatch,
 ): void {
   const fields: Array<[string, unknown]> = [];
-  if (patch.name !== undefined) fields.push(['name', patch.name]);
   if (patch.nameAr !== undefined) fields.push(['nameAr', patch.nameAr]);
   if (patch.category !== undefined) fields.push(['category', patch.category]);
   if (patch.categoryAr !== undefined)
@@ -368,8 +362,6 @@ export function updateCar(
     fields.push(['description', patch.description]);
   if (patch.seoDescription !== undefined)
     fields.push(['seo_description', patch.seoDescription]);
-  if (patch.passengers !== undefined)
-    fields.push(['passengers', patch.passengers]);
   if (patch.images !== undefined)
     fields.push(['images', JSON.stringify(patch.images)]);
   if (patch.imageAlts !== undefined)
@@ -400,12 +392,13 @@ export function deleteCar(db: Database.Database, id: string): void {
 export function createFaq(db: Database.Database, input: FaqInput): FaqRecord {
   const id = `faq-${randomUUID()}`;
   const displayOrder =
-    input.displayOrder ??
-    (
-      db
-        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM faqs')
-        .get() as { next: number }
-    ).next;
+    input.displayOrder != null && input.displayOrder !== 0
+      ? input.displayOrder
+      : (
+          db
+            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM faqs')
+            .get() as { next: number }
+        ).next;
   db.prepare(
     'INSERT INTO faqs (id, question, answer, display_order) VALUES (?, ?, ?, ?)',
   ).run(id, input.question, input.answer, displayOrder);
@@ -467,12 +460,13 @@ export function createRouteData(
 ): RouteData {
   const resolvedId = id ?? `route-${randomUUID()}`;
   const displayOrder =
-    input.displayOrder ??
-    (
-      db
-        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_data')
-        .get() as { next: number }
-    ).next;
+    input.displayOrder != null && input.displayOrder !== 0
+      ? input.displayOrder
+      : (
+          db
+            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_data')
+            .get() as { next: number }
+        ).next;
   db.prepare(
     `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -563,12 +557,13 @@ export function upsertLocation(
 ): void {
   const id = loc.id ?? `loc-${randomUUID()}`;
   const displayOrder =
-    loc.displayOrder ??
-    (
-      db
-        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM locations')
-        .get() as { next: number }
-    ).next;
+    loc.displayOrder != null && loc.displayOrder !== 0
+      ? loc.displayOrder
+      : (
+          db
+            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM locations')
+            .get() as { next: number }
+        ).next;
   db.prepare(
     'INSERT OR REPLACE INTO locations (id, name, nameAr, type, display_order) VALUES (?, ?, ?, ?, ?)',
   ).run(id, loc.name, loc.nameAr, loc.type, displayOrder);
@@ -618,12 +613,13 @@ export function upsertRouteGroup(
   const id = rg.id ?? `rg-${randomUUID()}`;
   const bidirectional = rg.type === 'travel';
   const displayOrder =
-    rg.displayOrder ??
-    (
-      db
-        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_groups')
-        .get() as { next: number }
-    ).next;
+    rg.displayOrder != null && rg.displayOrder !== 0
+      ? rg.displayOrder
+      : (
+          db
+            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_groups')
+            .get() as { next: number }
+        ).next;
   db.prepare(
     `INSERT OR REPLACE INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations, display_order)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,

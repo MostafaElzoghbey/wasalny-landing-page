@@ -68,21 +68,20 @@ export function seed(db: Database.Database = getDb()): void {
     insPricingConfig.run('whatsappNumber', pricingConfig.whatsappNumber);
 
     const insCar = db.prepare(
-      'INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
     for (const c of cars) {
       insCar.run(
         c.id,
-        c.name,
         c.nameAr,
         c.category,
         c.categoryAr,
         c.description,
         c.seoDescription ?? null,
-        c.passengers,
         JSON.stringify(c.images),
         JSON.stringify(c.imageAlts ?? []),
         JSON.stringify(c.features),
+        c.displayOrder,
       );
     }
 

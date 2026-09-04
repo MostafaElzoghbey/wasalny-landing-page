@@ -61,7 +61,7 @@ describe('adminCrud', () => {
       const res = await adminCrud.request('/cars', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: 'x', category: 'sedan' }),
+        body: JSON.stringify({ nameAr: 'x', category: 'sedan' }),
       });
       expect(res.status).toBe(401);
     });
@@ -70,21 +70,19 @@ describe('adminCrud', () => {
   describe('cars CRUD', () => {
     it('GET /cars with a valid session returns the cars array', async () => {
       createCar(db, {
-        name: 'Seeded Car',
         nameAr: 'سيارة',
         category: 'sedan',
         categoryAr: 'سيدان',
         description: 'desc',
-        passengers: 4,
         images: ['a.jpg'],
         features: ['x'],
       });
 
       const res = await adminCrud.request('/cars', { headers: { cookie: COOKIE } });
       expect(res.status).toBe(200);
-      const body = (await res.json()) as Array<{ id: string; name: string }>;
+      const body = (await res.json()) as Array<{ id: string; nameAr: string }>;
       expect(Array.isArray(body)).toBe(true);
-      expect(body.some((c) => c.name === 'Seeded Car')).toBe(true);
+      expect(body.some((c) => c.nameAr === 'سيارة')).toBe(true);
     });
 
     it('full write round-trip: POST -> GET -> PUT -> DELETE', async () => {
@@ -92,12 +90,10 @@ describe('adminCrud', () => {
         method: 'POST',
         headers: { 'content-type': 'application/json', cookie: COOKIE },
         body: JSON.stringify({
-          name: 'New Car',
           nameAr: 'جديد',
           category: 'suv',
           categoryAr: 'إس يو في',
           description: 'desc',
-          passengers: 5,
           images: ['b.jpg'],
           features: ['y'],
         }),
@@ -108,19 +104,19 @@ describe('adminCrud', () => {
       expect(typeof id).toBe('string');
 
       const list = await adminCrud.request('/cars', { headers: { cookie: COOKIE } });
-      const listBody = (await list.json()) as Array<{ id: string; name: string }>;
-      expect(listBody.some((c) => c.id === id && c.name === 'New Car')).toBe(true);
+      const listBody = (await list.json()) as Array<{ id: string; nameAr: string }>;
+      expect(listBody.some((c) => c.id === id && c.nameAr === 'جديد')).toBe(true);
 
       const updated = await adminCrud.request(`/cars/${id}`, {
         method: 'PUT',
         headers: { 'content-type': 'application/json', cookie: COOKIE },
-        body: JSON.stringify({ name: 'Renamed Car' }),
+        body: JSON.stringify({ nameAr: 'جديد جداً' }),
       });
       expect(updated.status).toBe(200);
 
       const list2 = await adminCrud.request('/cars', { headers: { cookie: COOKIE } });
-      const listBody2 = (await list2.json()) as Array<{ id: string; name: string }>;
-      expect(listBody2.some((c) => c.id === id && c.name === 'Renamed Car')).toBe(true);
+      const listBody2 = (await list2.json()) as Array<{ id: string; nameAr: string }>;
+      expect(listBody2.some((c) => c.id === id && c.nameAr === 'جديد جداً')).toBe(true);
 
       const deleted = await adminCrud.request(`/cars/${id}`, {
         method: 'DELETE',
@@ -137,7 +133,7 @@ describe('adminCrud', () => {
       const res = await adminCrud.request('/cars', {
         method: 'POST',
         headers: { 'content-type': 'application/json', cookie: COOKIE },
-        body: JSON.stringify({ name: 'No Category' }),
+        body: JSON.stringify({ nameAr: 'No Category' }),
       });
       expect(res.status).toBe(400);
     });

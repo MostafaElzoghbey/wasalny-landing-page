@@ -37,20 +37,19 @@ describe('public API', () => {
   it('GET /data returns correctly-shaped public data reflecting inserted rows', async () => {
     // Seed a single car and a single faq directly via parameterized SQL.
     db.prepare(
-      `INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       'car-1',
-      'Test Car',
       'تست',
       'sedan',
       'سيدان',
       'desc',
       null,
-      4,
       '["a"]',
       '[]',
       '["x"]',
+      1,
     );
     db.prepare('INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)').run(
       'faq-1',

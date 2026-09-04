@@ -39,11 +39,9 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
     setError(null);
     const normalized: Car = {
       ...draft,
-      name: draft.name.trim(),
       nameAr: draft.nameAr.trim(),
       categoryAr: draft.categoryAr.trim(),
       description: draft.description.trim(),
-      seoDescription: draft.seoDescription?.trim() || undefined,
       id: group.id,
     };
     const validation = validateCar(normalized);
@@ -89,16 +87,10 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-medium text-[hsl(var(--foreground))]">{group.name}</span>
+            <span className="truncate font-medium text-[hsl(var(--foreground))]">{group.nameAr}</span>
             <span className={group.category === 'sedan' || group.category === 'wedding' ? 'rounded-full bg-primary-600 px-2 py-0.5 text-xs font-semibold text-white' : 'rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white'}>{group.category}</span>
           </div>
-          <p className="mt-1 truncate text-xs text-[hsl(var(--muted-foreground))]">
-            <span>{group.nameAr}</span>
-            <span className="mx-2 text-[hsl(var(--border))]">|</span>
-            <span>{group.passengers} ركاب</span>
-            <span className="mx-2 text-[hsl(var(--border))]">|</span>
-            <span className="font-mono text-xs">{group.id}</span>
-          </p>
+          <p className="mt-1 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">{group.id}</p>
         </div>
         <span
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--muted-foreground))]"
@@ -125,21 +117,17 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
           {!editing ? (
             <>
               <div className="mb-3 space-y-3 text-sm">
-                <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الوصف</p>
-                  <p className="text-[hsl(var(--foreground))]">{group.description || '—'}</p>
-                  {group.seoDescription && (
-                    <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">تحسين محركات البحث: {group.seoDescription}</p>
-                  )}
-                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
                     <p className="text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الفئة (عربي)</p>
                     <p className="text-[hsl(var(--foreground))]">{group.categoryAr}</p>
                   </div>
                   <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                    <p className="text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">عدد الركاب</p>
-                    <p className="text-[hsl(var(--foreground))]">{group.passengers}</p>
+                    <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الوصف</p>
+                    <p className="text-[hsl(var(--foreground))]">{group.description || '—'}</p>
+                    {group.seoDescription && (
+                      <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">تحسين محركات البحث: {group.seoDescription}</p>
+                    )}
                   </div>
                 </div>
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
@@ -204,7 +192,6 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
             <div className="space-y-3">
               <p className="font-mono text-xs text-[hsl(var(--muted-foreground))]">المعرّف: {group.id} (غير قابل للتعديل)</p>
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-                <Field label="الاسم" value={draft.name} onChange={(v) => setDraft((p) => ({ ...p, name: v }))} required />
                 <Field label="الاسم (عربي)" value={draft.nameAr} onChange={(v) => setDraft((p) => ({ ...p, nameAr: v }))} required />
                 <label className="mb-3 block">
                   <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">الفئة</span>
@@ -221,13 +208,6 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                   </select>
                 </label>
                 <Field label="الفئة (عربي)" value={draft.categoryAr} onChange={(v) => setDraft((p) => ({ ...p, categoryAr: v }))} required />
-                <Field
-                  label="عدد الركاب"
-                  type="number"
-                  value={String(draft.passengers)}
-                  onChange={(v) => setDraft((p) => ({ ...p, passengers: Number(v) || 0 }))}
-                  required
-                />
                 <Field label="وصف تحسين محركات البحث" value={draft.seoDescription ?? ''} onChange={(v) => setDraft((p) => ({ ...p, seoDescription: v }))} />
               </div>
               <Field label="الوصف" value={draft.description} onChange={(v) => setDraft((p) => ({ ...p, description: v }))} textarea />

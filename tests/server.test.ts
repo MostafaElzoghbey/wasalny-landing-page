@@ -37,20 +37,19 @@ describe('composed server app', () => {
   it('GET /api/data returns public data with a cars array', async () => {
     // Insert a car so the assertion is meaningful.
     db.prepare(
-      `INSERT INTO cars (id, name, nameAr, category, categoryAr, description, seo_description, passengers, images, image_alts, features)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       'car-1',
-      'Test Car',
       'تست',
       'sedan',
       'سيدان',
       'desc',
       null,
-      4,
       '["a"]',
       '[]',
       '["x"]',
+      1,
     );
 
     const res = await app.request('/api/data');

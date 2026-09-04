@@ -1,39 +1,23 @@
 import type { Car } from '@/types';
 import { ReorderControls } from '@/components/ui/ReorderControls';
 
+import { CAR_CATEGORIES } from './carHelpers';
 import { CarCard } from './CarCard';
 
 interface CarCategoryGroupProps {
-  category: Car['category'];
-  labelAr: string;
-  cars: Car[];
-  expanded: boolean;
-  onToggle: () => void;
-  expandedId: string | null;
-  onToggleCar: (id: string) => void;
-  onUpdated: (next: Car) => void;
-  onDeleted: (id: string) => void;
+  category: Car['category']; labelAr: string; cars: Car[];
+  expanded: boolean; onToggle: () => void;
+  expandedId: string | null; onToggleCar: (id: string) => void;
+  onUpdated: (next: Car) => void; onDeleted: (id: string) => void;
   onMove: (id: string, dir: -1 | 1) => void;
   onDragStart: (e: React.DragEvent<HTMLSpanElement>, id: string) => void;
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>, targetId: string) => void;
+  isReordering: boolean;
 }
 
-export function CarCategoryGroup({
-  category,
-  labelAr,
-  cars,
-  expanded,
-  onToggle,
-  expandedId,
-  onToggleCar,
-  onUpdated,
-  onDeleted,
-  onMove,
-  onDragStart,
-  onDragOver,
-  onDrop,
-}: CarCategoryGroupProps) {
+export function CarCategoryGroup({ category, labelAr, cars, expanded, onToggle, expandedId, onToggleCar, onUpdated, onDeleted, onMove, onDragStart, onDragOver, onDrop, isReordering }: CarCategoryGroupProps) {
+  if (CAR_CATEGORIES.length !== 5) throw new Error('CAR_CATEGORIES must be 5 flat groups');
   return (
     <section dir="rtl" className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <button
@@ -44,22 +28,11 @@ export function CarCategoryGroup({
       >
         <span className="flex items-center gap-2">
           <span className="text-sm font-semibold text-[hsl(var(--foreground))]">{labelAr}</span>
-          <span className="rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
-            {cars.length}
-          </span>
+          <span className="rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 text-xs font-semibold text-[hsl(var(--muted-foreground))]">{cars.length}</span>
         </span>
         <span className="flex items-center gap-2">
           <span className="text-xs text-[hsl(var(--muted-foreground))]">{expanded ? 'إخفاء' : 'عرض'}</span>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden
-            className={`shrink-0 text-[hsl(var(--muted-foreground))] transition-transform ${expanded ? 'rotate-180' : ''}`}
-          >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className={`shrink-0 text-[hsl(var(--muted-foreground))] transition-transform ${expanded ? 'rotate-180' : ''}`}>
             <path d="m6 9 6 6 6-6" />
           </svg>
         </span>
@@ -77,6 +50,7 @@ export function CarCategoryGroup({
                     index={idx}
                     total={cars.length}
                     displayOrder={c.displayOrder}
+                    disabled={isReordering}
                     onMoveUp={() => onMove(c.id, -1)}
                     onMoveDown={() => onMove(c.id, 1)}
                     onDragStart={(e) => onDragStart(e, c.id)}
@@ -84,13 +58,7 @@ export function CarCategoryGroup({
                     onDrop={(e) => onDrop(e, c.id)}
                   />
                   <div className="min-w-0 flex-1">
-                    <CarCard
-                      group={c}
-                      expanded={expandedId === c.id}
-                      onToggle={() => onToggleCar(c.id)}
-                      onUpdated={onUpdated}
-                      onDeleted={onDeleted}
-                    />
+                    <CarCard group={c} expanded={expandedId === c.id} onToggle={() => onToggleCar(c.id)} onUpdated={onUpdated} onDeleted={onDeleted} />
                   </div>
                 </li>
               ))}

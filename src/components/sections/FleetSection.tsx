@@ -471,8 +471,9 @@ export function FleetSection() {
             <div className="info-anim grid grid-cols-2 gap-4">
               <div ref={card1Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Users ref={icon1Ref} className="w-8 h-8 text-primary-500 mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">سعة الركاب</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.passengers} أشخاص</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">سعة المعرض</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.categoryAr}</p>
+                <p className="text-xs font-medium text-primary-600 dark:text-primary-400 mt-1">{activeCar.images.length} صور • {activeCar.features.length} ميزات</p>
               </div>
               <div ref={card2Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Briefcase ref={icon2Ref} className="w-8 h-8 text-accent-500 mb-3" />
