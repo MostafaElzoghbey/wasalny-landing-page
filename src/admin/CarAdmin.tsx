@@ -119,7 +119,9 @@ export function CarAdmin() {
     if (selectedCategory === null) return;
     setCreateError(null);
     try {
-      const body = { id: generateId('car'), nameAr: nameAr.trim(), category: selectedCategory, categoryAr: CATEGORY_LABELS[selectedCategory], description: description.trim(), images, features };
+      const categoryCars = cars.filter((c) => c.category === selectedCategory);
+      const nextOrder = categoryCars.length ? Math.max(...categoryCars.map((c) => c.displayOrder)) + 1 : cars.length ? Math.max(...cars.map((c) => c.displayOrder)) + 1 : 0;
+      const body = { id: generateId('car'), nameAr: nameAr.trim(), category: selectedCategory, categoryAr: CATEGORY_LABELS[selectedCategory], description: description.trim(), images, features, displayOrder: nextOrder };
       await adminCreateCar(body as unknown as Omit<Car, 'id'>);
       resetForm();
       await load();
