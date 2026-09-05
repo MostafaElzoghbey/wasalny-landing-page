@@ -75,7 +75,7 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
   }
 
   return (
-    <li
+    <div
       data-testid={`car-card-${group.id}`}
       className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] transition"
     >
@@ -239,6 +239,6 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }

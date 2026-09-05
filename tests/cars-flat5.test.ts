@@ -24,14 +24,24 @@ describe('S-CAR flat 5 direct rows contract', () => {
     expect(Object.keys(CATEGORY_LABELS).sort()).toEqual([...CAR_CATEGORIES].sort());
   });
 
-  it('CarCategoryGroup renders exactly 5 headers and no nested category', () => {
-    const grp = readFileSync(resolve('src/admin/CarCategoryGroup.tsx'), 'utf8');
-    expect(grp).toMatch(/car-category-/);
-    expect(grp).not.toMatch(/car-category-.*car-category-/s);
+  it('CarCategoryGroup is deleted — flat fleet mode (no subgroups)', () => {
+    let exists = true;
+    try {
+      readFileSync(resolve('src/admin/CarCategoryGroup.tsx'), 'utf8');
+    } catch {
+      exists = false;
+    }
+    expect(exists).toBe(false);
+    const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
+    expect(admin).not.toMatch(/CarCategoryGroup/);
+    expect(admin).not.toMatch(/expandedCategories/);
   });
 
-  it('CarAdmin grouped logic is flat CAR_CATEGORIES.map filter', () => {
+  it('CarAdmin flat list uses global order (no per-category grouping)', () => {
     const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
-    expect(admin).toMatch(/CAR_CATEGORIES\.map.*cars\.filter.*category === cat/);
+    expect(admin).not.toMatch(/CAR_CATEGORIES\.map.*cars\.filter.*category === cat/s);
+    expect(admin).toMatch(/useReorderAnimation/);
+    expect(admin).toMatch(/data-reorder-item/);
+    expect(admin).toMatch(/transitionDelay/);
   });
 });

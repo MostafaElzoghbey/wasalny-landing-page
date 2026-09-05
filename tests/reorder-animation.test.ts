@@ -4,9 +4,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 describe('S-ANIM reorder animation contract', () => {
-  it('index.css has reorder keyframes and utilities', () => {
+  it('index.css has reorder utilities without dead keyframes', () => {
     const css = readFileSync(resolve('src/index.css'), 'utf8');
-    expect(css).toMatch(/reorder-move/);
+    expect(css).not.toMatch(/reorder-move/);
+    expect(css).not.toMatch(/reorder-enter/);
     expect(css).toMatch(/reorder-item/);
     expect(css).toMatch(/prefers-reduced-motion/);
   });
@@ -29,9 +30,17 @@ describe('S-ANIM reorder animation contract', () => {
     expect(rc).toMatch(/reorder-item|dragging|scale/);
   });
 
-  it('CarCategoryGroup has expand animation and FLIP', () => {
-    const grp = readFileSync(resolve('src/admin/CarCategoryGroup.tsx'), 'utf8');
-    expect(grp).toMatch(/reorder-item|useReorderAnimation|Flip/);
+  it('CarAdmin flat list has FLIP reorder (no CarCategoryGroup)', () => {
+    let grpExists = true;
+    try {
+      readFileSync(resolve('src/admin/CarCategoryGroup.tsx'), 'utf8');
+    } catch {
+      grpExists = false;
+    }
+    expect(grpExists).toBe(false);
+    const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
+    expect(admin).toMatch(/useReorderAnimation/);
+    expect(admin).toMatch(/data-reorder-item/);
   });
 
   it('flat admins have reorder-item class', () => {

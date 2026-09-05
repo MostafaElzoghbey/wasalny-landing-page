@@ -5,10 +5,85 @@ import type { Car } from '@/types';
 import { adminCreateCar, adminGetCars, adminReorderCars } from '@/data/api';
 import { ChipInput } from '@/components/ui/ChipInput';
 import { ImageDropzone } from '@/components/ui/ImageDropzone';
+import { ReorderControls } from '@/components/ui/ReorderControls';
+import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
-import { CarCategoryGroup } from './CarCategoryGroup';
+import { CarCard } from './CarCard';
 import { CAR_CATEGORIES, CATEGORY_LABELS } from './carHelpers';
+
+interface CarListProps {
+  cars: Car[];
+  expandedId: string | null;
+  isReordering: boolean;
+  onToggleCar: (id: string) => void;
+  onUpdated: (next: Car) => void;
+  onDeleted: (id: string) => void;
+  onReorder: (next: Car[]) => void;
+}
+
+function CarList({ cars, expandedId, isReordering, onToggleCar, onUpdated, onDeleted, onReorder }: CarListProps) {
+  const dragIdRef = useRef<string | null>(null);
+  const { ref: listRef, capture } = useReorderAnimation(cars.map((c) => c.id).join(','));
+  const sorted = [...cars].sort((a, b) => a.displayOrder - b.displayOrder);
+
+  function handleMove(id: string, dir: -1 | 1): void {
+    if (isReordering) return;
+    const idx = sorted.findIndex((c) => c.id === id);
+    const target = idx + dir;
+    if (idx === -1 || target < 0 || target >= sorted.length) return;
+    capture();
+    const next = [...sorted];
+    [next[idx], next[target]] = [next[target], next[idx]];
+    onReorder(next);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>, targetId: string): void {
+    if (isReordering) return;
+    e.preventDefault();
+    const draggedId = dragIdRef.current;
+    dragIdRef.current = null;
+    if (!draggedId || draggedId === targetId) return;
+    const from = sorted.findIndex((c) => c.id === draggedId);
+    const to = sorted.findIndex((c) => c.id === targetId);
+    if (from === -1 || to === -1) return;
+    capture();
+    const next = [...sorted];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onReorder(next);
+  }
+
+  return (
+    <ul ref={listRef} className="space-y-2">
+      {sorted.map((car, idx) => (
+        <li key={car.id} dir="rtl" data-reorder-item={car.id} data-testid={`car-row-${car.id}`} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
+          <ReorderControls
+            id={car.id}
+            index={idx}
+            total={sorted.length}
+            displayOrder={car.displayOrder}
+            disabled={isReordering}
+            onMoveUp={() => handleMove(car.id, -1)}
+            onMoveDown={() => handleMove(car.id, 1)}
+            onDragStart={(e) => {
+              dragIdRef.current = car.id;
+              e.dataTransfer.effectAllowed = 'move';
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, car.id)}
+          />
+          <div className="min-w-0 flex-1">
+            <CarCard group={car} expanded={expandedId === car.id} onToggle={() => onToggleCar(car.id)} onUpdated={onUpdated} onDeleted={onDeleted} />
+          </div>
+        </li>
+      ))}
+      {sorted.length === 0 && (
+        <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد سيارات بعد.</li>
+      )}
+    </ul>
+  );
+}
 
 export function CarAdmin() {
   const [cars, setCars] = useState<Car[]>([]);
@@ -24,8 +99,6 @@ export function CarAdmin() {
   const [reorderError, setReorderError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isReordering, setIsReordering] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<Set<Car['category']>>(() => new Set(CAR_CATEGORIES as unknown as Car['category'][]));
-  const dragIdRef = useRef<string | null>(null);
 
   async function load(): Promise<void> {
     setLoading(true);
@@ -52,33 +125,20 @@ export function CarAdmin() {
   function handleDeleted(deletedId: string): void { setCars((prev) => prev.filter((c) => c.id !== deletedId)); if (expandedId === deletedId) setExpandedId(null); }
   async function doReorder(next: Car[]): Promise<void> {
     if (isReordering) return;
-    const prev = [...cars]; const nextWithOrder = next.map((c, i) => ({ ...c, displayOrder: i })); const ids = nextWithOrder.map((c) => c.id); setCars(nextWithOrder); setReorderError(null); setIsReordering(true);
-    try { await adminReorderCars(ids); } catch (e) { setCars(prev); setReorderError(e instanceof Error ? e.message : 'فشل إعادة الترتيب'); } finally { setIsReordering(false); }
-  }
-  const grouped = CAR_CATEGORIES.map((cat) => ({ category: cat, cars: cars.filter((c) => c.category === cat).sort((a, b) => a.displayOrder - b.displayOrder) }));
-  function toggleCategory(cat: Car['category']): void {
-    setExpandedCategories((prev) => { const next = new Set(prev); if (next.has(cat)) next.delete(cat); else next.add(cat); return next; });
-  }
-  function handleMove(id: string, cat: Car['category'], dir: -1 | 1): void {
-    if (isReordering) return;
-    const group = grouped.find((g) => g.category === cat); if (!group) return;
-    const idx = group.cars.findIndex((c) => c.id === id); const target = idx + dir;
-    if (idx === -1 || target < 0 || target >= group.cars.length) return;
-    const reordered = [...group.cars]; const [moved] = reordered.splice(idx, 1); reordered.splice(target, 0, moved);
-    const next = CAR_CATEGORIES.flatMap((c) => (c === cat ? reordered : (grouped.find((g) => g.category === c)?.cars ?? [])));
-    void doReorder(next);
-  }
-  function handleDrop(e: React.DragEvent<HTMLDivElement>, targetId: string, cat: Car['category']): void {
-    if (isReordering) return;
-    e.preventDefault(); const draggedId = dragIdRef.current; dragIdRef.current = null;
-    if (!draggedId || draggedId === targetId) return;
-    const dragged = cars.find((c) => c.id === draggedId); if (!dragged || dragged.category !== cat) return;
-    const group = grouped.find((g) => g.category === cat); if (!group) return;
-    const from = group.cars.findIndex((c) => c.id === draggedId); const to = group.cars.findIndex((c) => c.id === targetId);
-    if (from === -1 || to === -1) return;
-    const reordered = [...group.cars]; const [moved] = reordered.splice(from, 1); reordered.splice(to, 0, moved);
-    const next = CAR_CATEGORIES.flatMap((c) => (c === cat ? reordered : (grouped.find((g) => g.category === c)?.cars ?? [])));
-    void doReorder(next);
+    const prev = [...cars];
+    const nextWithOrder = next.map((c, i) => ({ ...c, displayOrder: i }));
+    const ids = nextWithOrder.map((c) => c.id);
+    setCars(nextWithOrder);
+    setReorderError(null);
+    setIsReordering(true);
+    try {
+      await adminReorderCars(ids);
+    } catch (e) {
+      setCars(prev);
+      setReorderError(e instanceof Error ? e.message : 'فشل إعادة الترتيب');
+    } finally {
+      setIsReordering(false);
+    }
   }
   return (
     <Panel title="السيارات">
@@ -109,11 +169,15 @@ export function CarAdmin() {
         )}
       </div>
       {loading ? <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p> : (
-        <div className="space-y-4">
-          {grouped.map(({ category: cat, cars: groupCars }) => (
-            <CarCategoryGroup key={cat} category={cat} labelAr={CATEGORY_LABELS[cat]} cars={groupCars} expanded={expandedCategories.has(cat)} onToggle={() => toggleCategory(cat)} expandedId={expandedId} onToggleCar={(id) => setExpandedId((prev) => (prev === id ? null : id))} onUpdated={handleUpdated} onDeleted={handleDeleted} onMove={(id, dir) => handleMove(id, cat, dir)} onDragStart={(e, id) => { dragIdRef.current = id; e.dataTransfer.effectAllowed = 'move'; }} onDragOver={(e) => e.preventDefault()} onDrop={(e, targetId) => handleDrop(e, targetId, cat)} isReordering={isReordering} />
-          ))}
-        </div>
+        <CarList
+          cars={cars}
+          expandedId={expandedId}
+          isReordering={isReordering}
+          onToggleCar={(id) => setExpandedId((prev) => (prev === id ? null : id))}
+          onUpdated={handleUpdated}
+          onDeleted={handleDeleted}
+          onReorder={(next) => void doReorder(next)}
+        />
       )}
     </Panel>
   );
