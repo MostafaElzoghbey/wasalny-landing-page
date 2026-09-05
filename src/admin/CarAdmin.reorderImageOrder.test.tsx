@@ -39,7 +39,7 @@ const fleetCars: Car[] = [
 
 async function renderFleet(): Promise<void> {
   render(<CarAdmin />);
-  await screen.findByTestId('car-card-car-sedan-1');
+  await screen.findByTestId('category-card-sedan');
 }
 
 describe('CarAdmin reorder image order proofs', () => {

@@ -43,7 +43,7 @@ const categories: readonly Car['category'][] = ['sedan', 'suv', 'family_cruiser'
 
 async function renderFleet(): Promise<void> {
   render(<CarAdmin />);
-  await screen.findByTestId('car-card-car-sedan-1');
+  await screen.findByTestId('category-card-sedan');
 }
 
 describe('CarAdmin fleet big-categories contract', () => {

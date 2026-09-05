@@ -158,11 +158,6 @@ export function CarAdmin() {
               <CategoryCard key={cat} category={cat} count={cars.filter((c) => c.category === cat).length} cars={cars} onSelect={handleSelectCategory} />
             ))}
           </div>
-          <div hidden aria-hidden data-testid="car-sync-hidden" className="hidden">
-            {cars.map((car) => (
-              <div key={car.id} data-testid={`car-card-${car.id}`} />
-            ))}
-          </div>
         </>
       ) : (
         <div dir="rtl" data-testid={`category-drilldown-${selectedCategory}`} className="space-y-4">
