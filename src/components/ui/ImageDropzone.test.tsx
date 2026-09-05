@@ -32,19 +32,18 @@ function makeFile(name: string, type: string): File {
 }
 
 describe('ImageDropzone', () => {
-  it('adds dropped files as blob URLs in multiple mode', () => {
+  it('adds dropped files as data URLs in multiple mode', async () => {
     const { onChange } = setup();
-    // The drop handlers live on the inner dropzone div (the one with the
-    // "اسحب الصور" prompt), not the outer data-testid wrapper.
     const dropzone = screen.getByText('اسحب الصور أو اضغط للاختيار');
     const file = makeFile('a.png', 'image/png');
     fireEvent.drop(dropzone, {
       dataTransfer: { files: [file] },
     });
+    await new Promise((r) => setTimeout(r, 50));
     expect(onChange).toHaveBeenCalledTimes(1);
     const next = onChange.mock.calls[0][0] as string[];
     expect(next).toHaveLength(1);
-    expect(next[0]).toMatch(/^blob:/);
+    expect(next[0]).toMatch(/^data:/);
   });
 
   it('ignores a drop with no files', () => {

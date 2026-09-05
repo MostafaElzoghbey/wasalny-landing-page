@@ -69,22 +69,29 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
   const handleFiles = useCallback(
     (files: FileList | null) => {
       if (!files || files.length === 0) return;
+      const readAsDataUrl = (file: File): Promise<string> =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("فشل قراءة الملف"));
+          reader.readAsDataURL(file);
+        });
       if (mode === "single") {
         const f = files[0];
-        const url = URL.createObjectURL(f);
-        blobUrlsRef.current.add(url);
-        setError(null);
-        emit([url]);
+        readAsDataUrl(f)
+          .then((url) => {
+            setError(null);
+            emit([url]);
+          })
+          .catch(() => setError("فشل قراءة الملف"));
         return;
       }
-      const urls: string[] = [];
-      for (const f of Array.from(files)) {
-        if (normalized.length + urls.length >= limit) { setError(`الحد الأقصى ${limit} صور`); break; }
-        const url = URL.createObjectURL(f);
-        blobUrlsRef.current.add(url);
-        urls.push(url);
-      }
-      if (urls.length) { setError(null); emit([...normalized, ...urls]); }
+      const fileList = Array.from(files).slice(0, limit - normalized.length);
+      Promise.all(fileList.map(readAsDataUrl))
+        .then((urls) => {
+          if (urls.length) { setError(null); emit([...normalized, ...urls]); }
+        })
+        .catch(() => setError("فشل قراءة الملف"));
     },
     [emit, limit, mode, normalized],
   );
