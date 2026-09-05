@@ -38,6 +38,32 @@ export function cloneCar(car: Car): Car {
   };
 }
 
+export const CATEGORY_ICON_MAP: Record<
+  Car['category'],
+  'Car' | 'Truck' | 'Bus' | 'UsersRound' | 'Heart'
+> = {
+  sedan: 'Car',
+  suv: 'Truck',
+  family_cruiser: 'Bus',
+  minibus: 'UsersRound',
+  wedding: 'Heart',
+};
+
+export const CATEGORY_COLORS: Record<
+  Car['category'],
+  { primary: string; accent: string; solid: string; ring: string }
+> = {
+  sedan: { primary: 'from-blue-500/15', accent: 'to-cyan-500/10', solid: 'bg-blue-600', ring: 'ring-blue-500/20' },
+  suv: { primary: 'from-emerald-500/15', accent: 'to-teal-500/10', solid: 'bg-emerald-600', ring: 'ring-emerald-500/20' },
+  family_cruiser: { primary: 'from-purple-500/15', accent: 'to-pink-500/10', solid: 'bg-purple-600', ring: 'ring-purple-500/20' },
+  minibus: { primary: 'from-orange-500/15', accent: 'to-amber-500/10', solid: 'bg-orange-600', ring: 'ring-orange-500/20' },
+  wedding: { primary: 'from-rose-500/15', accent: 'to-pink-500/10', solid: 'bg-rose-600', ring: 'ring-rose-500/20' },
+};
+
+export function getCategoryMeta(cat: Car['category']) {
+  return { label: CATEGORY_LABELS[cat], icon: CATEGORY_ICON_MAP[cat], colors: CATEGORY_COLORS[cat] };
+}
+
 export function validateCar(car: Partial<Car>): string | null {
   if (car.nameAr === undefined || car.nameAr.trim() === '') {
     return 'الاسم (عربي) مطلوب';

@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'test';
 
 import { describe, it, expect } from 'vitest';
 import type { Car } from '@/types';
-import { validateCar, cloneCar, CAR_CATEGORIES, CATEGORY_LABELS } from './carHelpers';
+import { validateCar, cloneCar, CAR_CATEGORIES, CATEGORY_LABELS, CATEGORY_ICON_MAP, CATEGORY_COLORS, getCategoryMeta } from './carHelpers';
 
 describe('carHelpers', () => {
   describe('validateCar', () => {
@@ -115,6 +115,55 @@ describe('carHelpers', () => {
         'minibus',
         'wedding',
       ]);
+    });
+  });
+
+  describe('CATEGORY_ICON_MAP', () => {
+    it('maps all 5 categories to icon name strings', () => {
+      for (const cat of CAR_CATEGORIES) {
+        expect(typeof CATEGORY_ICON_MAP[cat]).toBe('string');
+        expect(CATEGORY_ICON_MAP[cat].length).toBeGreaterThan(0);
+      }
+      expect(CATEGORY_ICON_MAP.sedan).toBe('Car');
+      expect(CATEGORY_ICON_MAP.suv).toBe('Truck');
+      expect(CATEGORY_ICON_MAP.family_cruiser).toBe('Bus');
+      expect(CATEGORY_ICON_MAP.minibus).toBe('UsersRound');
+      expect(CATEGORY_ICON_MAP.wedding).toBe('Heart');
+    });
+  });
+
+  describe('CATEGORY_COLORS', () => {
+    it('maps all 5 categories to objects with primary, accent, solid, ring', () => {
+      for (const cat of CAR_CATEGORIES) {
+        const c = CATEGORY_COLORS[cat];
+        expect(typeof c.primary).toBe('string');
+        expect(typeof c.accent).toBe('string');
+        expect(typeof c.solid).toBe('string');
+        expect(typeof c.ring).toBe('string');
+      }
+      expect(CATEGORY_COLORS.sedan.primary).toContain('blue');
+      expect(CATEGORY_COLORS.suv.solid).toContain('emerald');
+      expect(CATEGORY_COLORS.wedding.ring).toContain('rose');
+    });
+  });
+
+  describe('getCategoryMeta', () => {
+    it('returns label, icon, and colors for every category', () => {
+      for (const cat of CAR_CATEGORIES) {
+        const meta = getCategoryMeta(cat);
+        expect(meta.label).toBe(CATEGORY_LABELS[cat]);
+        expect(meta.icon).toBe(CATEGORY_ICON_MAP[cat]);
+        expect(meta.colors).toEqual(CATEGORY_COLORS[cat]);
+      }
+    });
+
+    it('returns correct values for sedan', () => {
+      const meta = getCategoryMeta('sedan');
+      expect(meta).toEqual({
+        label: 'سيدان',
+        icon: 'Car',
+        colors: CATEGORY_COLORS.sedan,
+      });
     });
   });
 });
