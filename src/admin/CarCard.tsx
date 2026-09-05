@@ -139,10 +139,10 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
                   <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الصور</p>
                   {group.images.length > 0 ? (
-                    <ul className="space-y-1 font-mono text-xs text-[hsl(var(--foreground))]">
-                      {group.images.map((img) => (
-                        <li key={img} className="truncate">
-                          {img}
+                    <ul data-testid={`car-images-preview-${group.id}`} className="mt-1 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {group.images.map((src, idx) => (
+                        <li key={`${src}-${idx}`} data-testid={`car-preview-${group.id}-${idx}`} className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+                          <img src={src} alt="" loading="lazy" data-testid={`car-preview-img-${group.id}-${idx}`} className="h-28 w-full object-cover" onError={(e) => {(e.currentTarget as HTMLImageElement).style.display = 'none';}} />
                         </li>
                       ))}
                     </ul>
