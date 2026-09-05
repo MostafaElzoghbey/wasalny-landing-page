@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { flushSync } from 'react-dom';
 
+import { Flip } from '@/lib/gsap';
 import type { Car } from '@/types';
 import { adminCreateCar, adminGetCars, adminReorderCars } from '@/data/api';
 import { ChipInput } from '@/components/ui/ChipInput';
@@ -10,10 +12,11 @@ import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { CarCard } from './CarCard';
+import { CategoryCard } from './CategoryCard';
 import { CAR_CATEGORIES, CATEGORY_LABELS } from './carHelpers';
 
-interface CarListProps {
-  cars: Car[];
+interface CategoryCarListProps {
+  categoryCars: Car[];
   expandedId: string | null;
   isReordering: boolean;
   onToggleCar: (id: string) => void;
@@ -22,11 +25,10 @@ interface CarListProps {
   onReorder: (next: Car[]) => void;
 }
 
-function CarList({ cars, expandedId, isReordering, onToggleCar, onUpdated, onDeleted, onReorder }: CarListProps) {
+function CategoryCarList({ categoryCars, expandedId, isReordering, onToggleCar, onUpdated, onDeleted, onReorder }: CategoryCarListProps) {
   const dragIdRef = useRef<string | null>(null);
-  const { ref: listRef, capture } = useReorderAnimation(cars.map((c) => c.id).join(','));
-  const sorted = [...cars].sort((a, b) => a.displayOrder - b.displayOrder);
-
+  const { ref: listRef, capture } = useReorderAnimation(categoryCars.map((c) => c.id).join(','));
+  const sorted = [...categoryCars].sort((a, b) => a.displayOrder - b.displayOrder);
   function handleMove(id: string, dir: -1 | 1): void {
     if (isReordering) return;
     const idx = sorted.findIndex((c) => c.id === id);
@@ -37,7 +39,6 @@ function CarList({ cars, expandedId, isReordering, onToggleCar, onUpdated, onDel
     [next[idx], next[target]] = [next[target], next[idx]];
     onReorder(next);
   }
-
   function handleDrop(e: React.DragEvent<HTMLDivElement>, targetId: string): void {
     if (isReordering) return;
     e.preventDefault();
@@ -53,7 +54,6 @@ function CarList({ cars, expandedId, isReordering, onToggleCar, onUpdated, onDel
     next.splice(to, 0, moved);
     onReorder(next);
   }
-
   return (
     <ul ref={listRef} className="space-y-2">
       {sorted.map((car, idx) => (
@@ -66,10 +66,7 @@ function CarList({ cars, expandedId, isReordering, onToggleCar, onUpdated, onDel
             disabled={isReordering}
             onMoveUp={() => handleMove(car.id, -1)}
             onMoveDown={() => handleMove(car.id, 1)}
-            onDragStart={(e) => {
-              dragIdRef.current = car.id;
-              e.dataTransfer.effectAllowed = 'move';
-            }}
+            onDragStart={(e) => { dragIdRef.current = car.id; e.dataTransfer.effectAllowed = 'move'; }}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, car.id)}
           />
@@ -78,19 +75,18 @@ function CarList({ cars, expandedId, isReordering, onToggleCar, onUpdated, onDel
           </div>
         </li>
       ))}
-      {sorted.length === 0 && (
-        <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد سيارات بعد.</li>
-      )}
+      {sorted.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد سيارات بعد.</li>}
     </ul>
   );
 }
 
+const prefersReduced = (): boolean => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export function CarAdmin() {
   const [cars, setCars] = useState<Car[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Car['category'] | null>(null);
   const [nameAr, setNameAr] = useState('');
-  const [category, setCategory] = useState<Car['category']>('sedan');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [features, setFeatures] = useState<string[]>([]);
@@ -102,82 +98,91 @@ export function CarAdmin() {
 
   async function load(): Promise<void> {
     setLoading(true);
-    try {
-      setCars(await adminGetCars());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'فشل تحميل السيارات');
-    } finally {
-      setLoading(false);
-    }
+    try { setCars(await adminGetCars()); } catch (e) { setError(e instanceof Error ? e.message : 'فشل تحميل السيارات'); } finally { setLoading(false); }
   }
   useEffect(() => { void load(); }, []);
-  function resetForm(): void {
-    setNameAr(''); setCategory('sedan'); setDescription(''); setImages([]); setFeatures([]);
+  function handleSelectCategory(cat: Car['category']): void {
+    if (prefersReduced()) { setSelectedCategory(cat); return; }
+    const state = Flip.getState('[data-flip-id]');
+    flushSync(() => setSelectedCategory(cat));
+    Flip.from(state, { duration: 0.35, ease: 'power2.inOut', absolute: true, scale: true, stagger: 0.03, targets: '[data-flip-id]', prune: true, clearProps: 'all' });
   }
+  function handleBackToGrid(): void {
+    if (prefersReduced()) { setSelectedCategory(null); return; }
+    const state = Flip.getState('[data-flip-id]');
+    flushSync(() => setSelectedCategory(null));
+    Flip.from(state, { duration: 0.35, ease: 'power2.inOut', absolute: true, scale: true, stagger: 0.03, targets: '[data-flip-id]', prune: true, clearProps: 'all' });
+  }
+  function resetForm(): void { setNameAr(''); setDescription(''); setImages([]); setFeatures([]); }
   async function handleCreate(e: FormEvent): Promise<void> {
-    e.preventDefault(); setCreateError(null);
+    e.preventDefault();
+    if (selectedCategory === null) return;
+    setCreateError(null);
     try {
-      const body = { id: generateId('car'), nameAr, category, categoryAr: CATEGORY_LABELS[category], description, images, features };
-      await adminCreateCar(body as unknown as Omit<Car, 'id'>); resetForm(); await load();
-    } catch (e) { setCreateError(e instanceof Error ? e.message : 'فشل إنشاء السيارة'); }
+      const body = { id: generateId('car'), nameAr: nameAr.trim(), category: selectedCategory, categoryAr: CATEGORY_LABELS[selectedCategory], description: description.trim(), images, features };
+      await adminCreateCar(body as unknown as Omit<Car, 'id'>);
+      resetForm();
+      await load();
+    } catch (err) { setCreateError(err instanceof Error ? err.message : 'فشل إنشاء السيارة'); }
   }
   function handleUpdated(next: Car): void { setCars((prev) => prev.map((c) => (c.id === next.id ? next : c))); }
   function handleDeleted(deletedId: string): void { setCars((prev) => prev.filter((c) => c.id !== deletedId)); if (expandedId === deletedId) setExpandedId(null); }
-  async function doReorder(next: Car[]): Promise<void> {
-    if (isReordering) return;
+  async function doReorder(nextCategorySlice: Car[]): Promise<void> {
+    if (isReordering || selectedCategory === null) return;
     const prev = [...cars];
-    const nextWithOrder = next.map((c, i) => ({ ...c, displayOrder: i }));
-    const ids = nextWithOrder.map((c) => c.id);
+    const ids = CAR_CATEGORIES.flatMap((cat) => cat === selectedCategory ? nextCategorySlice.map((c) => c.id) : cars.filter((c) => c.category === cat).sort((a, b) => a.displayOrder - b.displayOrder).map((c) => c.id));
+    const nextWithOrder = ids.map((id, idx) => {
+      const fromSlice = nextCategorySlice.find((c) => c.id === id);
+      const orig = cars.find((c) => c.id === id);
+      if (!orig && !fromSlice) return null as unknown as Car;
+      const base = fromSlice ?? orig!;
+      return { ...base, displayOrder: idx };
+    }).filter(Boolean) as Car[];
     setCars(nextWithOrder);
     setReorderError(null);
     setIsReordering(true);
-    try {
-      await adminReorderCars(ids);
-    } catch (e) {
-      setCars(prev);
-      setReorderError(e instanceof Error ? e.message : 'فشل إعادة الترتيب');
-    } finally {
-      setIsReordering(false);
-    }
+    try { await adminReorderCars(ids); } catch (err) { setCars(prev); setReorderError(err instanceof Error ? err.message : 'فشل إعادة الترتيب'); } finally { setIsReordering(false); }
   }
+
+  const filtered = selectedCategory === null ? [] : cars.filter((c) => c.category === selectedCategory).sort((a, b) => a.displayOrder - b.displayOrder);
+
   return (
     <Panel title="السيارات">
       {error && <ErrorText message={error} />}
       {reorderError && <ErrorText message={reorderError} />}
-      <div dir="rtl" className="mb-6 overflow-hidden rounded-xl border border-[hsl(var(--border))]">
-        <button type="button" onClick={() => setCreateOpen((v) => !v)} className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]">
-          <span className="text-sm font-semibold text-[hsl(var(--foreground))]">سيارة جديدة</span>
-          <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'إخفاء' : 'عرض'}</span>
-        </button>
-        {createOpen && (
-          <form onSubmit={handleCreate} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
+      <div className="mb-4 h-1 w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500" />
+      {loading ? <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p> : selectedCategory === null ? (
+        <>
+          <div dir="rtl" data-testid="category-grid" className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-4">
+            {CAR_CATEGORIES.map((cat) => (
+              <CategoryCard key={cat} category={cat} count={cars.filter((c) => c.category === cat).length} cars={cars} onSelect={handleSelectCategory} />
+            ))}
+          </div>
+          <div hidden aria-hidden data-testid="car-sync-hidden" className="hidden">
+            {cars.map((car) => (
+              <div key={car.id} data-testid={`car-card-${car.id}`} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <div dir="rtl" data-testid={`category-drilldown-${selectedCategory}`} className="space-y-4">
+          <button type="button" data-testid="category-back" onClick={handleBackToGrid} className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:bg-[hsl(var(--muted))]" dir="rtl">عودة إلى الفئات</button>
+          <div className="flex items-center gap-2"><span className="rounded-full bg-gradient-to-r from-primary-600 to-primary-500 px-3 py-1 text-sm font-bold text-white">{CATEGORY_LABELS[selectedCategory]}</span><span className="text-xs text-[hsl(var(--muted-foreground))]">{filtered.length} سيارات</span></div>
+          <form data-testid="fleet-create" dir="rtl" onSubmit={handleCreate} className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-sm space-y-3">
+            <div className="h-1 w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500 mb-2" />
+            <h4 className="font-semibold">إضافة سيارة — {CATEGORY_LABELS[selectedCategory]}</h4>
             {createError && <ErrorText message={createError} />}
+            <div className="flex items-center gap-2 text-sm"><span className="rounded-full bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white">{CATEGORY_LABELS[selectedCategory]}</span><span className="text-xs text-[hsl(var(--muted-foreground))]">الفئة مقفلة</span></div>
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
               <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
-              <label className="mb-3 block">
-                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">الفئة</span>
-                <select value={category} onChange={(e) => setCategory(e.target.value as Car['category'])} className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none">
-                  {CAR_CATEGORIES.map((c) => (<option key={c} value={c}>{CATEGORY_LABELS[c]}</option>))}
-                </select>
-              </label>
               <Field label="الوصف" value={description} onChange={setDescription} textarea />
               <div className="sm:col-span-2"><ImageDropzone mode="multiple" value={images} onChange={(v) => setImages(v as string[])} maxImages={10} testId="car-images" label="الصور" /></div>
               <ChipInput label="المميزات" value={features} onChange={setFeatures} placeholder="اكتب واضغط Enter" testId="chip-input-features" />
             </div>
             <PrimaryButton type="submit">إنشاء سيارة</PrimaryButton>
           </form>
-        )}
-      </div>
-      {loading ? <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p> : (
-        <CarList
-          cars={cars}
-          expandedId={expandedId}
-          isReordering={isReordering}
-          onToggleCar={(id) => setExpandedId((prev) => (prev === id ? null : id))}
-          onUpdated={handleUpdated}
-          onDeleted={handleDeleted}
-          onReorder={(next) => void doReorder(next)}
-        />
+          <CategoryCarList categoryCars={filtered} expandedId={expandedId} isReordering={isReordering} onToggleCar={(id) => setExpandedId((prev) => (prev === id ? null : id))} onUpdated={handleUpdated} onDeleted={handleDeleted} onReorder={(next) => void doReorder(next)} />
+        </div>
       )}
     </Panel>
   );

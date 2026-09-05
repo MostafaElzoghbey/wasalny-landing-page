@@ -78,7 +78,7 @@ export function ErrorText({ message }: { message: string }) {
 
 export function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="card p-5">
+    <section dir="rtl" className="card p-5">
       <h3 className="mb-4 text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h3>
       {children}
     </section>
