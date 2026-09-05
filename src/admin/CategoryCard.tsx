@@ -1,4 +1,3 @@
-import React from 'react';
 import { Bus, Car, Heart, Truck, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Car as CarType } from '@/types';
