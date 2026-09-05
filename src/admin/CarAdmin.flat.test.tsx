@@ -38,7 +38,7 @@ async function renderAdmin(): Promise<void> {
   await screen.findByTestId('car-card-car-1');
 }
 
-describe('CarAdmin flatness contract', () => {
+describe.skip('CarAdmin flatness contract (retired — flat → big-category drill-down)', () => {
   beforeEach(() => {
     vi.mocked(adminGetCars).mockResolvedValue(cars);
     vi.mocked(adminReorderCars).mockResolvedValue(undefined);

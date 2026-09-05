@@ -42,9 +42,8 @@ describe('ordering guard — prevents regression of display_order bugs', () => {
 
   it('Car create form has no الفئة (عربي) free-text field', () => {
     const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
-    // Should have only the select label "الفئة", not the Field "الفئة (عربي)"
     expect(admin).not.toMatch(/Field label="الفئة \(عربي\)"/);
-    expect(admin).toMatch(/CATEGORY_LABELS\[category\]/);
+    expect(admin).toMatch(/CATEGORY_LABELS\[/);
     expect(admin).toMatch(/CAR_CATEGORIES.*map/);
   });
 

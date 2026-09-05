@@ -7,7 +7,7 @@ import { CATEGORY_LABELS, CAR_CATEGORIES } from '../src/admin/carHelpers';
 describe('S-CAR flat 5 direct rows contract', () => {
   it('CarAdmin select shows Arabic labels not English keys', () => {
     const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
-    expect(admin).toMatch(/CATEGORY_LABELS\[c\]/);
+    expect(admin).toMatch(/CATEGORY_LABELS\[/);
     expect(admin).not.toMatch(/<option[^>]*>\{c\}<\/option>/);
   });
 
@@ -37,9 +37,11 @@ describe('S-CAR flat 5 direct rows contract', () => {
     expect(admin).not.toMatch(/expandedCategories/);
   });
 
-  it('CarAdmin flat list uses global order (no per-category grouping)', () => {
+  it('CarAdmin drill-down uses big-category grid with per-category filter and global flatMap reorder', () => {
     const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
-    expect(admin).not.toMatch(/CAR_CATEGORIES\.map.*cars\.filter.*category === cat/s);
+    expect(admin).toMatch(/category-grid/);
+    expect(admin).toMatch(/category-drilldown/);
+    expect(admin).toMatch(/CAR_CATEGORIES.*flatMap/);
     expect(admin).toMatch(/useReorderAnimation/);
     expect(admin).toMatch(/data-reorder-item/);
     expect(admin).toMatch(/transitionDelay/);
