@@ -91,7 +91,6 @@ test.describe('Wave4 Task7 - Admin inline-edit smoke (4 sections)', () => {
     const tempId = `tmp-car-${Date.now()}`;
     await page.fill('input[placeholder=""], input', tempId).catch(() => {});
     // Fill form fields more reliably via labels
-    const idField = page.locator('form').locator('input').first();
     // The first field is ID (optional)
     await page.locator('form >> input').nth(0).fill(tempId);
     await page.locator('form >> input').nth(1).fill(`TempCar ${Date.now()}`);

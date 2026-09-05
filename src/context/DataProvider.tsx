@@ -14,6 +14,7 @@ import {
 
 export type DataContextValue = SiteData & { pricing: PricingData; loading: boolean };
 
+// eslint-disable-next-line react-refresh/only-export-components -- context shared with provider/hook in same file
 export const DataContext = createContext<DataContextValue | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
@@ -54,6 +55,7 @@ export function DataProvider({ children }: { children: React.ReactNode }): React
   return <DataContext.Provider value={data}>{children}</DataContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with provider
 export function useData(): DataContextValue {
   const ctx = useContext(DataContext);
   if (!ctx) throw new Error('useData must be used within <DataProvider>');

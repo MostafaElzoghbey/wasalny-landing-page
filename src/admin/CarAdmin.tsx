@@ -97,7 +97,7 @@ export function CarAdmin() {
               <label className="mb-3 block">
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">الفئة</span>
                 <select value={category} onChange={(e) => setCategory(e.target.value as Car['category'])} className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none">
-                  {CAR_CATEGORIES.map((c) => (<option key={c} value={c}>{c}</option>))}
+                  {CAR_CATEGORIES.map((c) => (<option key={c} value={c}>{CATEGORY_LABELS[c]}</option>))}
                 </select>
               </label>
               <Field label="الوصف" value={description} onChange={setDescription} textarea />

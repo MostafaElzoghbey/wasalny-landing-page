@@ -87,8 +87,14 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
+            {group.images[0] ? (
+              <img src={group.images[0]} alt="" loading="lazy" data-testid={`car-thumb-${group.id}`} className="h-10 w-10 shrink-0 rounded-lg border border-[hsl(var(--border))] object-cover" />
+            ) : (
+              <div data-testid={`car-thumb-placeholder-${group.id}`} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))] text-xs text-[hsl(var(--muted-foreground))]">—</div>
+            )}
+            <span data-testid={`car-order-${group.id}`} className="rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 font-mono text-xs font-semibold text-[hsl(var(--muted-foreground))]">{group.displayOrder}</span>
             <span className="truncate font-medium text-[hsl(var(--foreground))]">{group.nameAr}</span>
-            <span className={group.category === 'sedan' || group.category === 'wedding' ? 'rounded-full bg-primary-600 px-2 py-0.5 text-xs font-semibold text-white' : 'rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white'}>{group.category}</span>
+            <span className={group.category === 'sedan' || group.category === 'wedding' ? 'rounded-full bg-primary-600 px-2 py-0.5 text-xs font-semibold text-white' : 'rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white'}>{CATEGORY_LABELS[group.category]}</span>
           </div>
           <p className="mt-1 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">{group.id}</p>
         </div>
@@ -205,7 +211,7 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                   >
                     {CAR_CATEGORIES.map((c) => (
                       <option key={c} value={c}>
-                        {c}
+                        {CATEGORY_LABELS[c]}
                       </option>
                     ))}
                   </select>

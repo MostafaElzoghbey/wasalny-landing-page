@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import type { Location } from '@/types/pricing';
 import { adminCreateLocation, adminGetLocations, adminReorderLocations } from '@/data/api';
 import { ReorderControls } from '@/components/ui/ReorderControls';
+import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { LocationCard } from './LocationCard';
@@ -21,6 +22,7 @@ export function LocationAdmin() {
   const [createOpen, setCreateOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const dragIdRef = useRef<string | null>(null);
+  const { ref: listRef, capture } = useReorderAnimation(items.map((l) => l.id).join(','));
 
   async function load(): Promise<void> {
     setLoading(true);
@@ -94,6 +96,7 @@ export function LocationAdmin() {
     const idx = items.findIndex((l) => l.id === id);
     const target = idx + dir;
     if (idx === -1 || target < 0 || target >= items.length) return;
+    capture();
     const next = [...items];
     const [moved] = next.splice(idx, 1);
     next.splice(target, 0, moved);
@@ -159,9 +162,9 @@ export function LocationAdmin() {
       {loading ? (
         <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
-        <ul className="space-y-3">
+        <ul ref={listRef} className="space-y-3">
           {items.map((l, idx) => (
-            <li key={l.id} dir="rtl" className="flex items-stretch gap-2 text-right">
+            <li key={l.id} dir="rtl" data-reorder-item={l.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
               <ReorderControls
                 id={l.id}
                 index={idx}
@@ -181,6 +184,7 @@ export function LocationAdmin() {
                   if (!draggedId || draggedId === l.id) return;
                   const from = items.findIndex((x) => x.id === draggedId);
                   if (from === -1) return;
+                  capture();
                   const next = [...items];
                   const [moved] = next.splice(from, 1);
                   next.splice(idx, 0, moved);

@@ -1,5 +1,6 @@
 import type { Car } from '@/types';
 import { ReorderControls } from '@/components/ui/ReorderControls';
+import { useReorderAnimation, useExpandCollapse } from '@/hooks/useReorderAnimation';
 
 import { CAR_CATEGORIES } from './carHelpers';
 import { CarCard } from './CarCard';
@@ -18,6 +19,16 @@ interface CarCategoryGroupProps {
 
 export function CarCategoryGroup({ category, labelAr, cars, expanded, onToggle, expandedId, onToggleCar, onUpdated, onDeleted, onMove, onDragStart, onDragOver, onDrop, isReordering }: CarCategoryGroupProps) {
   if (CAR_CATEGORIES.length !== 5) throw new Error('CAR_CATEGORIES must be 5 flat groups');
+  const expandRef = useExpandCollapse(expanded);
+  const { ref: listRef, capture } = useReorderAnimation(cars.map((c) => c.id).join(','));
+  const wrappedOnMove = (id: string, dir: -1 | 1) => {
+    capture();
+    onMove(id, dir);
+  };
+  const wrappedOnDrop = (e: React.DragEvent<HTMLDivElement>, targetId: string) => {
+    capture();
+    onDrop(e, targetId);
+  };
   return (
     <section dir="rtl" className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
       <button
@@ -38,24 +49,24 @@ export function CarCategoryGroup({ category, labelAr, cars, expanded, onToggle, 
         </span>
       </button>
       {expanded && (
-        <div className="border-t border-[hsl(var(--border))] p-3">
+        <div ref={expandRef} className="overflow-hidden border-t border-[hsl(var(--border))] p-3">
           {cars.length === 0 ? (
             <p className="py-2 text-center text-sm text-[hsl(var(--muted-foreground))]">لا توجد سيارات في هذه الفئة.</p>
           ) : (
-            <ul className="space-y-3">
+            <ul ref={listRef} className="space-y-3">
               {cars.map((c, idx) => (
-                <li key={c.id} dir="rtl" className="flex items-stretch gap-2 text-right">
+                <li key={c.id} dir="rtl" data-reorder-item={c.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 20}ms` }}>
                   <ReorderControls
                     id={c.id}
                     index={idx}
                     total={cars.length}
                     displayOrder={c.displayOrder}
                     disabled={isReordering}
-                    onMoveUp={() => onMove(c.id, -1)}
-                    onMoveDown={() => onMove(c.id, 1)}
+                    onMoveUp={() => wrappedOnMove(c.id, -1)}
+                    onMoveDown={() => wrappedOnMove(c.id, 1)}
                     onDragStart={(e) => onDragStart(e, c.id)}
                     onDragOver={onDragOver}
-                    onDrop={(e) => onDrop(e, c.id)}
+                    onDrop={(e) => wrappedOnDrop(e, c.id)}
                   />
                   <div className="min-w-0 flex-1">
                     <CarCard group={c} expanded={expandedId === c.id} onToggle={() => onToggleCar(c.id)} onUpdated={onUpdated} onDeleted={onDeleted} />

@@ -9,6 +9,7 @@ import {
   adminReorderRouteGroups,
 } from '@/data/api';
 import { ReorderControls } from '@/components/ui/ReorderControls';
+import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { RouteGroupCard } from './RouteGroupCard';
@@ -53,6 +54,7 @@ export function RouteGroupAdmin() {
   const [reorderError, setReorderError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const dragIdRef = useRef<string | null>(null);
+  const { ref: listRef, capture } = useReorderAnimation(items.map((g) => g.id).join(','));
 
   async function load() {
     setLoading(true);
@@ -158,6 +160,7 @@ export function RouteGroupAdmin() {
     const idx = items.findIndex((g) => g.id === id);
     const target = idx + dir;
     if (idx === -1 || target < 0 || target >= items.length) return;
+    capture();
     const next = [...items];
     const [moved] = next.splice(idx, 1);
     next.splice(target, 0, moved);
@@ -341,9 +344,9 @@ export function RouteGroupAdmin() {
       {loading ? (
         <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
-        <ul className="space-y-3">
+        <ul ref={listRef} className="space-y-3">
           {items.map((g, idx) => (
-            <li key={g.id} dir="rtl" className="flex items-stretch gap-2 text-right">
+            <li key={g.id} dir="rtl" data-reorder-item={g.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
               <ReorderControls
                 id={g.id}
                 index={idx}
@@ -363,6 +366,7 @@ export function RouteGroupAdmin() {
                   if (!draggedId || draggedId === g.id) return;
                   const from = items.findIndex((x) => x.id === draggedId);
                   if (from === -1) return;
+                  capture();
                   const next = [...items];
                   const [moved] = next.splice(from, 1);
                   next.splice(idx, 0, moved);
@@ -391,6 +395,7 @@ export function RouteGroupAdmin() {
 }
 
 // keep helper used in tests if needed
+// eslint-disable-next-line react-refresh/only-export-components -- helper co-exported with component for tests
 export function _emptyPricing(): RouteGroup['pricing'] {
   return emptyPricing();
 }

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import type { FaqWithId } from '@/types';
 import { adminGetFaqs, adminCreateFaq, adminDeleteFaq, adminReorderFaqs } from '@/data/api';
 import { ReorderControls } from '@/components/ui/ReorderControls';
+import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { Field, ErrorText, Panel, PrimaryButton } from './ui';
 import { FaqCard } from './FaqCard';
 
@@ -15,6 +16,7 @@ export function FaqAdmin() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const dragIdRef = useRef<string | null>(null);
+  const { ref: listRef, capture } = useReorderAnimation(faqs.map((f) => f.id).join(','));
 
   async function load() {
     setLoading(true);
@@ -83,6 +85,7 @@ export function FaqAdmin() {
     const idx = faqs.findIndex((f) => f.id === id);
     const target = idx + dir;
     if (idx === -1 || target < 0 || target >= faqs.length) return;
+    capture();
     const next = [...faqs];
     const [moved] = next.splice(idx, 1);
     next.splice(target, 0, moved);
@@ -104,9 +107,9 @@ export function FaqAdmin() {
       {faqs.length === 0 && loading ? (
         <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
-        <ul className="space-y-2">
+        <ul ref={listRef} className="space-y-2">
           {faqs.map((f, idx) => (
-            <li key={f.id} dir="rtl" className="flex items-stretch gap-2 text-right">
+            <li key={f.id} dir="rtl" data-reorder-item={f.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
               <ReorderControls
                 id={f.id}
                 index={idx}
@@ -126,6 +129,7 @@ export function FaqAdmin() {
                   if (!draggedId || draggedId === f.id) return;
                   const from = faqs.findIndex((x) => x.id === draggedId);
                   if (from === -1) return;
+                  capture();
                   const next = [...faqs];
                   const [moved] = next.splice(from, 1);
                   next.splice(idx, 0, moved);
