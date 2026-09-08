@@ -4,6 +4,7 @@ import type { Car } from '@/types';
 import { adminDeleteCar, adminUpdateCar } from '@/data/api';
 import { ChipInput } from '@/components/ui/ChipInput';
 import { ImageDropzone } from '@/components/ui/ImageDropzone';
+import { OrderedImageList } from '@/components/ui/OrderedImageList';
 import { DangerButton, ErrorText, Field, PrimaryButton } from './ui';
 import { CAR_CATEGORIES, CATEGORY_LABELS, cloneCar, validateCar } from './carHelpers';
 
@@ -139,13 +140,14 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
                   <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الصور</p>
                   {group.images.length > 0 ? (
-                    <ul data-testid={`car-images-preview-${group.id}`} className="mt-1 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <ol data-testid={`car-images-${group.id}`} className="mt-1 grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {group.images.map((src, idx) => (
-                        <li key={`${src}-${idx}`} data-testid={`car-preview-${group.id}-${idx}`} className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
-                          <img src={src} alt="" loading="lazy" data-testid={`car-preview-img-${group.id}-${idx}`} className="h-28 w-full object-cover" onError={(e) => {(e.currentTarget as HTMLImageElement).style.display = 'none';}} />
+                        <li key={`${src}-${idx}`} className="relative overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+                          <img src={src} alt="" loading="lazy" className="h-28 w-full object-cover" />
+                          <span data-testid={`car-image-order-${group.id}-${idx}`} className="absolute left-1 top-1 rounded-full bg-primary-600 px-1.5 py-0.5 text-xs font-bold text-white">{idx + 1}</span>
                         </li>
                       ))}
-                    </ul>
+                    </ol>
                   ) : (
                     <p className="text-xs text-[hsl(var(--muted-foreground))]">لا توجد صور</p>
                   )}
@@ -220,6 +222,16 @@ export function CarCard({ group, expanded, onToggle, onUpdated, onDeleted }: Car
               </div>
               <Field label="الوصف" value={draft.description} onChange={(v) => setDraft((p) => ({ ...p, description: v }))} textarea />
               <ImageDropzone mode="multiple" value={draft.images} onChange={(v) => setDraft((p) => ({ ...p, images: v as string[] }))} maxImages={10} testId="car-images" label="الصور" />
+              {draft.images.length > 0 && (
+                <OrderedImageList
+                  value={draft.images}
+                  alts={draft.imageAlts}
+                  onChange={(images) => setDraft((p) => ({ ...p, images }))}
+                  onAltsChange={(imageAlts) => setDraft((p) => ({ ...p, imageAlts }))}
+                  testIdPrefix="car-image"
+                  itemId={group.id}
+                />
+              )}
               <ChipInput label="المميزات" value={draft.features} onChange={(v) => setDraft((p) => ({ ...p, features: v }))} placeholder="اكتب واضغط Enter" testId="chip-input-features" />
 
               <div className="flex flex-wrap gap-2">
