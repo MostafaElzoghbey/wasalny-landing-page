@@ -120,11 +120,11 @@ export function CarAdmin() {
     setCreateError(null);
     try {
       const categoryCars = cars.filter((c) => c.category === selectedCategory);
-      const nextOrder = categoryCars.length ? Math.max(...categoryCars.map((c) => c.displayOrder)) + 1 : cars.length ? Math.max(...cars.map((c) => c.displayOrder)) + 1 : 0;
+      const nextOrder = categoryCars.length ? Math.max(...categoryCars.map((c) => c.displayOrder)) + 1 : 0;
       const body = { id: generateId('car'), nameAr: nameAr.trim(), category: selectedCategory, categoryAr: CATEGORY_LABELS[selectedCategory], description: description.trim(), images, features, displayOrder: nextOrder };
-      await adminCreateCar(body as unknown as Omit<Car, 'id'>);
+      const created = await adminCreateCar(body as unknown as Omit<Car, 'id'>);
+      setCars((prev) => [...prev, created]);
       resetForm();
-      await load();
     } catch (err) { setCreateError(err instanceof Error ? err.message : 'فشل إنشاء السيارة'); }
   }
   function handleUpdated(next: Car): void { setCars((prev) => prev.map((c) => (c.id === next.id ? next : c))); }
