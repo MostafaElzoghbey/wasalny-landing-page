@@ -1,8 +1,12 @@
 import { Car, AlertCircle, Users, CheckCircle2 } from 'lucide-react';
 import type { VehicleCategory } from '@/types/pricing';
-import { cars } from '@/data/cars';
+import { cars as staticCars } from '@/data/cars';
 import { cn } from '@/lib/utils';
 import { useData } from '@/context/DataProvider';
+
+// Pricing tiles cover exactly these 4 categories — wedding is gallery-only
+// and must never render as a pricing tile, even if present in live data.
+const PRICING_CATEGORIES: VehicleCategory[] = ['sedan', 'suv', 'family_cruiser', 'minibus'];
 
 interface VehiclePassengerProps {
   vehicleCategory: VehicleCategory;
@@ -15,8 +19,14 @@ export const VehiclePassengerCard = ({
   vehicleCategory, setVehicleCategory,
   passengerCount, setPassengerCount
 }: VehiclePassengerProps) => {
-  const { pricing: { vehiclePricing } } = useData();
+  const { cars: liveCars, pricing: { vehiclePricing } } = useData();
+  // Static fallback only while loading (live list empty on first paint).
+  const cars = liveCars.length > 0 ? liveCars : staticCars;
   const selectedVehicle = vehiclePricing.find((v) => v.category === vehicleCategory);
+  // wedding is gallery-only — never a pricing tile.
+  const pricingTiles = vehiclePricing.filter((v) =>
+    (PRICING_CATEGORIES as string[]).includes(v.category)
+  );
 
   // Helper to get image for category
   const getCarImage = (cat: VehicleCategory) => {
@@ -39,7 +49,7 @@ export const VehiclePassengerCard = ({
 
       <div className="space-y-6 relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {vehiclePricing.map((v) => {
+          {pricingTiles.map((v) => {
             const isActive = vehicleCategory === v.category;
             const image = getCarImage(v.category);
 

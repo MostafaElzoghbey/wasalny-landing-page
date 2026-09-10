@@ -11,12 +11,16 @@ describe('S-CAR flat 5 direct rows contract', () => {
     expect(admin).not.toMatch(/<option[^>]*>\{c\}<\/option>/);
   });
 
-  it('CarCard collapsed header shows thumb + order + Arabic badge', () => {
+  it('CarCard row shows order + Arabic badge + single thumbnail, no grid, no hero/sub split', () => {
     const card = readFileSync(resolve('src/admin/CarCard.tsx'), 'utf8');
-    expect(card).toMatch(/car-thumb-/);
     expect(card).toMatch(/car-order-/);
+    expect(card).toMatch(/car-counts-/);
+    expect(card).toMatch(/car-thumb-/);
     expect(card).toMatch(/CATEGORY_LABELS\[group\.category\]/);
     expect(card).not.toMatch(/\{group\.category\}<\/span>/);
+    expect(card).not.toMatch(/car-images-\$\{group\.id\}/);
+    expect(card).not.toMatch(/car-image-order-/);
+    expect(card).not.toMatch(/car-strip-/);
   });
 
   it('CAR_CATEGORIES is exactly 5 flat groups', () => {

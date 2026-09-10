@@ -7,18 +7,39 @@ interface ImageDropzoneProps {
   maxImages?: number;
   testId?: string;
   label?: string;
+  previewPrefix?: string;
 }
+
+export const MAX_FILE_BYTES = 5 * 1024 * 1024;
+export const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"] as const;
+
+const ALLOWED_MIME_SET: ReadonlySet<string> = new Set(ALLOWED_MIME);
 
 const URL_RE = /^https?:\/\/.+/;
 const EXT_RE = /\.(jpg|jpeg|png|webp|svg)(\?.*)?$/i;
 
+function validateFile(file: File): string | null {
+  if (file.size > MAX_FILE_BYTES) return "حجم الصورة يتجاوز 5MB";
+  if (ALLOWED_MIME_SET.has(file.type)) return null;
+  if (file.type === "" && EXT_RE.test(file.name)) return null;
+  return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
+}
+
 function validateUrl(url: string): string | null {
-  if (!URL_RE.test(url)) return "الرابط يجب أن يبدأ بـ http:// أو https://";
-  if (!EXT_RE.test(url)) return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
+  const v = url.trim();
+  if (!v) return "الرابط فارغ";
+  if (v.startsWith("data:image/")) return null;
+  if (v.startsWith("blob:")) return null;
+  if (v.startsWith("/") || v.startsWith("./") || v.startsWith("../")) {
+    if (!EXT_RE.test(v)) return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
+    return null;
+  }
+  if (!URL_RE.test(v)) return "الرابط يجب أن يبدأ بـ http:// أو https://";
+  if (!EXT_RE.test(v)) return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
   return null;
 }
 
-export function ImageDropzone({ mode, value, onChange, maxImages, testId = "image-dropzone", label }: ImageDropzoneProps) {
+export function ImageDropzone({ mode, value, onChange, maxImages, testId = "image-dropzone", label, previewPrefix }: ImageDropzoneProps) {
   const normalized: string[] = Array.isArray(value) ? value : value ? [value] : [];
   const limit = maxImages ?? (mode === "single" ? 1 : 10);
   const [dragOver, setDragOver] = useState(false);
@@ -78,6 +99,8 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
         });
       if (mode === "single") {
         const f = files[0];
+        const err = validateFile(f);
+        if (err) { setError(err); return; }
         readAsDataUrl(f)
           .then((url) => {
             setError(null);
@@ -86,10 +109,25 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
           .catch(() => setError("فشل قراءة الملف"));
         return;
       }
-      const fileList = Array.from(files).slice(0, limit - normalized.length);
-      Promise.all(fileList.map(readAsDataUrl))
+      const capacity = limit - normalized.length;
+      if (capacity <= 0) { setError(`الحد الأقصى ${limit} صور`); return; }
+      const candidates = Array.from(files).slice(0, capacity);
+      const valid: File[] = [];
+      let firstErr: string | null = null;
+      for (const f of candidates) {
+        const err = validateFile(f);
+        if (err) { if (!firstErr) firstErr = err; continue; }
+        valid.push(f);
+      }
+      if (valid.length === 0) {
+        if (firstErr) setError(firstErr);
+        return;
+      }
+      Promise.all(valid.map(readAsDataUrl))
         .then((urls) => {
-          if (urls.length) { setError(null); emit([...normalized, ...urls]); }
+          if (firstErr) setError(firstErr);
+          else setError(null);
+          emit([...normalized, ...urls]);
         })
         .catch(() => setError("فشل قراءة الملف"));
     },
@@ -147,13 +185,13 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
       {normalized.length > 0 ? (
         <ul className={`mt-3 grid gap-3 ${mode === "single" ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3"}`}>
           {normalized.map((src, idx) => (
-            <li key={`${src}-${idx}`} data-testid={`dropzone-preview-${idx}`} draggable={mode === "multiple"} onDragStart={() => setDragIdx(idx)} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (dragIdx !== null) reorder(dragIdx, idx); setDragIdx(null); }} className="group relative overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
-              <img src={src} alt="" className="h-28 w-full object-cover" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+            <li key={`${src}-${idx}`} data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-preview-${idx}`} draggable={mode === "multiple"} onDragStart={() => setDragIdx(idx)} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (dragIdx !== null) reorder(dragIdx, idx); setDragIdx(null); }} className="group relative overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+              <img src={src} alt="صورة" className="h-28 w-full object-cover" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
               <div className="absolute inset-0 hidden items-center justify-center bg-black/40 group-hover:flex" />
-              <button type="button" data-testid={`dropzone-remove-${idx}`} onClick={() => removeAt(idx)} className="absolute left-1 top-1 rounded-md bg-red-600 px-2 py-1 text-xs font-semibold text-white">حذف</button>
+              <button type="button" data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-remove-${idx}`} onClick={() => removeAt(idx)} className="absolute left-1 top-1 rounded-md bg-red-600 px-2 py-1 text-xs font-semibold text-white">حذف</button>
               {mode === "multiple" ? (
                 <>
-                  <span data-testid={`dropzone-handle-${idx}`} className="absolute right-1 top-1 cursor-grab rounded bg-black/60 px-1.5 py-1 text-xs text-white">⋮⋮</span>
+                  <span data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-handle-${idx}`} className="absolute right-1 top-1 cursor-grab rounded bg-black/60 px-1.5 py-1 text-xs text-white">⋮⋮</span>
                   <div className="absolute bottom-1 left-1 flex gap-1">
                     <button type="button" disabled={idx === 0} onClick={() => reorder(idx, idx - 1)} className="rounded bg-white/90 px-1.5 py-0.5 text-xs disabled:opacity-40">↑</button>
                     <button type="button" disabled={idx === normalized.length - 1} onClick={() => reorder(idx, idx + 1)} className="rounded bg-white/90 px-1.5 py-0.5 text-xs disabled:opacity-40">↓</button>

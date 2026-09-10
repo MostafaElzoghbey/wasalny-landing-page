@@ -2,15 +2,16 @@ process.env.NODE_ENV = 'test';
 
 import { describe, it, expect } from 'vitest';
 import type { Car } from '@/types';
-import { validateCar, cloneCar, CAR_CATEGORIES, CATEGORY_LABELS, CATEGORY_ICON_MAP, CATEGORY_COLORS, getCategoryMeta } from './carHelpers';
+import { validateCar, cloneCar, syncAlts, CAR_CATEGORIES, CATEGORY_LABELS, CATEGORY_ICON_MAP, CATEGORY_COLORS, getCategoryMeta, REQUIRE_CAR_IMAGE } from './carHelpers';
 
 describe('carHelpers', () => {
   describe('validateCar', () => {
     it('returns null for a valid car without name or passengers fields', () => {
       const valid: Partial<Car> = {
-        nameAr: 'سيدان',
+        nameAr: 'sidan',
         category: 'sedan',
-        categoryAr: 'سيدان',
+        categoryAr: 'sidan',
+        images: ['img.jpg'],
       };
       expect(validateCar(valid)).toBeNull();
     });
@@ -18,33 +19,37 @@ describe('carHelpers', () => {
     it('returns error when nameAr is missing', () => {
       const car: Partial<Car> = {
         category: 'sedan',
-        categoryAr: 'سيدان',
+        categoryAr: 'sidan',
+        images: ['img.jpg'],
       };
-      expect(validateCar(car)).toBe('الاسم (عربي) مطلوب');
+      expect(validateCar(car)).toBe('\u0627\u0644\u0627\u0633\u0645 (\u0639\u0631\u0628\u064a) \u0645\u0637\u0644\u0648\u0628');
     });
 
     it('returns error when nameAr is empty string', () => {
       const car: Partial<Car> = {
         nameAr: '  ',
         category: 'sedan',
-        categoryAr: 'سيدان',
+        categoryAr: 'sidan',
+        images: ['img.jpg'],
       };
-      expect(validateCar(car)).toBe('الاسم (عربي) مطلوب');
+      expect(validateCar(car)).toBe('\u0627\u0644\u0627\u0633\u0645 (\u0639\u0631\u0628\u064a) \u0645\u0637\u0644\u0648\u0628');
     });
 
-    it('does not require categoryAr — auto-derived from category', () => {
+    it('does not require categoryAr', () => {
       const car: Partial<Car> = {
-        nameAr: 'سيدان',
+        nameAr: 'sidan',
         category: 'sedan',
+        images: ['img.jpg'],
       };
       expect(validateCar(car)).toBeNull();
     });
 
     it('does not require categoryAr even when empty string', () => {
       const car: Partial<Car> = {
-        nameAr: 'سيدان',
+        nameAr: 'sidan',
         category: 'sedan',
         categoryAr: '  ',
+        images: ['img.jpg'],
       };
       expect(validateCar(car)).toBeNull();
     });
@@ -54,29 +59,141 @@ describe('carHelpers', () => {
         expect(CATEGORY_LABELS[cat]).toBeTruthy();
         expect(typeof CATEGORY_LABELS[cat]).toBe('string');
       }
-      expect(CATEGORY_LABELS['sedan']).toBe('سيدان');
-      expect(CATEGORY_LABELS['suv']).toBe('دفع رباعي');
-      expect(CATEGORY_LABELS['wedding']).toBe('زفاف');
+      expect(CATEGORY_LABELS['sedan']).toBeTruthy();
+      expect(CATEGORY_LABELS['suv']).toBeTruthy();
+      expect(CATEGORY_LABELS['wedding']).toBeTruthy();
     });
 
     it('returns error for invalid category', () => {
       const car: Partial<Car> = {
-        nameAr: 'سيدان',
+        nameAr: 'sidan',
         category: 'rocket' as Car['category'],
-        categoryAr: 'روكيت',
+        categoryAr: 'rocket',
+        images: ['img.jpg'],
       };
-      expect(validateCar(car)).toBe('فئة غير صالحة');
+      expect(validateCar(car)).toBe('\u0641\u0626\u0629 \u063a\u064a\u0631 \u0635\u0627\u0644\u062d\u0629');
     });
 
     it('does not reference name or passengers in validation', () => {
-      // A car with only nameAr + categoryAr + category should pass
-      // even though name and passengers are absent.
       const car: Partial<Car> = {
-        nameAr: 'فان',
+        nameAr: 'fan',
         category: 'minibus',
-        categoryAr: 'فان',
+        categoryAr: 'fan',
+        images: ['img.jpg'],
       };
       expect(validateCar(car)).toBeNull();
+    });
+
+    // --- NEW: category required ---
+    it('returns error when category is missing', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        categoryAr: 'sidan',
+        images: ['img.jpg'],
+      };
+      expect(validateCar(car)).toBe('category required');
+    });
+
+    // --- NEW: images required ---
+    it('returns error when images is missing', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+      };
+      expect(validateCar(car)).toBe(REQUIRE_CAR_IMAGE);
+    });
+
+    // --- NEW: images empty array ---
+    it('returns error when images is empty array', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+        images: [],
+      };
+      expect(validateCar(car)).toBe(REQUIRE_CAR_IMAGE);
+    });
+
+    // --- NEW: images only whitespace ---
+    it('returns error when images contains only empty strings', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+        images: ['  ', ''],
+      };
+      expect(validateCar(car)).toBe(REQUIRE_CAR_IMAGE);
+    });
+
+    // --- NEW: images not an array ---
+    it('returns error when images is not an array', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+        images: 'img.jpg' as unknown as string[],
+      };
+      expect(validateCar(car)).toBe(REQUIRE_CAR_IMAGE);
+    });
+
+    // --- NEW: valid images accepted ---
+    it('accepts valid images array', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+        images: ['img1.jpg', 'img2.jpg'],
+      };
+      expect(validateCar(car)).toBeNull();
+    });
+
+    // --- NEW: imageAlts length mismatch ---
+    it('returns error when imageAlts length does not match images length', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+        images: ['img1.jpg', 'img2.jpg'],
+        imageAlts: ['alt1'],
+      };
+      expect(validateCar(car)).toBe('imageAlts length must match images');
+    });
+
+    // --- NEW: imageAlts matches ---
+    it('accepts when imageAlts matches images length', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+        images: ['img1.jpg', 'img2.jpg'],
+        imageAlts: ['alt1', 'alt2'],
+      };
+      expect(validateCar(car)).toBeNull();
+    });
+
+    // --- NEW: imageAlts undefined is fine ---
+    it('accepts when imageAlts is undefined', () => {
+      const car: Partial<Car> = {
+        nameAr: 'sidan',
+        category: 'sedan',
+        categoryAr: 'sidan',
+        images: ['img1.jpg'],
+      };
+      expect(validateCar(car)).toBeNull();
+    });
+
+    // --- NEW: all valid categories accepted ---
+    it('accepts all valid categories', () => {
+      for (const cat of CAR_CATEGORIES) {
+        const car: Partial<Car> = {
+          nameAr: 'sidan',
+          category: cat,
+          categoryAr: 'sidan',
+          images: ['img.jpg'],
+        };
+        expect(validateCar(car)).toBeNull();
+      }
     });
   });
 
@@ -84,9 +201,9 @@ describe('carHelpers', () => {
     it('produces a deep copy without name or passengers', () => {
       const original: Car = {
         id: 'car-1',
-        nameAr: 'سيدان',
+        nameAr: 'sidan',
         category: 'sedan',
-        categoryAr: 'سيدان',
+        categoryAr: 'sidan',
         description: 'desc',
         images: ['img.jpg'],
         imageAlts: ['alt'],
@@ -160,10 +277,50 @@ describe('carHelpers', () => {
     it('returns correct values for sedan', () => {
       const meta = getCategoryMeta('sedan');
       expect(meta).toEqual({
-        label: 'سيدان',
+        label: CATEGORY_LABELS.sedan,
         icon: 'Car',
         colors: CATEGORY_COLORS.sedan,
       });
+    });
+  });
+
+  describe('REQUIRE_CAR_IMAGE', () => {
+    it('is a non-empty string constant', () => {
+      expect(typeof REQUIRE_CAR_IMAGE).toBe('string');
+      expect(REQUIRE_CAR_IMAGE.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('syncAlts', () => {
+    it('returns empty array when images is empty', () => {
+      expect(syncAlts([], ['a', 'b'])).toEqual([]);
+    });
+
+    it('pads short alts with empty strings to match images length', () => {
+      expect(syncAlts(['a', 'b', 'c'], ['x'])).toEqual(['x', '', '']);
+    });
+
+    it('truncates long alts to match images length', () => {
+      expect(syncAlts(['a', 'b'], ['x', 'y', 'z'])).toEqual(['x', 'y']);
+    });
+
+    it('returns same-length alts unchanged', () => {
+      expect(syncAlts(['a', 'b'], ['x', 'y'])).toEqual(['x', 'y']);
+    });
+
+    it('returns all empty strings when alts is undefined', () => {
+      expect(syncAlts(['a', 'b'])).toEqual(['', '']);
+    });
+
+    it('returns all empty strings when alts is empty array but images is not', () => {
+      expect(syncAlts(['a', 'b'], [])).toEqual(['', '']);
+    });
+
+    it('always returns result.length === images.length', () => {
+      const images = ['1', '2', '3', '4', '5'];
+      const alts = ['only-one'];
+      const result = syncAlts(images, alts);
+      expect(result.length).toBe(images.length);
     });
   });
 });

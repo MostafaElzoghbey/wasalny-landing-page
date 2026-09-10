@@ -1,7 +1,7 @@
 import { Bus, Car, Heart, Truck, UsersRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Car as CarType } from '@/types';
-import { CATEGORY_COLORS, CATEGORY_ICON_MAP, CATEGORY_LABELS, getCategoryMeta } from './carHelpers';
+import { CATEGORY_COLORS, CATEGORY_ICON_MAP, CATEGORY_LABELS } from './carHelpers';
 
 const iconComponents = { Car, Truck, Bus, UsersRound, Heart };
 
@@ -14,7 +14,6 @@ interface CategoryCardProps {
 }
 
 export function CategoryCard({ category, count, cars, onSelect, testId }: CategoryCardProps) {
-  void getCategoryMeta(category);
   const colors = CATEGORY_COLORS[category];
   const Icon = iconComponents[CATEGORY_ICON_MAP[category]];
   const firstImage = cars.find((c) => c.category === category)?.images[0];

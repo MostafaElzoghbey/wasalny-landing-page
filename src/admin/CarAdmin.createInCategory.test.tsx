@@ -50,6 +50,15 @@ describe('CarAdmin create in-category contract', () => {
     vi.mocked(useReorderAnimation).mockClear();
   });
 
+  function fillNameAndImage(form: HTMLElement, name: string): void {
+    const input = form.querySelector('input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: name } });
+    // create requires ≥1 image (validateCar) — mirror the user flow via the dropzone URL input
+    const urlInput = within(form).getByTestId('car-images-create-url-input') as HTMLInputElement;
+    fireEvent.change(urlInput, { target: { value: 'https://cdn.example.com/new.jpg' } });
+    fireEvent.click(within(form).getByTestId('car-images-create-url-add'));
+  }
+
   it('create in suv: displayOrder = category max+1, new card in drilldown, selectedCategory preserved, form reset', async () => {
     render(<CarAdmin />);
     await screen.findByTestId('category-card-suv');
@@ -58,8 +67,7 @@ describe('CarAdmin create in-category contract', () => {
 
     const drill = screen.getByTestId('category-drilldown-suv');
     const form = within(drill).getByTestId('fleet-create');
-    const input = form.querySelector('input') as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'دفع جديدة' } });
+    fillNameAndImage(form, 'دفع جديدة');
 
     const fleetWithNew = [...fleetCars, newSuvCar];
     vi.mocked(adminGetCars).mockResolvedValueOnce(fleetWithNew);
@@ -116,8 +124,7 @@ describe('CarAdmin create in-category contract', () => {
 
     const drill = screen.getByTestId('category-drilldown-sedan');
     const form = within(drill).getByTestId('fleet-create');
-    const input = form.querySelector('input') as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'سيدان من فراغ' } });
+    fillNameAndImage(form, 'سيدان من فراغ');
 
     vi.mocked(adminGetCars).mockResolvedValueOnce([...suvOnly, newSedanFromEmpty]);
     vi.mocked(adminCreateCar).mockResolvedValueOnce(newSedanFromEmpty as unknown as Car);
@@ -138,8 +145,7 @@ describe('CarAdmin create in-category contract', () => {
 
     const drill = screen.getByTestId('category-drilldown-suv');
     const form = within(drill).getByTestId('fleet-create');
-    const input = form.querySelector('input') as HTMLInputElement;
-    fireEvent.change(input, { target: { value: 'دفع جديدة' } });
+    fillNameAndImage(form, 'دفع جديدة');
 
     vi.mocked(adminCreateCar).mockResolvedValueOnce(newSuvCar as unknown as Car);
 

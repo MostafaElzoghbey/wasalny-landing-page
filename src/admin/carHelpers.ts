@@ -60,19 +60,33 @@ export const CATEGORY_COLORS: Record<
   wedding: { primary: 'from-rose-500/15', accent: 'to-pink-500/10', solid: 'bg-rose-600', ring: 'ring-rose-500/20' },
 };
 
+export const REQUIRE_CAR_IMAGE = 'At least one image is required';
+
 export function getCategoryMeta(cat: Car['category']) {
   return { label: CATEGORY_LABELS[cat], icon: CATEGORY_ICON_MAP[cat], colors: CATEGORY_COLORS[cat] };
+}
+
+export function syncAlts(images: string[], alts?: string[]): string[] {
+  const base = Array.isArray(alts) ? alts : [];
+  return images.map((_, i) => base[i] ?? '');
 }
 
 export function validateCar(car: Partial<Car>): string | null {
   if (car.nameAr === undefined || car.nameAr.trim() === '') {
     return 'الاسم (عربي) مطلوب';
   }
-  if (car.category !== undefined) {
-    const allowed: readonly string[] = CAR_CATEGORIES;
-    if (!allowed.includes(car.category)) {
-      return 'فئة غير صالحة';
-    }
+  if (car.category === undefined || car.category === null) {
+    return 'category required';
+  }
+  const allowed: readonly string[] = CAR_CATEGORIES;
+  if (!allowed.includes(car.category)) {
+    return 'فئة غير صالحة';
+  }
+  if (!Array.isArray(car.images) || car.images.length === 0 || !car.images.every((img) => typeof img === 'string' && img.trim() !== '')) {
+    return REQUIRE_CAR_IMAGE;
+  }
+  if (car.imageAlts !== undefined && car.imageAlts !== null && car.imageAlts.length !== car.images.length) {
+    return 'imageAlts length must match images';
   }
   return null;
 }

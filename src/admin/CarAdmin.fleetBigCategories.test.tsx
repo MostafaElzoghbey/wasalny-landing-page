@@ -85,9 +85,7 @@ describe('CarAdmin fleet big-categories contract', () => {
     const items = document.querySelectorAll('[data-reorder-item]');
     expect(items).toHaveLength(2);
     for (const item of Array.from(items) as HTMLElement[]) {
-      const hasThumb = item.querySelector('[data-testid^="car-thumb"]') !== null;
-      const hasPlaceholder = item.querySelector('[data-testid^="car-thumb-placeholder"]') !== null;
-      expect(hasThumb || hasPlaceholder).toBe(true);
+      expect(item.querySelector('[data-testid^="car-counts-"]')).not.toBeNull();
       expect(item.querySelector('[data-testid^="car-order-"]')).not.toBeNull();
     }
     expect(document.querySelectorAll('[data-testid^="move-up-"]')).toHaveLength(2);
@@ -120,6 +118,11 @@ describe('CarAdmin fleet big-categories contract', () => {
     const nameInput = createForm.querySelector('input') as HTMLInputElement | null;
     if (nameInput) {
       fireEvent.change(nameInput, { target: { value: 'سيارة جديدة' } });
+    }
+    const urlInput = createForm.querySelector('[data-testid="car-images-create-url-input"]') as HTMLInputElement | null;
+    if (urlInput) {
+      fireEvent.change(urlInput, { target: { value: 'https://cdn.example.com/new.jpg' } });
+      fireEvent.click(createForm.querySelector('[data-testid="car-images-create-url-add"]')!);
     }
     const submitBtn = createForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
     if (submitBtn) fireEvent.click(submitBtn);

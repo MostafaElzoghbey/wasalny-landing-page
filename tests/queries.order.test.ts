@@ -69,21 +69,21 @@ describe('queries ordering', () => {
     expect(created.displayOrder).toBe(3);
   });
 
-  it('createCar auto-assigns displayOrder = max + 1 when displayOrder is 0', () => {
+  it('createCar preserves explicit displayOrder 0', () => {
     insertCar('car-1', 1);
     insertCar('car-2', 2);
 
     const created = createCar(db, {
-      nameAr: 'سيدان',
+      nameAr: 'sidan',
       category: 'sedan',
-      categoryAr: 'سيدان',
+      categoryAr: 'sidan',
       description: 'desc',
       images: [],
       features: [],
       displayOrder: 0,
     });
 
-    expect(created.displayOrder).toBe(3);
+    expect(created.displayOrder).toBe(0);
   });
 
   it('reorderEntities atomically rewrites display_order in the given order', () => {

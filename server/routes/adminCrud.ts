@@ -72,6 +72,78 @@ async function reorderRoute(
 }
 
 // ---------------------------------------------------------------------------
+// Cars — validation
+// ---------------------------------------------------------------------------
+
+const CAR_CATEGORIES = [
+  'sedan',
+  'suv',
+  'family_cruiser',
+  'minibus',
+  'wedding',
+] as const;
+
+interface CarValidationError {
+  error: string;
+}
+
+/**
+ * Shared validation for car create (full) and update (partial).
+ * Returns `null` when valid, `{ error }` message when invalid.
+ */
+function validateCarInput(
+  body: Record<string, unknown>,
+  opts: { partial: boolean },
+): CarValidationError | null {
+  const { partial } = opts;
+
+  if (!partial) {
+    if (typeof body.nameAr !== 'string') {
+      return { error: 'nameAr is required' };
+    }
+  }
+  if (typeof body.nameAr === 'string' && body.nameAr.trim().length === 0) {
+    return { error: 'nameAr must not be empty' };
+  }
+
+  if (!partial) {
+    if (typeof body.category !== 'string') {
+      return { error: 'category is required' };
+    }
+  }
+  if (typeof body.category === 'string') {
+    if (!(CAR_CATEGORIES as readonly string[]).includes(body.category)) {
+      return {
+        error: `category must be one of: ${CAR_CATEGORIES.join(', ')}`,
+      };
+    }
+  }
+
+  if (!partial) {
+    if (!Array.isArray(body.images)) {
+      return { error: 'images is required' };
+    }
+  }
+  if (Array.isArray(body.images)) {
+    if (!body.images.every((img: unknown) => typeof img === 'string' && img.trim().length > 0)) {
+      return { error: 'every image must be a non-empty string' };
+    }
+  }
+
+  if (body.features !== undefined && !Array.isArray(body.features)) {
+    return { error: 'features must be an array' };
+  }
+
+  if (body.displayOrder !== undefined) {
+    if (typeof body.displayOrder !== 'number' || !Number.isInteger(body.displayOrder) || body.displayOrder < 0) {
+      return { error: 'displayOrder must be a non-negative integer' };
+    }
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Cars
 // ---------------------------------------------------------------------------
 
@@ -83,9 +155,8 @@ adminCrud.get('/cars', requireAdmin, (c) => {
 adminCrud.post('/cars', requireAdmin, async (c) => {
   const db = getDb();
   const body = await c.req.json<CarInput>();
-  if (body.nameAr === undefined || body.category === undefined) {
-    return c.json({ error: 'nameAr and category are required' }, 400);
-  }
+  const err = validateCarInput(body, { partial: false });
+  if (err) return c.json(err, 400);
   const car = createCar(db, body);
   return c.json(car, 200);
 });
@@ -97,6 +168,8 @@ adminCrud.put('/cars/:id', requireAdmin, async (c) => {
     return c.json({ error: 'id is required' }, 400);
   }
   const patch = await c.req.json<Partial<CarInput>>();
+  const err = validateCarInput(patch, { partial: true });
+  if (err) return c.json(err, 400);
   updateCar(db, id, patch);
   return c.json({ ok: true }, 200);
 });

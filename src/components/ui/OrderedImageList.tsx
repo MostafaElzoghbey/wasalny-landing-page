@@ -22,23 +22,24 @@ export function OrderedImageList({
     next.splice(to, 0, moved);
     onChange(next);
     if (onAltsChange) {
-      const nextAlts = [...alts];
-      const [movedAlt] = nextAlts.splice(from, 1);
-      nextAlts.splice(to, 0, movedAlt);
-      onAltsChange(nextAlts);
+      const paired = value.map((_, i) => alts[i] ?? '');
+      const [movedAlt] = paired.splice(from, 1);
+      paired.splice(to, 0, movedAlt ?? '');
+      onAltsChange(paired);
     }
   }
 
   function remove(idx: number) {
     onChange(value.filter((_, i) => i !== idx));
     if (onAltsChange) {
-      onAltsChange(alts.filter((_, i) => i !== idx));
+      const paired = value.map((_, i) => alts[i] ?? '');
+      onAltsChange(paired.filter((_, i) => i !== idx));
     }
   }
 
   function updateAlt(idx: number, v: string) {
     if (!onAltsChange) return;
-    const next = [...alts];
+    const next = value.map((_, i) => alts[i] ?? '');
     next[idx] = v;
     onAltsChange(next);
   }
@@ -53,7 +54,7 @@ export function OrderedImageList({
         >
           <img
             src={src}
-            alt=""
+            alt="صورة"
             loading="lazy"
             className="h-14 w-14 shrink-0 rounded object-cover"
           />

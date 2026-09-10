@@ -184,8 +184,9 @@ describe('S-CAR-1 car create auto-derives categoryAr from category', () => {
 
   it('validateCar accepts a car without categoryAr (auto-derivable from category)', () => {
     // carHelpers.ts:37-39 currently rejects missing categoryAr — the bug.
+    // images included: this test is about categoryAr, not the ≥1-image rule.
     for (const category of CAR_CATEGORIES) {
-      expect(validateCar({ nameAr: 'سيارة', category })).toBeNull();
+      expect(validateCar({ nameAr: 'سيارة', category, images: ['x.jpg'] })).toBeNull();
     }
   });
 });

@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 import type { Car } from '@/types';
-import { adminDeleteCar, adminUpdateCar } from '@/data/api';
 import { CarCard } from './CarCard';
 
 vi.mock('@/data/api', () => ({
@@ -30,12 +29,10 @@ const carWithImages: Car = {
   displayOrder: 0,
 };
 
-function renderCard(expanded: boolean): ReturnType<typeof render> {
+function renderCard(): ReturnType<typeof render> {
   return render(
     <CarCard
       group={carWithImages}
-      expanded={expanded}
-      onToggle={vi.fn()}
       onUpdated={vi.fn()}
       onDeleted={vi.fn()}
     />,
@@ -43,44 +40,45 @@ function renderCard(expanded: boolean): ReturnType<typeof render> {
 }
 
 describe('CarCard ordered images', () => {
-  describe('preview mode — numbered ordered list', () => {
-    it('renders ol with testid car-images-{id}', () => {
-      renderCard(true);
-      const ol = screen.queryByTestId('car-images-car-sedan-1');
-      expect(ol).not.toBeNull();
-      expect(ol?.tagName).toBe('OL');
+  describe('row mode — one line, one image', () => {
+    it('renders order badge, name, counts and actions directly', () => {
+      renderCard();
+      expect(screen.getByTestId('car-order-car-sedan-1').textContent?.trim()).toBe('0');
+      expect(screen.getByText('سيدان ١')).not.toBeNull();
+      expect(screen.getByTestId('car-counts-car-sedan-1').textContent).toContain('3 صور');
+      expect(screen.getByTestId('car-edit-car-sedan-1')).not.toBeNull();
+      expect(screen.getByTestId('car-delete-car-sedan-1')).not.toBeNull();
     });
 
-    it('shows order badges car-image-order-{id}-{idx} with sequential 1,2,3', () => {
-      renderCard(true);
-      const badge0 = screen.getByTestId('car-image-order-car-sedan-1-0');
-      const badge1 = screen.getByTestId('car-image-order-car-sedan-1-1');
-      const badge2 = screen.getByTestId('car-image-order-car-sedan-1-2');
-      expect(badge0.textContent?.trim()).toBe('1');
-      expect(badge1.textContent?.trim()).toBe('2');
-      expect(badge2.textContent?.trim()).toBe('3');
+    it('renders exactly one thumbnail (first image), no grid, no hero/sub split', () => {
+      renderCard();
+      const thumb = screen.getByTestId('car-thumb-car-sedan-1');
+      expect(thumb.tagName).toBe('IMG');
+      expect(thumb.getAttribute('src')).toBe('https://cdn.example.com/sedan1.jpg');
+      const card = screen.getByTestId('car-card-car-sedan-1');
+      expect(card.querySelectorAll('img')).toHaveLength(1);
+      expect(screen.queryByTestId('car-images-car-sedan-1')).toBeNull();
+      expect(screen.queryByTestId('car-image-order-car-sedan-1-0')).toBeNull();
+      expect(screen.queryByTestId(/^car-strip-car-sedan-1/)).toBeNull();
     });
 
-    it('lists images in the ol in display order', () => {
-      renderCard(true);
-      const ol = screen.getByTestId('car-images-car-sedan-1');
-      const items = within(ol).getAllByRole('listitem');
-      expect(items).toHaveLength(3);
-      const imgs = items.map((li) => {
-        const img = li.querySelector('img');
-        return img?.getAttribute('src') ?? '';
-      });
-      expect(imgs).toEqual([
-        'https://cdn.example.com/sedan1.jpg',
-        'https://cdn.example.com/sedan2.jpg',
-        'https://cdn.example.com/sedan3.jpg',
-      ]);
+    it('renders placeholder when the car has no images', () => {
+      render(
+        <CarCard
+          group={{ ...carWithImages, id: 'car-empty-1', images: [] }}
+          onUpdated={vi.fn()}
+          onDeleted={vi.fn()}
+        />,
+      );
+      expect(screen.queryByTestId('car-images-car-empty-1')).toBeNull();
+      expect(screen.queryByTestId('car-thumb-car-empty-1')).toBeNull();
+      expect(screen.getByTestId('car-thumb-placeholder-car-empty-1')).not.toBeNull();
     });
   });
 
   describe('edit mode — editable ordered image list', () => {
     it('shows car-image-edit-{id}-{idx} items for each image', () => {
-      renderCard(true);
+      renderCard();
       fireEvent.click(screen.getByTestId('car-edit-car-sedan-1'));
 
       const edit0 = screen.queryByTestId('car-image-edit-car-sedan-1-0');
@@ -92,7 +90,7 @@ describe('CarCard ordered images', () => {
     });
 
     it('each edit item has up and down buttons', () => {
-      renderCard(true);
+      renderCard();
       fireEvent.click(screen.getByTestId('car-edit-car-sedan-1'));
 
       // first item: up disabled, down enabled
@@ -115,7 +113,7 @@ describe('CarCard ordered images', () => {
     });
 
     it('each edit item has a remove button', () => {
-      renderCard(true);
+      renderCard();
       fireEvent.click(screen.getByTestId('car-edit-car-sedan-1'));
 
       const rm0 = screen.queryByTestId('car-image-remove-car-sedan-1-0');
@@ -127,7 +125,7 @@ describe('CarCard ordered images', () => {
     });
 
     it('each edit item has an alt input', () => {
-      renderCard(true);
+      renderCard();
       fireEvent.click(screen.getByTestId('car-edit-car-sedan-1'));
 
       const alt0 = screen.getByTestId('car-image-alt-car-sedan-1-0') as HTMLInputElement;
@@ -139,7 +137,7 @@ describe('CarCard ordered images', () => {
     });
 
     it('edit list renders alongside name, description, features fields', () => {
-      renderCard(true);
+      renderCard();
       fireEvent.click(screen.getByTestId('car-edit-car-sedan-1'));
 
       // image edit list exists
@@ -157,8 +155,6 @@ describe('CarCard ordered images', () => {
       render(
         <CarCard
           group={carWithImages}
-          expanded={true}
-          onToggle={vi.fn()}
           onUpdated={onUpdated}
           onDeleted={vi.fn()}
         />,

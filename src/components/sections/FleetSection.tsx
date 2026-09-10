@@ -251,17 +251,19 @@ export function FleetSection() {
   const touchEndX = useRef(0);
 
   const activeCar = useMemo(() => {
+    if (cars.length === 0) return undefined;
     return cars.find(car => car.category === activeCategory) || cars[0];
   }, [cars, activeCategory]);
 
-  const images = activeCar.images;
-  const imageAlts = activeCar.imageAlts;
+  const images = activeCar?.images ?? [];
+  const imageAlts = activeCar?.imageAlts;
   const currentColors = categoryColors[activeCategory];
 
 
 
   // Preload images
   useEffect(() => {
+    if (images.length === 0) return;
     const preloadImages = () => {
       for (let i = 1; i <= 2; i++) {
         const nextIdx = (currentImageIndex + i) % images.length;
@@ -284,11 +286,11 @@ export function FleetSection() {
   }, [isHovering, lightboxOpen, isPaused, images.length]);
 
   const nextImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    setCurrentImageIndex((prev) => (images.length === 0 ? prev : (prev + 1) % images.length));
   }, [images.length]);
 
   const prevImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentImageIndex((prev) => (images.length === 0 ? prev : (prev - 1 + images.length) % images.length));
   }, [images.length]);
 
   useEffect(() => {
@@ -457,6 +459,15 @@ export function FleetSection() {
           </div>
         </div>
 
+        {!activeCar ? (
+          <div data-testid="fleet-empty" className="mx-auto max-w-xl p-8 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm text-center flex flex-col items-center gap-4">
+            <span className="w-14 h-14 rounded-full bg-primary-500/10 flex items-center justify-center">
+              <Car className="w-7 h-7 text-primary-500" />
+            </span>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">لا توجد سيارات متاحة حالياً</p>
+            <p className="text-gray-600 dark:text-gray-400">يرجى المحاولة لاحقاً أو التواصل معنا للحجز والاستفسار</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center min-h-[500px]">
           <div ref={infoRef} className="lg:col-span-4 flex flex-col gap-8 order-2 lg:order-1">
             <div className="info-anim space-y-2">
@@ -515,7 +526,16 @@ export function FleetSection() {
 
           <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
-              {Array.from({ length: Math.min(images.length, 3) }).map((_, i) => {
+              {images.length === 0 ? (
+                <div data-testid="fleet-no-images" className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 dark:border-white/10 bg-[hsl(var(--card))] flex flex-col items-center justify-center gap-4 p-8 text-center">
+                  <span className="w-14 h-14 rounded-full bg-primary-500/10 flex items-center justify-center">
+                    <Car className="w-7 h-7 text-primary-500" />
+                  </span>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">لا توجد صور متاحة لهذه السيارة</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">تواصل معنا لعرض صور السيارة على واتساب</p>
+                </div>
+              ) : (
+              Array.from({ length: Math.min(images.length, 3) }).map((_, i) => {
                 const idx = (currentImageIndex + i) % images.length;
                 const img = images[idx];
                 const offset = i;
@@ -533,7 +553,7 @@ export function FleetSection() {
                     onMouseLeave={() => setIsHovering(false)}
                   />
                 );
-              })}
+              }))}
             </div>
 
             <div
@@ -546,9 +566,9 @@ export function FleetSection() {
               </button>
               <div className="flex items-center gap-2 md:gap-4 min-w-[80px] md:min-w-[120px]">
                 <div className="relative w-16 md:w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="absolute top-0 right-0 h-full bg-gradient-to-l from-primary-500 to-primary-600 transition-all duration-300" style={{ width: `${((currentImageIndex + 1) / images.length) * 100}%` }} />
+                  <div className="absolute top-0 right-0 h-full bg-gradient-to-l from-primary-500 to-primary-600 transition-all duration-300" style={{ width: images.length > 0 ? `${((currentImageIndex + 1) / images.length) * 100}%` : '0%' }} />
                 </div>
-                <span className="text-xs md:text-sm font-mono text-gray-500 dark:text-gray-400 whitespace-nowrap">{currentImageIndex + 1}/{images.length}</span>
+                <span className="text-xs md:text-sm font-mono text-gray-500 dark:text-gray-400 whitespace-nowrap">{images.length === 0 ? '0/0' : `${currentImageIndex + 1}/${images.length}`}</span>
               </div>
               <button onClick={prevImage} className="p-2 md:p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
                 <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
@@ -560,6 +580,7 @@ export function FleetSection() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       <Lightbox

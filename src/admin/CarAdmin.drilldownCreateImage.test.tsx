@@ -57,7 +57,7 @@ describe('CarAdmin drilldown create+image contract', () => {
   });
 
   it('SC-A fix-create in-category: new car appears in drilldown not separate, car-sync-hidden null while drilled', async () => {
-    const { rerender } = render(<CarAdmin />);
+    render(<CarAdmin />);
     await screen.findByTestId('category-card-sedan');
     fireEvent.click(screen.getByTestId('category-card-suv'));
     await screen.findByTestId('category-drilldown-suv');
@@ -67,6 +67,9 @@ describe('CarAdmin drilldown create+image contract', () => {
     const form = within(drill).getByTestId('fleet-create');
     const input = form.querySelector('input') as HTMLInputElement | null;
     if (input) fireEvent.change(input, { target: { value: 'سيارة جديدة' } });
+    const urlInput = within(form).getByTestId('car-images-create-url-input') as HTMLInputElement;
+    fireEvent.change(urlInput, { target: { value: 'https://cdn.example.com/new.jpg' } });
+    fireEvent.click(within(form).getByTestId('car-images-create-url-add'));
     // mock second load returns 11 cars including newCar
     const fleetWithNew = [...fleetCars, newCar];
     vi.mocked(adminGetCars).mockResolvedValueOnce(fleetWithNew);
@@ -82,23 +85,17 @@ describe('CarAdmin drilldown create+image contract', () => {
     expect(document.querySelectorAll('[data-testid^="category-card-"]')).toHaveLength(0);
   });
 
-  it('SC-B image preview: expanded shows img preview grid not path text', async () => {
+  it('SC-B car row: single thumbnail (first image), no grid, no hero/sub split', async () => {
     render(<CarAdmin />);
     await screen.findByTestId('category-card-suv');
     fireEvent.click(screen.getByTestId('category-card-suv'));
     await screen.findByTestId('category-drilldown-suv');
-    fireEvent.click(screen.getByTestId('car-expand-car-suv-1'));
-    await waitFor(() => expect(screen.getByTestId('car-card-car-suv-1')).toBeInTheDocument());
     const card = screen.getByTestId('car-card-car-suv-1');
-    const preview = within(card).queryByTestId('car-images-car-suv-1');
-    expect(preview, 'expected preview grid with images').not.toBeNull();
-    expect(preview?.tagName).toBe('OL');
-    const badge = within(card).queryByTestId('car-image-order-car-suv-1-0');
-    expect(badge?.textContent).toBe('1');
-    const imgs = preview ? within(preview as HTMLElement).getAllByRole('listitem') : [];
-    expect(imgs.length).toBeGreaterThan(0);
-    const imgEl = preview?.querySelector('img') as HTMLImageElement | null;
-    expect(imgEl?.getAttribute('src')).toContain('suv1.jpg');
+    const thumb = within(card).getByTestId('car-thumb-car-suv-1');
+    expect(thumb.tagName).toBe('IMG');
+    expect(thumb.getAttribute('src')).toContain('suv1.jpg');
+    expect(within(card).queryByTestId('car-images-car-suv-1')).toBeNull();
+    expect(card.querySelectorAll('img')).toHaveLength(1);
     expect(within(card).queryByText('https://cdn.example.com/suv1.jpg')).toBeNull();
   });
 });

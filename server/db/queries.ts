@@ -322,13 +322,11 @@ export function getPricingData(db: Database.Database): PricingData {
 export function createCar(db: Database.Database, input: CarInput): Car {
   const id = input.id ?? `car-${randomUUID()}`;
   const displayOrder =
-    input.displayOrder != null && input.displayOrder !== 0
-      ? input.displayOrder
-      : (
-          db
-            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM cars')
-            .get() as { next: number }
-        ).next;
+    input.displayOrder ?? (
+      db
+        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM cars')
+        .get() as { next: number }
+    ).next;
   db.prepare(
     `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,

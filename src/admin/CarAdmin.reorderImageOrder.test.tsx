@@ -50,16 +50,14 @@ describe('CarAdmin reorder image order proofs', () => {
     vi.mocked(useReorderAnimation).mockClear();
   });
 
-  it('drill-down rows show car-thumb or placeholder and car-order equals displayOrder', async () => {
+  it('drill-down rows show photo grid and car-order equals displayOrder', async () => {
     await renderFleet();
     fireEvent.click(screen.getByTestId('category-card-sedan'));
     await screen.findByTestId('category-drilldown-sedan');
     const items = document.querySelectorAll('[data-reorder-item]');
     expect(items).toHaveLength(2);
     for (const item of Array.from(items) as HTMLElement[]) {
-      const hasThumb = item.querySelector('[data-testid^="car-thumb-"]') !== null;
-      const hasPlaceholder = item.querySelector('[data-testid^="car-thumb-placeholder"]') !== null;
-      expect(hasThumb || hasPlaceholder).toBe(true);
+      expect(item.querySelector('[data-testid^="car-counts-"]')).not.toBeNull();
       const orderBadge = item.querySelector('[data-testid^="car-order-"]');
       expect(orderBadge).not.toBeNull();
       // displayOrder text should match one of the sedan cars
@@ -100,6 +98,59 @@ describe('CarAdmin reorder image order proofs', () => {
     // non-sedan relative order preserved
     const suvOrder = ids.filter((id) => id.startsWith('car-suv-'));
     expect(suvOrder).toEqual(['car-suv-1', 'car-suv-2']);
+  });
+
+  it('reorder within sedan leaves suv displayOrder byte-identical (scoped reorder)', async () => {
+    const gappedCars: Car[] = [
+      { id: 'car-sedan-1', nameAr: 'سيدان ١', category: 'sedan', categoryAr: 'سيدان', description: '', images: [], features: [], displayOrder: 0 },
+      { id: 'car-sedan-2', nameAr: 'سيدان ٢', category: 'sedan', categoryAr: 'سيدان', description: '', images: [], features: [], displayOrder: 1 },
+      { id: 'car-suv-1', nameAr: 'دفع ١', category: 'suv', categoryAr: 'دفع رباعي', description: '', images: [], features: [], displayOrder: 10 },
+      { id: 'car-suv-2', nameAr: 'دفع ٢', category: 'suv', categoryAr: 'دفع رباعي', description: '', images: [], features: [], displayOrder: 11 },
+    ];
+    vi.mocked(adminGetCars).mockResolvedValue(gappedCars);
+    render(<CarAdmin />);
+    await screen.findByTestId('category-card-sedan');
+    fireEvent.click(screen.getByTestId('category-card-sedan'));
+    await screen.findByTestId('category-drilldown-sedan');
+    fireEvent.click(screen.getByTestId('move-down-car-sedan-1'));
+    await waitFor(() => expect(vi.mocked(adminReorderCars)).toHaveBeenCalled());
+    fireEvent.click(screen.getByTestId('category-back'));
+    await screen.findByTestId('category-grid');
+    fireEvent.click(screen.getByTestId('category-card-suv'));
+    await screen.findByTestId('category-drilldown-suv');
+    const suvOrders = Array.from(document.querySelectorAll('[data-testid^="car-order-"]')).map((el) => el.textContent?.trim());
+    expect(suvOrders).toEqual(['10', '11']);
+  });
+
+  it('contract: reorder sends full global ids with non-target relative order preserved', async () => {
+    const gappedCars: Car[] = [
+      { id: 'car-sedan-1', nameAr: 'سيدان ١', category: 'sedan', categoryAr: 'سيدان', description: '', images: [], features: [], displayOrder: 0 },
+      { id: 'car-sedan-2', nameAr: 'سيدان ٢', category: 'sedan', categoryAr: 'سيدان', description: '', images: [], features: [], displayOrder: 1 },
+      { id: 'car-suv-1', nameAr: 'دفع ١', category: 'suv', categoryAr: 'دفع رباعي', description: '', images: [], features: [], displayOrder: 10 },
+      { id: 'car-suv-2', nameAr: 'دفع ٢', category: 'suv', categoryAr: 'دفع رباعي', description: '', images: [], features: [], displayOrder: 11 },
+    ];
+    vi.mocked(adminGetCars).mockResolvedValue(gappedCars);
+    vi.mocked(adminReorderCars).mockClear();
+    render(<CarAdmin />);
+    await screen.findByTestId('category-card-sedan');
+    fireEvent.click(screen.getByTestId('category-card-sedan'));
+    await screen.findByTestId('category-drilldown-sedan');
+    fireEvent.click(screen.getByTestId('move-down-car-sedan-1'));
+    await waitFor(() => expect(vi.mocked(adminReorderCars)).toHaveBeenCalled());
+    const ids = vi.mocked(adminReorderCars).mock.calls[0][0] as string[];
+    expect(ids).toEqual(['car-sedan-2', 'car-sedan-1', 'car-suv-1', 'car-suv-2']);
+  });
+
+  it('failed reorder rolls back optimistic update', async () => {
+    vi.mocked(adminReorderCars).mockRejectedValue(new Error('boom'));
+    render(<CarAdmin />);
+    await screen.findByTestId('category-card-sedan');
+    fireEvent.click(screen.getByTestId('category-card-sedan'));
+    await screen.findByTestId('category-drilldown-sedan');
+    fireEvent.click(screen.getByTestId('move-down-car-sedan-1'));
+    await waitFor(() => expect(screen.getByText('boom')).toBeInTheDocument());
+    const sedanOrders = Array.from(document.querySelectorAll('[data-testid^="car-order-"]')).map((el) => el.textContent?.trim());
+    expect(sedanOrders).toEqual(['0', '1']);
   });
 
   it('image src equals first image when present', async () => {
