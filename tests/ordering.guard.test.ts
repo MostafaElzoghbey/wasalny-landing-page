@@ -16,19 +16,21 @@ describe('ordering guard — prevents regression of display_order bugs', () => {
     expect(seed).toMatch(/INSERT INTO cars.*display_order/);
   });
 
-  it('all 5 admin doReorder map displayOrder to index', () => {
+  it('4 non-car admins keep doReorder mapping displayOrder to index; cars use image-row moves', () => {
     const files = [
       'src/admin/FaqAdmin.tsx',
       'src/admin/LocationAdmin.tsx',
       'src/admin/RouteGroupAdmin.tsx',
       'src/admin/RouteDataAdmin.tsx',
-      'src/admin/CarAdmin.tsx',
     ];
     for (const file of files) {
       const content = readFileSync(resolve(file), 'utf8');
       expect(content, `${file} must contain displayOrder: i mapping`).toMatch(/displayOrder:\s*i/);
       expect(content, `${file} must use nextWithOrder`).toMatch(/nextWithOrder/);
     }
+    const cars = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
+    expect(cars, 'CarAdmin must not keep whole-car doReorder').not.toMatch(/doReorder|adminReorderCars|nextWithOrder/);
+    expect(cars, 'CarAdmin orders via image-row moves').toMatch(/useImageRowMoves/);
   });
 
   it('migration backfill exists and is idempotent WHERE display_order=0', () => {

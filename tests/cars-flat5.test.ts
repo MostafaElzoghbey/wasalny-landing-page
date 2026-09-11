@@ -41,12 +41,14 @@ describe('S-CAR flat 5 direct rows contract', () => {
     expect(admin).not.toMatch(/expandedCategories/);
   });
 
-  it('CarAdmin drill-down uses big-category grid with per-category filter and global flatMap reorder', () => {
+  it('CarAdmin drill-down uses big-category grid with per-category filter and image-row reorder', () => {
     const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
     expect(admin).toMatch(/category-grid/);
     expect(admin).toMatch(/category-drilldown/);
-    expect(admin).toMatch(/CAR_CATEGORIES.*flatMap/);
-    expect(admin).toMatch(/useReorderAnimation/);
+    expect(admin).not.toMatch(/CAR_CATEGORIES.*flatMap/);
+    expect(admin).not.toMatch(/useReorderAnimation/);
+    expect(admin).not.toMatch(/ReorderControls/);
+    expect(admin).toMatch(/useImageRowMoves/);
     expect(admin).toMatch(/data-reorder-item/);
     expect(admin).toMatch(/transitionDelay/);
   });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import type { Car } from '@/types';
-import { adminUpdateCar } from '@/data/api';
+import { adminDeleteCar, adminUpdateCar } from '@/data/api';
 import { ChipInput } from '@/components/ui/ChipInput';
 import { ImageDropzone } from '@/components/ui/ImageDropzone';
 import type { ImageRow } from './carImageRows';
@@ -14,13 +14,14 @@ interface CarImageRowProps {
   row: ImageRow;
   categoryLabel: string;
   onUpdated: (next: Car) => void;
+  onDeleted: (id: string) => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
 }
 
-export function CarImageRow({ car, row, categoryLabel, onUpdated, canMoveUp, canMoveDown, onMoveUp, onMoveDown }: CarImageRowProps) {
+export function CarImageRow({ car, row, categoryLabel, onUpdated, onDeleted, canMoveUp, canMoveDown, onMoveUp, onMoveDown }: CarImageRowProps) {
   const name = imageRowDisplayName(car, row.index);
   const rowTestId = `car-imagerow-${row.carId}-${row.index}`;
   const [editing, setEditing] = useState(false);
@@ -33,7 +34,6 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, canMoveUp, can
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [deleteBlocked, setDeleteBlocked] = useState(false);
 
   function enterEdit(): void {
     setDraftNameAr(car.nameAr);
@@ -82,7 +82,6 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, canMoveUp, can
 
   function enterDelete(): void {
     setError(null);
-    setDeleteBlocked(false);
     setConfirmDelete(true);
   }
 
@@ -93,8 +92,16 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, canMoveUp, can
   async function handleDeleteConfirm(): Promise<void> {
     setError(null);
     if (car.images.length <= 1) {
-      setDeleteBlocked(true);
-      setConfirmDelete(false);
+      setDeleting(true);
+      try {
+        await adminDeleteCar(car.id);
+        onDeleted(car.id);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'فشل حذف السيارة');
+      } finally {
+        setDeleting(false);
+        setConfirmDelete(false);
+      }
       return;
     }
     const normalized: Car = buildRowDeletePayload(car, row.index);
@@ -118,11 +125,6 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, canMoveUp, can
       className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2 text-right"
     >
       {error && <ErrorText message={error} />}
-      {deleteBlocked && (
-        <p data-testid={`car-imagerow-delete-blocked-${row.carId}-${row.index}`} role="alert" className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-950/40">
-          لا يمكن حذف الصورة الأخيرة — يجب أن تحتوي السيارة على صورة واحدة على الأقل
-        </p>
-      )}
       {!editing ? (
         <div className="flex items-center gap-2">
           <span
@@ -167,7 +169,7 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, canMoveUp, can
                 onClick={handleDeleteConfirm}
                 disabled={deleting}
               >
-                تأكيد الحذف
+                {car.images.length <= 1 ? 'تأكيد حذف السيارة' : 'تأكيد الحذف'}
               </DangerButton>
               <button
                 type="button"

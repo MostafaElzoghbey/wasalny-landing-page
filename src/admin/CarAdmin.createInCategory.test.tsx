@@ -80,9 +80,9 @@ describe('CarAdmin create in-category contract', () => {
     const callArg = vi.mocked(adminCreateCar).mock.calls[0]?.[0] as unknown as Record<string, unknown>;
     expect(callArg['displayOrder']).toBe(4);
 
-    // new card appears inside drilldown-suv
+    // new car appears inside drilldown-suv as its own image row (0-image → placeholder row)
     await waitFor(() => {
-      expect(within(screen.getByTestId('category-drilldown-suv')).queryByTestId('car-card-car-suv-new')).not.toBeNull();
+      expect(within(screen.getByTestId('category-drilldown-suv')).queryByTestId('car-imagerow-car-suv-new-0')).not.toBeNull();
     });
 
     // no separate block (no category grid)

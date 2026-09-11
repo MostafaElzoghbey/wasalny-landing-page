@@ -59,6 +59,6 @@ describe('CarAdmin create feedback', () => {
     fireEvent.click(within(form).getByText('إنشاء سيارة'));
 
     await waitFor(() => expect(vi.mocked(adminCreateCar)).toHaveBeenCalledTimes(1));
-    expect(await screen.findByTestId('car-edit-car-sedan-new')).toBeInTheDocument();
+    expect(await screen.findByTestId('car-imagerow-edit-car-sedan-new-0')).toBeInTheDocument();
   });
 });

@@ -30,7 +30,7 @@ describe('S-ANIM reorder animation contract', () => {
     expect(rc).toMatch(/reorder-item|dragging|scale/);
   });
 
-  it('CarAdmin flat list has FLIP reorder (no CarCategoryGroup)', () => {
+  it('CarAdmin rows order via image-row moves with reorder anchors (no CarCategoryGroup)', () => {
     let grpExists = true;
     try {
       readFileSync(resolve('src/admin/CarCategoryGroup.tsx'), 'utf8');
@@ -39,7 +39,9 @@ describe('S-ANIM reorder animation contract', () => {
     }
     expect(grpExists).toBe(false);
     const admin = readFileSync(resolve('src/admin/CarAdmin.tsx'), 'utf8');
-    expect(admin).toMatch(/useReorderAnimation/);
+    expect(admin).not.toMatch(/useReorderAnimation/);
+    expect(admin).not.toMatch(/ReorderControls/);
+    expect(admin).toMatch(/useImageRowMoves/);
     expect(admin).toMatch(/data-reorder-item/);
   });
 

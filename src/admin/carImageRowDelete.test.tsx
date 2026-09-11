@@ -80,34 +80,28 @@ describe('carImageRowDelete – per-row two-step delete', () => {
     expect(screen.queryByTestId(`car-imagerow-${threeImageCar.id}-2`)).toBeNull();
   });
 
-  it('last-image row delete → BLOCKED with visible Arabic message, zero api calls, car row survives', async () => {
+  it('last-image row delete removes the whole car via adminDeleteCar, no PUT', async () => {
+    vi.mocked(adminDeleteCar).mockResolvedValue(undefined as unknown as Car);
     await drillIntoSedan();
 
     const row = screen.getByTestId(`car-imagerow-${singleImageCar.id}-0`);
     fireEvent.click(within(row).getByTestId(`car-imagerow-delete-${singleImageCar.id}-0`));
     fireEvent.click(within(row).getByTestId(`car-imagerow-delete-confirm-${singleImageCar.id}-0`));
 
-    await waitFor(() =>
-      expect(
-        within(row).getByTestId(`car-imagerow-delete-blocked-${singleImageCar.id}-0`),
-      ).toBeInTheDocument(),
-    );
-    expect(vi.mocked(adminUpdateCar)).not.toHaveBeenCalled();
-    expect(vi.mocked(adminDeleteCar)).not.toHaveBeenCalled();
-    // car itself untouched: row + parent card still present
-    expect(screen.getByTestId(`car-imagerow-${singleImageCar.id}-0`)).toBeInTheDocument();
-    expect(screen.getByTestId(`car-row-${singleImageCar.id}`)).toBeInTheDocument();
-  });
-
-  it('full-car DELETE stays on the parent CarCard control and calls adminDeleteCar', async () => {
-    vi.mocked(adminDeleteCar).mockResolvedValue(undefined as unknown as Car);
-    await drillIntoSedan();
-
-    fireEvent.click(screen.getByTestId(`car-delete-${singleImageCar.id}`));
-    fireEvent.click(screen.getByTestId(`car-delete-confirm-${singleImageCar.id}`));
-
     await waitFor(() => expect(vi.mocked(adminDeleteCar)).toHaveBeenCalledTimes(1));
     expect(vi.mocked(adminDeleteCar)).toHaveBeenCalledWith(singleImageCar.id);
     expect(vi.mocked(adminUpdateCar)).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(screen.queryByTestId(`car-row-${singleImageCar.id}`)).toBeNull(),
+    );
+  });
+
+  it('no global car delete button exists — one individual حذف per image row only', async () => {
+    await drillIntoSedan();
+
+    expect(screen.queryByTestId(`car-delete-${threeImageCar.id}`)).toBeNull();
+    expect(screen.queryByTestId(`car-delete-${singleImageCar.id}`)).toBeNull();
+    expect(screen.getByTestId(`car-imagerow-delete-${threeImageCar.id}-0`)).toBeInTheDocument();
+    expect(screen.getByTestId(`car-imagerow-delete-${singleImageCar.id}-0`)).toBeInTheDocument();
   });
 });

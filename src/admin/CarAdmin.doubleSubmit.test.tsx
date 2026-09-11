@@ -115,7 +115,7 @@ describe('CarAdmin cars visible directly, no expand needed', () => {
     fireEvent.click(screen.getByTestId('category-card-sedan'));
     await screen.findByTestId('category-drilldown-sedan');
 
-    expect(screen.getByTestId('car-edit-car-sedan-1')).toBeInTheDocument();
+    expect(screen.getByTestId('car-imagerow-edit-car-sedan-1-0')).toBeInTheDocument();
   });
 
   it('switching category shows the new category cars directly', async () => {
@@ -130,8 +130,8 @@ describe('CarAdmin cars visible directly, no expand needed', () => {
     fireEvent.click(screen.getByTestId('category-card-suv'));
     await screen.findByTestId('category-drilldown-suv');
 
-    expect(screen.getByTestId('car-edit-car-suv-1')).toBeInTheDocument();
-    expect(screen.queryByTestId('car-edit-car-sedan-1')).toBeNull();
+    expect(screen.getByTestId('car-imagerow-edit-car-suv-1-0')).toBeInTheDocument();
+    expect(screen.queryByTestId('car-imagerow-edit-car-sedan-1-0')).toBeNull();
   });
 });
 

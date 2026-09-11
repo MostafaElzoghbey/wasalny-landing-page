@@ -85,11 +85,12 @@ describe('CarAdmin fleet big-categories contract', () => {
     const items = document.querySelectorAll('[data-reorder-item]');
     expect(items).toHaveLength(2);
     for (const item of Array.from(items) as HTMLElement[]) {
-      expect(item.querySelector('[data-testid^="car-counts-"]')).not.toBeNull();
-      expect(item.querySelector('[data-testid^="car-order-"]')).not.toBeNull();
+      expect(item.querySelector('[data-testid^="car-card-"]')).toBeNull();
+      expect(item.querySelector('[data-testid^="car-imagerow-order-"]')).not.toBeNull();
     }
-    expect(document.querySelectorAll('[data-testid^="move-up-"]')).toHaveLength(2);
-    expect(document.querySelectorAll('[data-testid^="move-down-"]')).toHaveLength(2);
+    expect(document.querySelectorAll('[data-testid^="car-imagerow-up-"]')).toHaveLength(2);
+    expect(document.querySelectorAll('[data-testid^="car-imagerow-down-"]')).toHaveLength(2);
+    expect(document.querySelectorAll('[data-testid^="move-up-"]')).toHaveLength(0);
   });
 
   it('click back returns to grid with 5 cards', async () => {
@@ -134,18 +135,4 @@ describe('CarAdmin fleet big-categories contract', () => {
     expect(callArg['category']).not.toBe('rocket');
   });
 
-  it('per-category useReorderAnimation uses filtered ids not global 10 ids', async () => {
-    await renderFleet();
-    fireEvent.click(screen.getByTestId('category-card-suv'));
-    await screen.findByTestId('category-drilldown-suv');
-    await waitFor(() => {
-      const calls = vi.mocked(useReorderAnimation).mock.calls.map((c) => c[0] as string);
-      expect(calls.length).toBeGreaterThan(0);
-    });
-    const calls = vi.mocked(useReorderAnimation).mock.calls.map((c) => c[0] as string);
-    const expectedFiltered = 'car-suv-1,car-suv-2';
-    const globalIds = fleetCars.map((c) => c.id).join(',');
-    expect(calls, `expected useReorderAnimation called with filtered ids ${expectedFiltered}`).toContain(expectedFiltered);
-    expect(calls, `expected not called with global 10 ids`).not.toContain(globalIds);
-  });
 });

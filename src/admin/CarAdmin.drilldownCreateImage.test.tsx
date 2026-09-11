@@ -77,25 +77,28 @@ describe('CarAdmin drilldown create+image contract', () => {
     const submit = within(form).getByText('إنشاء سيارة');
     fireEvent.click(submit);
     await waitFor(() => expect(vi.mocked(adminCreateCar)).toHaveBeenCalled());
-    // after load, drilldown should contain new car
-    await waitFor(() => expect(within(screen.getByTestId('category-drilldown-suv')).queryByTestId('car-card-car-new')).not.toBeNull());
+    await waitFor(() => expect(within(screen.getByTestId('category-drilldown-suv')).queryByTestId('car-imagerow-car-new-0')).not.toBeNull());
     const drillAfter = screen.getByTestId('category-drilldown-suv');
     expect(within(drillAfter).getAllByTestId(/^car-row-/)).toHaveLength(3);
     expect(screen.queryByTestId('car-sync-hidden')).toBeNull();
     expect(document.querySelectorAll('[data-testid^="category-card-"]')).toHaveLength(0);
   });
 
-  it('SC-B car row: single thumbnail (first image), no grid, no hero/sub split', async () => {
+  it('SC-B car rows: image rows only, no parent header card, no parent thumb', async () => {
     render(<CarAdmin />);
     await screen.findByTestId('category-card-suv');
     fireEvent.click(screen.getByTestId('category-card-suv'));
     await screen.findByTestId('category-drilldown-suv');
-    const card = screen.getByTestId('car-card-car-suv-1');
-    const thumb = within(card).getByTestId('car-thumb-car-suv-1');
-    expect(thumb.tagName).toBe('IMG');
-    expect(thumb.getAttribute('src')).toContain('suv1.jpg');
-    expect(within(card).queryByTestId('car-images-car-suv-1')).toBeNull();
-    expect(card.querySelectorAll('img')).toHaveLength(1);
-    expect(within(card).queryByText('https://cdn.example.com/suv1.jpg')).toBeNull();
+    const drill = screen.getByTestId('category-drilldown-suv');
+    // no parent header chrome anywhere in the drilldown
+    expect(within(drill).queryByTestId('car-card-car-suv-1')).toBeNull();
+    expect(within(drill).queryByTestId('car-thumb-car-suv-1')).toBeNull();
+    expect(within(drill).queryByTestId('car-counts-car-suv-1')).toBeNull();
+    // single image row carrying the one photo, no grid, no hero/sub split
+    const row = within(drill).getByTestId('car-imagerow-car-suv-1-0');
+    const imgs = row.querySelectorAll('img');
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0]?.getAttribute('src')).toContain('suv1.jpg');
+    expect(within(row).queryByText('https://cdn.example.com/suv1.jpg')).toBeNull();
   });
 });

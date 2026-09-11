@@ -13,13 +13,13 @@ interface UseImageRowMovesResult {
   moveDown: (carId: string, index: number) => void;
 }
 
-export function useImageRowMoves(sorted: Car[], isReordering: boolean, onUpdated: (next: Car) => void): UseImageRowMovesResult {
+export function useImageRowMoves(sorted: Car[], onUpdated: (next: Car) => void): UseImageRowMovesResult {
   const [imageError, setImageError] = useState<string | null>(null);
   const [imageMoving, setImageMoving] = useState(false);
   const movePlans = planImageRowMoves(sorted);
 
   async function handleImageMoveWithin(carId: string, from: number, to: number): Promise<void> {
-    if (imageMoving || isReordering) return;
+    if (imageMoving) return;
     const car = sorted.find((c) => c.id === carId);
     if (!car) return;
     const next = reorderImagesWithin(car, from, to);
@@ -38,7 +38,7 @@ export function useImageRowMoves(sorted: Car[], isReordering: boolean, onUpdated
   }
 
   async function handleImageMoveAcross(sourceId: string, sourceImageIndex: number, targetId: string, targetImageIndex: number): Promise<void> {
-    if (imageMoving || isReordering) return;
+    if (imageMoving) return;
     const source = sorted.find((c) => c.id === sourceId);
     const target = sorted.find((c) => c.id === targetId);
     if (!source || !target) return;
