@@ -13,7 +13,7 @@ interface UseImageRowMovesResult {
   moveDown: (carId: string, index: number) => void;
 }
 
-export function useImageRowMoves(sorted: Car[], onUpdated: (next: Car) => void): UseImageRowMovesResult {
+export function useImageRowMoves(sorted: Car[], onUpdated: (next: Car) => void, onDeleted: (id: string) => void): UseImageRowMovesResult {
   const [imageError, setImageError] = useState<string | null>(null);
   const [imageMoving, setImageMoving] = useState(false);
   const movePlans = planImageRowMoves(sorted);
@@ -54,6 +54,7 @@ export function useImageRowMoves(sorted: Car[], onUpdated: (next: Car) => void):
       const freshSource = fresh.find((c) => c.id === sourceId);
       const freshTarget = fresh.find((c) => c.id === targetId);
       if (freshSource) onUpdated(freshSource);
+      else onDeleted(sourceId);
       if (freshTarget) onUpdated(freshTarget);
     } catch (e) {
       onUpdated(source);

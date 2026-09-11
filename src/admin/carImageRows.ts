@@ -1,6 +1,6 @@
 import type { Car } from '@/types';
 import { CATEGORY_LABELS, syncAlts } from '@/admin/carHelpers';
-import { adminGetCars, adminUpdateCar } from '@/data/api';
+import { adminDeleteCar, adminGetCars, adminUpdateCar } from '@/data/api';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -216,18 +216,19 @@ export function computeCrossParentMove(params: {
 
 /**
  * Persist a cross-parent image move: fetch current cars via adminGetCars(),
- * find source/target by id, send shared+image arrays via adminUpdateCar().
+ * find source/target by id, SPLICE the image out of the source and into the
+ * target via computeCrossParentMove(), then persist target FIRST (a target
+ * failure leaves everything untouched; the reverse order could lose the
+ * photo) and finally the source — or DELETE the source when the move empties
+ * it, so no photo-less shell row lingers in the list.
  *
- * Test contract (carImageMove.test.tsx):
- *   - adminGetCars called exactly once (fetches current state)
- *   - adminUpdateCar called twice with 5-key payload: { nameAr, description,
- *     features, images, imageAlts }
- *   - Shared fields preserved from the fetched car objects
+ * The splice MUST be computed from the fetched state — re-persisting the
+ * fetched arrays unchanged is a silent no-op (the UI would optimistically
+ * jump and then snap back, which is exactly how single-photo cars looked
+ * "unmovable": all of their moves are cross-parent moves).
  *
- * NOTE: The test mock returns post-move state from adminGetCars, so the
- * function re-persists the fetched state without re-splicing. The pure
- * splice logic lives in computeCrossParentMove() for callers that hold
- * the pre-move state.
+ * Test contract (carImageMove.test.tsx): the mock returns PRE-move state;
+ * assert the PUT/DELETE calls carry the SPLICED result below.
  *
  * Throws if sourceId or targetId is not found in the fetched car list.
  */
@@ -237,7 +238,7 @@ export async function moveImageAcrossParents(params: {
   targetId: string;
   targetImageIndex: number;
 }): Promise<void> {
-  const { sourceId, targetId } = params;
+  const { sourceId, sourceImageIndex, targetId, targetImageIndex } = params;
 
   const cars = await adminGetCars();
   const source = cars.find((c) => c.id === sourceId);
@@ -246,19 +247,26 @@ export async function moveImageAcrossParents(params: {
   if (!source) throw new Error(`Source car not found: ${sourceId}`);
   if (!target) throw new Error(`Target car not found: ${targetId}`);
 
-  await adminUpdateCar(sourceId, {
-    nameAr: source.nameAr,
-    description: source.description,
-    features: source.features,
-    images: source.images,
-    imageAlts: source.imageAlts,
-  });
+  const computed = computeCrossParentMove({ source, sourceImageIndex, target, targetImageIndex });
 
   await adminUpdateCar(targetId, {
-    nameAr: target.nameAr,
-    description: target.description,
-    features: target.features,
-    images: target.images,
-    imageAlts: target.imageAlts,
+    nameAr: computed.target.nameAr,
+    description: computed.target.description,
+    features: computed.target.features,
+    images: computed.target.images,
+    imageAlts: computed.target.imageAlts,
+  });
+
+  if (computed.source.images.length === 0) {
+    await adminDeleteCar(sourceId);
+    return;
+  }
+
+  await adminUpdateCar(sourceId, {
+    nameAr: computed.source.nameAr,
+    description: computed.source.description,
+    features: computed.source.features,
+    images: computed.source.images,
+    imageAlts: computed.source.imageAlts,
   });
 }

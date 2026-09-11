@@ -85,4 +85,19 @@ describe('CarImageRows edge cases — S3 expansion', () => {
     expect(imgs).toHaveLength(1);
     expect(imgs[0].getAttribute('src')).toBe('https://cdn.example.com/single.jpg');
   });
+
+  it('placeholder row move arrows stay disabled — nothing to move', async () => {
+    render(<CarAdmin />);
+    await screen.findByTestId('category-card-sedan');
+    screen.getByTestId('category-card-sedan').click();
+    await screen.findByTestId('category-drilldown-sedan');
+
+    const drill = screen.getByTestId('category-drilldown-sedan');
+    expect(
+      (within(drill).getByTestId('car-imagerow-up-car-zero-images-0') as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(
+      (within(drill).getByTestId('car-imagerow-down-car-zero-images-0') as HTMLButtonElement).disabled,
+    ).toBe(true);
+  });
 });

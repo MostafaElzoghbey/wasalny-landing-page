@@ -58,8 +58,8 @@ describe('CarAdmin reorder image order proofs', () => {
     for (const item of Array.from(items) as HTMLElement[]) {
       const orderBadge = item.querySelector('[data-testid^="car-imagerow-order-"]');
       expect(orderBadge).not.toBeNull();
-      const text = orderBadge?.textContent?.trim().split('-')[0];
-      expect(['0', '1']).toContain(text);
+      const text = orderBadge?.textContent?.trim();
+      expect(['1', '2']).toContain(text);
     }
   });
 
@@ -73,7 +73,7 @@ describe('CarAdmin reorder image order proofs', () => {
     expect(downBtns).toHaveLength(2);
     expect((upBtns[0] as HTMLButtonElement).disabled).toBe(true);
     expect((downBtns[0] as HTMLButtonElement).disabled).toBe(false);
-    expect((upBtns[1] as HTMLButtonElement).disabled).toBe(false);
+    expect((upBtns[1] as HTMLButtonElement).disabled).toBe(true);
     expect((downBtns[1] as HTMLButtonElement).disabled).toBe(true);
   });
 

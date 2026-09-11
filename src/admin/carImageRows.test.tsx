@@ -94,6 +94,27 @@ describe('carImageRows – admin drilldown image row rendering', () => {
     }
   });
 
+  it('numbers rows continuously 1..N across old multi-image and new single-image cars', async () => {
+    const newCar: Car = {
+      id: 'car-imgtest-new',
+      nameAr: 'سيدان جديدة',
+      category: 'sedan',
+      categoryAr: 'سيدان',
+      description: 'سيارة جديدة',
+      images: ['https://example.com/new.jpg'],
+      imageAlts: ['صورة جديدة'],
+      features: [],
+      displayOrder: 5,
+    };
+    vi.mocked(adminGetCars).mockResolvedValue([carFixture, newCar]);
+    await drillIntoSedan();
+
+    const badges = Array.from(
+      document.querySelectorAll('[data-testid^="car-imagerow-order-"]'),
+    ).map((el) => el.textContent?.trim());
+    expect(badges).toEqual(['1', '2', '3', '4']);
+  });
+
   it('contains none of the forbidden group-name Arabic strings in the document', async () => {
     await drillIntoSedan();
 

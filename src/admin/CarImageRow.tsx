@@ -12,6 +12,7 @@ import { ErrorText, Field, PrimaryButton, DangerButton } from './ui';
 interface CarImageRowProps {
   car: Car;
   row: ImageRow;
+  rowNumber: number;
   categoryLabel: string;
   onUpdated: (next: Car) => void;
   onDeleted: (id: string) => void;
@@ -21,9 +22,10 @@ interface CarImageRowProps {
   onMoveDown: () => void;
 }
 
-export function CarImageRow({ car, row, categoryLabel, onUpdated, onDeleted, canMoveUp, canMoveDown, onMoveUp, onMoveDown }: CarImageRowProps) {
+export function CarImageRow({ car, row, rowNumber, categoryLabel, onUpdated, onDeleted, canMoveUp, canMoveDown, onMoveUp, onMoveDown }: CarImageRowProps) {
   const name = imageRowDisplayName(car, row.index);
   const rowTestId = `car-imagerow-${row.carId}-${row.index}`;
+  const hasPhoto = row.imageUrl !== null && row.imageUrl !== '';
   const [editing, setEditing] = useState(false);
   const [draftNameAr, setDraftNameAr] = useState(car.nameAr);
   const [draftDescription, setDraftDescription] = useState(car.description);
@@ -131,7 +133,7 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, onDeleted, can
             data-testid={`car-imagerow-order-${row.carId}-${row.index}`}
             className="shrink-0 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 font-mono text-xs font-semibold text-[hsl(var(--muted-foreground))]"
           >
-            {car.displayOrder}-{row.index}
+            {rowNumber}
           </span>
           {row.imageUrl ? (
             <img
@@ -195,7 +197,7 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, onDeleted, can
               type="button"
               data-testid={`car-imagerow-up-${row.carId}-${row.index}`}
               onClick={onMoveUp}
-              disabled={!canMoveUp}
+              disabled={!canMoveUp || !hasPhoto}
               aria-label="تحريك الصورة لأعلى"
               className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -205,7 +207,7 @@ export function CarImageRow({ car, row, categoryLabel, onUpdated, onDeleted, can
               type="button"
               data-testid={`car-imagerow-down-${row.carId}-${row.index}`}
               onClick={onMoveDown}
-              disabled={!canMoveDown}
+              disabled={!canMoveDown || !hasPhoto}
               aria-label="تحريك الصورة لأسفل"
               className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >

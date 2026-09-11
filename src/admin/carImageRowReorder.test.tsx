@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import type { Car } from '@/types';
-import { adminGetCars, adminReorderCars, adminUpdateCar } from '@/data/api';
+import { adminDeleteCar, adminGetCars, adminReorderCars, adminUpdateCar } from '@/data/api';
 import { CarAdmin } from './CarAdmin';
 
 vi.mock('@/data/api', () => ({
@@ -43,18 +43,35 @@ const parentB: Car = {
   displayOrder: 1,
 };
 
-// Post-move state: a1 moved down from A index 1 into B index 0
-const parentA_after: Car = {
-  ...parentA,
-  images: ['https://cdn.example.com/a0.jpg'],
-  imageAlts: ['أمامية أ'],
-};
+  it('single-photo car moves up into previous car → emptied source car disappears, target gains', async () => {
+    const postA: Car = {
+      ...parentA,
+      images: [...parentA.images, 'https://cdn.example.com/b0.jpg'],
+      imageAlts: [...(parentA.imageAlts ?? []), 'أمامية ب'],
+    };
+    let fetches = 0;
+    vi.mocked(adminGetCars).mockImplementation(async () =>
+      ++fetches < 3 ? [parentA, parentB] : [postA],
+    );
+    vi.mocked(adminDeleteCar).mockResolvedValue(undefined);
+    await drillIntoSedan();
 
-const parentB_after: Car = {
-  ...parentB,
-  images: ['https://cdn.example.com/a1.jpg', 'https://cdn.example.com/b0.jpg'],
-  imageAlts: ['جانبية أ', 'أمامية ب'],
-};
+    fireEvent.click(screen.getByTestId(`car-imagerow-up-${parentB.id}-0`));
+
+    await waitFor(() => expect(vi.mocked(adminUpdateCar)).toHaveBeenCalledTimes(1));
+    const [tgtId, tgtPayload] = vi.mocked(adminUpdateCar).mock.calls[0] as unknown as [string, Partial<Car>];
+    expect(tgtId).toBe(parentA.id);
+    expect(tgtPayload.images).toEqual([
+      'https://cdn.example.com/a0.jpg',
+      'https://cdn.example.com/a1.jpg',
+      'https://cdn.example.com/b0.jpg',
+    ]);
+    await waitFor(() => expect(vi.mocked(adminDeleteCar)).toHaveBeenCalledWith(parentB.id));
+    await waitFor(() =>
+      expect(screen.getByTestId(`car-imagerow-${parentA.id}-2`).textContent).toContain('أمامية ب'),
+    );
+    expect(screen.queryByTestId(`car-row-${parentB.id}`)).toBeNull();
+  });
 
 async function drillIntoSedan(): Promise<void> {
   render(<CarAdmin />);
@@ -88,13 +105,11 @@ describe('carImageRowReorder – per-row image reorder', () => {
   it('cross-parent down into next parent → 2 PUTs source-spliced + target-inserted, no parent reorder call', async () => {
     await drillIntoSedan();
 
-    // Fetches after the click observe the post-move server state (same pattern as carImageMove.test.tsx)
-    vi.mocked(adminGetCars).mockResolvedValue([parentA_after, parentB_after]);
     fireEvent.click(screen.getByTestId(`car-imagerow-down-${parentA.id}-1`));
 
     await waitFor(() => expect(vi.mocked(adminUpdateCar)).toHaveBeenCalledTimes(2));
-    const [srcId, srcPayload] = vi.mocked(adminUpdateCar).mock.calls[0] as unknown as [string, Partial<Car>];
-    const [tgtId, tgtPayload] = vi.mocked(adminUpdateCar).mock.calls[1] as unknown as [string, Partial<Car>];
+    const [tgtId, tgtPayload] = vi.mocked(adminUpdateCar).mock.calls[0] as unknown as [string, Partial<Car>];
+    const [srcId, srcPayload] = vi.mocked(adminUpdateCar).mock.calls[1] as unknown as [string, Partial<Car>];
     expect(srcId).toBe(parentA.id);
     expect(srcPayload.images).toEqual(['https://cdn.example.com/a0.jpg']);
     expect(srcPayload.imageAlts).toEqual(['أمامية أ']);

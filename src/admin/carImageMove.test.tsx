@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Car } from '@/types';
-import { adminGetCars, adminUpdateCar } from '@/data/api';
+import { adminDeleteCar, adminGetCars, adminUpdateCar } from '@/data/api';
 import { moveImageAcrossParents } from '@/admin/carImageRows';
 
 // ---------------------------------------------------------------------------
@@ -45,30 +45,17 @@ const parentB: Car = {
   displayOrder: 1,
 };
 
-// After move: image 0 from A → B at index 1
-const parentA_afterMove: Car = {
-  ...parentA,
-  images: ['https://cdn.example.com/a1.jpg'],
-  imageAlts: ['صورة أ جانبية'],
-};
-
-const parentB_afterMove: Car = {
-  ...parentB,
-  images: ['https://cdn.example.com/b0.jpg', 'https://cdn.example.com/a0.jpg'],
-  imageAlts: ['صورة ب أمامية', 'صورة أ أمامية'],
-};
-
-// ---------------------------------------------------------------------------
-// Test suite — S3: cross-parent image move
-// ---------------------------------------------------------------------------
+// Mock returns PRE-move state like the real API. Do not "simplify" to
+// post-move state: re-persisting fetched arrays unchanged silently no-ops,
+// which once made single-photo cars unmovable.
 
 describe('S3 cross-parent image move', () => {
   beforeEach(() => {
     vi.mocked(adminUpdateCar).mockResolvedValue(undefined);
-    vi.mocked(adminGetCars).mockResolvedValue([parentA_afterMove, parentB_afterMove]);
+    vi.mocked(adminGetCars).mockResolvedValue([parentA, parentB]);
   });
 
-  it('splices image+alt from parentA, inserts at targetIndex in parentB, sends two PUT payloads with full arrays', async () => {
+  it('splices image+alt from parentA, inserts at targetIndex in parentB, target PUT first', async () => {
     await moveImageAcrossParents({
       sourceId: parentA.id,
       sourceImageIndex: 0,
@@ -76,22 +63,12 @@ describe('S3 cross-parent image move', () => {
       targetImageIndex: 1,
     });
 
-    // Exactly two adminUpdateCar calls: one for source (A), one for target (B)
+    // Exactly two adminUpdateCar calls: target FIRST (a target failure leaves
+    // everything untouched), then source
     expect(adminUpdateCar).toHaveBeenCalledTimes(2);
 
-    // --- First call: parent A — image spliced out ---
-    const callA = vi.mocked(adminUpdateCar).mock.calls[0];
-    expect(callA[0]).toBe('car-a');
-    expect(callA[1]).toEqual({
-      nameAr: parentA.nameAr,
-      description: parentA.description,
-      features: parentA.features,
-      images: ['https://cdn.example.com/a1.jpg'],
-      imageAlts: ['صورة أ جانبية'],
-    });
-
-    // --- Second call: parent B — image inserted at index 1 ---
-    const callB = vi.mocked(adminUpdateCar).mock.calls[1];
+    // --- First call: parent B — image inserted at index 1 ---
+    const callB = vi.mocked(adminUpdateCar).mock.calls[0];
     expect(callB[0]).toBe('car-b');
     expect(callB[1]).toEqual({
       nameAr: parentB.nameAr,
@@ -100,6 +77,39 @@ describe('S3 cross-parent image move', () => {
       images: ['https://cdn.example.com/b0.jpg', 'https://cdn.example.com/a0.jpg'],
       imageAlts: ['صورة ب أمامية', 'صورة أ أمامية'],
     });
+
+    // --- Second call: parent A — image spliced out ---
+    const callA = vi.mocked(adminUpdateCar).mock.calls[1];
+    expect(callA[0]).toBe('car-a');
+    expect(callA[1]).toEqual({
+      nameAr: parentA.nameAr,
+      description: parentA.description,
+      features: parentA.features,
+      images: ['https://cdn.example.com/a1.jpg'],
+      imageAlts: ['صورة أ جانبية'],
+    });
+  });
+
+  it('single-photo source: target PUT first, emptied source DELETED, no empty PUT', async () => {
+    vi.mocked(adminDeleteCar).mockResolvedValue(undefined);
+    await moveImageAcrossParents({
+      sourceId: parentB.id,
+      sourceImageIndex: 0,
+      targetId: parentA.id,
+      targetImageIndex: 2,
+    });
+
+    expect(vi.mocked(adminUpdateCar)).toHaveBeenCalledTimes(1);
+    const [tgtId, tgtPayload] = vi.mocked(adminUpdateCar).mock.calls[0] as unknown as [string, Partial<Car>];
+    expect(tgtId).toBe('car-a');
+    expect(tgtPayload.images).toEqual([
+      'https://cdn.example.com/a0.jpg',
+      'https://cdn.example.com/a1.jpg',
+      'https://cdn.example.com/b0.jpg',
+    ]);
+    expect(tgtPayload.imageAlts).toEqual(['صورة أ أمامية', 'صورة أ جانبية', 'صورة ب أمامية']);
+    expect(vi.mocked(adminDeleteCar)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(adminDeleteCar)).toHaveBeenCalledWith('car-b');
   });
 
   it('re-fetches cars after the move so the UI reflects the new state', async () => {
@@ -122,8 +132,8 @@ describe('S3 cross-parent image move', () => {
       targetImageIndex: 1,
     });
 
-    const payloadA = vi.mocked(adminUpdateCar).mock.calls[0][1] as Partial<Car>;
-    const payloadB = vi.mocked(adminUpdateCar).mock.calls[1][1] as Partial<Car>;
+    const payloadB = vi.mocked(adminUpdateCar).mock.calls[0][1] as Partial<Car>;
+    const payloadA = vi.mocked(adminUpdateCar).mock.calls[1][1] as Partial<Car>;
 
     // Shared fields unchanged — must be sent through but identical to originals
     expect(payloadA.nameAr).toBe(parentA.nameAr);

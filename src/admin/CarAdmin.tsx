@@ -23,23 +23,29 @@ interface CategoryCarListProps {
 
 function CategoryCarList({ categoryCars, onUpdated, onDeleted }: CategoryCarListProps) {
   const sorted = [...categoryCars].sort((a, b) => a.displayOrder - b.displayOrder);
-  const imageMoves = useImageRowMoves(sorted, onUpdated);
+  const imageMoves = useImageRowMoves(sorted, onUpdated, onDeleted);
   const { imageError, imageMoving, moveUp, moveDown } = imageMoves;
   const rowPlans = imageMoves.movePlans;
+  const rowsByCar = sorted.map((car) => ({ car, rows: expandCarToImageRows(car) }));
   return (
     <ul className="space-y-2">
       {imageError && <ErrorText message={imageError} />}
-      {sorted.map((car, idx) => (
+      {rowsByCar.map(({ car, rows }, idx) => {
+        const base = rowsByCar
+          .slice(0, idx)
+          .reduce((total, group) => total + group.rows.length, 0);
+        return (
         <li key={car.id} dir="rtl" data-reorder-item={car.id} data-testid={`car-row-${car.id}`} className="reorder-item text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
           <div className="min-w-0 flex-1 space-y-2">
             <ul className="space-y-1.5">
-              {expandCarToImageRows(car).map((row) => {
+              {rows.map((row, rowIdx) => {
                 const plan = rowPlans.get(`${car.id}-${row.index}`);
                 return (
                   <CarImageRow
                     key={`${row.carId}-${row.index}`}
                     car={car}
                     row={row}
+                    rowNumber={base + rowIdx + 1}
                     categoryLabel={CATEGORY_LABELS[car.category]}
                     onUpdated={onUpdated}
                     onDeleted={onDeleted}
@@ -53,7 +59,8 @@ function CategoryCarList({ categoryCars, onUpdated, onDeleted }: CategoryCarList
             </ul>
           </div>
         </li>
-      ))}
+        );
+      })}
       {sorted.length === 0 && <li className="text-sm text-[hsl(var(--muted-foreground))]">لا توجد سيارات بعد.</li>}
     </ul>
   );
