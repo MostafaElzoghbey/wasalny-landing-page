@@ -6,6 +6,7 @@ import { useData } from '@/context/DataProvider';
 import { cn } from '@/lib/utils';
 import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
+import { CATEGORY_CAPACITY, formatCapacity } from '@/utils/fleetCapacity';
 
 type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
 
@@ -250,13 +251,28 @@ export function FleetSection() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const activeCar = useMemo(() => {
-    if (cars.length === 0) return undefined;
-    return cars.find(car => car.category === activeCategory) || cars[0];
+  const categoryCars = useMemo(() => {
+    const group = cars
+      .filter(car => car.category === activeCategory)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+    return group.length > 0 ? group : cars.slice(0, 1);
   }, [cars, activeCategory]);
 
-  const images = activeCar?.images ?? [];
-  const imageAlts = activeCar?.imageAlts;
+  const images = useMemo(() => categoryCars.flatMap(car => car.images), [categoryCars]);
+  const imageAlts = useMemo(
+    () => categoryCars.flatMap(car => car.imageAlts ?? car.images.map(() => '')),
+    [categoryCars],
+  );
+  const features = useMemo(
+    () => [...new Set(categoryCars.flatMap(car => car.features))],
+    [categoryCars],
+  );
+  const activeCategoryName =
+    carCategories.find(cat => cat.id === activeCategory)?.nameAr
+    ?? categoryCars[0]?.categoryAr
+    ?? '';
+  const activeDescription = categoryCars[0]?.description ?? '';
+  const activeCategoryAr = categoryCars[0]?.categoryAr ?? '';
   const currentColors = categoryColors[activeCategory];
 
 
@@ -459,7 +475,7 @@ export function FleetSection() {
           </div>
         </div>
 
-        {!activeCar ? (
+        {!categoryCars.length ? (
           <div data-testid="fleet-empty" className="mx-auto max-w-xl p-8 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm text-center flex flex-col items-center gap-4">
             <span className="w-14 h-14 rounded-full bg-primary-500/10 flex items-center justify-center">
               <Car className="w-7 h-7 text-primary-500" />
@@ -475,21 +491,20 @@ export function FleetSection() {
                 <Star className="w-4 h-4 fill-current" />
                 <span>أداء متميز وراحة فائقة</span>
               </div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight">{activeCar.nameAr}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">{activeCar.description}</p>
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight">{activeCategoryName}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">{activeDescription}</p>
             </div>
 
             <div className="info-anim grid grid-cols-2 gap-4">
               <div ref={card1Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Users ref={icon1Ref} className="w-8 h-8 text-primary-500 mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">سعة المعرض</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.categoryAr}</p>
-                <p className="text-xs font-medium text-primary-600 dark:text-primary-400 mt-1">{activeCar.images.length} صور • {activeCar.features.length} ميزات</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">سعة الركاب</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCapacity(CATEGORY_CAPACITY[activeCategory])}</p>
               </div>
               <div ref={card2Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Briefcase ref={icon2Ref} className="w-8 h-8 text-accent-500 mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">الفئة</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.categoryAr}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCategoryAr}</p>
               </div>
             </div>
 
@@ -499,7 +514,7 @@ export function FleetSection() {
                 المميزات الرئيسية
               </h3>
               <ul className="grid grid-cols-1 gap-3">
-                {activeCar.features.map((feature, i) => (
+                {features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-[hsl(var(--foreground))] bg-[hsl(var(--card))] p-3 rounded-xl border border-[hsl(var(--border))] shadow-sm transition-all duration-200">
                     <div className="w-2 h-2 rounded-full bg-primary-500" />
                     {feature}

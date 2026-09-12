@@ -178,8 +178,8 @@ export function reorderImagesWithin(car: Car, from: number, to: number): Car {
  * Target index clamped to [0, target.images.length].
  *
  * Last-write-wins concurrency: if another admin edits nameAr / description /
- * features between our read (src/data/cars.ts:122-183 collections) and the
- * caller's write (FleetSection.tsx:253-256 .find()), the PUT overwrites with
+ * features between our read and the caller's write (FleetSection merges every
+ * car of the category into one gallery), the PUT overwrites with
  * stale values. Acceptable for the single-admin panel.
  */
 export function computeCrossParentMove(params: {

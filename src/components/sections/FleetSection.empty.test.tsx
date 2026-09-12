@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { useData } from '@/context/DataProvider';
 import { FleetSection } from './FleetSection';
+import { formatCapacity } from '@/utils/fleetCapacity';
 
 vi.mock('@/context/DataProvider', () => ({ useData: vi.fn() }));
 
@@ -66,7 +67,7 @@ beforeEach(() => {
 });
 
 describe('FleetSection empty states', () => {
-  it('cars=[] renders friendly empty fallback without crashing on activeCar.images', () => {
+  it('cars=[] renders friendly empty fallback without crashing on empty gallery', () => {
     mockedUseData.mockReturnValue({ cars: [], carCategories } as never);
     const { container } = render(<FleetSection />);
     expect(container.querySelector('[data-testid="fleet-empty"]')).not.toBeNull();
@@ -89,15 +90,49 @@ describe('FleetSection empty states', () => {
     expect(container.querySelector('[data-testid="fleet-no-images"]')).not.toBeNull();
   });
 
-  it('wedding car renders via the same gallery path', () => {
+  it('wedding car renders via the same gallery path under the category title', () => {
     mockedUseData.mockReturnValue({
       cars: [sedanCar, weddingCar],
       carCategories,
     } as never);
     const { container } = render(<FleetSection />);
     fireEvent.click(screen.getByText('زفاف'));
-    expect(screen.getByText('سيارة زفاف')).toBeInTheDocument();
+    const headings = container.querySelectorAll('h2');
+    expect(headings[headings.length - 1].textContent).toBe('زفاف');
     expect(screen.getAllByText('1/2')).toHaveLength(2);
     expect(container.textContent).not.toMatch(/NaN/);
+  });
+
+  it('admin-added second car in the same category merges into the gallery', () => {
+    const adminCar = {
+      ...sedanCar,
+      id: 'car-sedan-admin',
+      nameAr: 'سيدان الإدارة',
+      images: ['/img/admin-1.jpg'],
+      imageAlts: ['إدارة 1'],
+      displayOrder: 5,
+    };
+    mockedUseData.mockReturnValue({ cars: [sedanCar, adminCar], carCategories } as never);
+    const { container } = render(<FleetSection />);
+    expect(screen.getAllByText('1/3')).toHaveLength(2);
+    expect(screen.getByText('3 صور')).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/NaN/);
+  });
+
+  it('capacity card shows سعة الركاب with fixed per-category value, slop gone', () => {
+    mockedUseData.mockReturnValue({ cars: [sedanCar, weddingCar], carCategories } as never);
+    const { container } = render(<FleetSection />);
+    expect(screen.getByText('سعة الركاب')).toBeInTheDocument();
+    expect(screen.getByText('4 أشخاص')).toBeInTheDocument();
+    expect(container.textContent).not.toMatch(/سعة المعرض/);
+    expect(container.textContent).not.toMatch(/صور •/);
+  });
+
+  it('formatCapacity pluralizes Arabic correctly', () => {
+    expect(formatCapacity(1)).toBe('شخص واحد');
+    expect(formatCapacity(2)).toBe('شخصان');
+    expect(formatCapacity(4)).toBe('4 أشخاص');
+    expect(formatCapacity(7)).toBe('7 أشخاص');
+    expect(formatCapacity(13)).toBe('13 راكبًا');
   });
 });

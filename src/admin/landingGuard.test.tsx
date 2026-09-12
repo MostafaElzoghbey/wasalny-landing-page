@@ -10,8 +10,9 @@
  *   - @/components/pricing/VehiclePassengerCard
  *   - @/components/sections/PricingCalculator
  *   - @/components/sections/HeroSection
- *   - find-by-CATEGORY selector `.find(car => car.category ...)` (landing
- *     activeCar logic duplication — FleetSection.tsx `activeCar` useMemo).
+ *   - find-by-CATEGORY selector `.find(car => car.category ...)` (the old
+ *     landing single-car selector — FleetSection now merges the whole category,
+ *     so admin rendering must not reintroduce per-category find logic).
  *     Find-by-ID lookups (`cars.find((c) => c.id === ...)`) are legitimate
  *     admin data access (carImageRows.ts moveImageAcrossParents, CarAdmin.tsx
  *     reorder) and are NOT banned.
