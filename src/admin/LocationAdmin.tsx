@@ -4,17 +4,13 @@ import type { Location } from '@/types/pricing';
 import { adminCreateLocation, adminGetLocations, adminReorderLocations } from '@/data/api';
 import { ReorderControls } from '@/components/ui/ReorderControls';
 import { useReorderAnimation } from '@/hooks/useReorderAnimation';
-import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { LocationCard } from './LocationCard';
-
-const TYPES: readonly Location['type'][] = ['travel', 'internal'] as const;
+import { filterArabicName, validateArabicName } from './arabicName';
 
 export function LocationAdmin() {
   const [items, setItems] = useState<Location[]>([]);
   const [name, setName] = useState('');
-  const [nameAr, setNameAr] = useState('');
-  const [type, setType] = useState<Location['type']>('travel');
   const [error, setError] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [reorderError, setReorderError] = useState<string | null>(null);
@@ -41,26 +37,19 @@ export function LocationAdmin() {
 
   function resetForm(): void {
     setName('');
-    setNameAr('');
-    setType('travel');
   }
 
   async function handleCreate(e: FormEvent): Promise<void> {
     e.preventDefault();
     setCreateError(null);
-    if (name.trim() === '' || nameAr.trim() === '') {
-      setCreateError('الاسم والاسم (عربي) مطلوبان');
+    const trimmed = name.trim();
+    const validation = validateArabicName(trimmed);
+    if (validation) {
+      setCreateError(validation);
       return;
     }
     try {
-      const body: Location = {
-        id: generateId('loc'),
-        name: name.trim(),
-        nameAr: nameAr.trim(),
-        type,
-        displayOrder: 0,
-      };
-      await adminCreateLocation(body);
+      await adminCreateLocation({ name: trimmed, nameAr: trimmed, displayOrder: 0 });
       resetForm();
       setCreateOpen(false);
       await load();
@@ -134,24 +123,8 @@ export function LocationAdmin() {
         {createOpen && (
           <form onSubmit={(e) => void handleCreate(e)} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
             {createError && <ErrorText message={createError} />}
-            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-              <Field label="الاسم" value={name} onChange={setName} required />
-              <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
-              <label className="mb-3 block">
-                <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">النوع</span>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as Location['type'])}
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
-                >
-                  {TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            <Field label="الاسم" value={name} onChange={(v) => setName(filterArabicName(v))} required dir="rtl" />
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">الحروف العربية فقط</p>
             <PrimaryButton type="submit" data-testid="location-create-submit">
               إنشاء موقع
             </PrimaryButton>

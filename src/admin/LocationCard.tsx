@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Location } from '@/types/pricing';
 import { adminDeleteLocation, adminUpdateLocation } from '@/data/api';
 import { DangerButton, ErrorText, Field, PrimaryButton } from './ui';
+import { filterArabicName } from './arabicName';
 import { cloneLocation, validateLocation } from './locationHelpers';
 
 interface LocationCardProps {
@@ -34,7 +35,9 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
 
   async function handleSave(): Promise<void> {
     setError(null);
-    const validation = validateLocation(draft);
+    const trimmed = draft.nameAr.trim();
+    const candidate: Location = { ...draft, name: trimmed, nameAr: trimmed };
+    const validation = validateLocation(candidate);
     if (validation) {
       setError(validation);
       return;
@@ -43,15 +46,14 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
     try {
       const normalized: Location = {
         id: group.id,
-        name: draft.name.trim(),
-        nameAr: draft.nameAr.trim(),
-        type: draft.type,
+        name: trimmed,
+        nameAr: trimmed,
+        type: group.type,
         displayOrder: group.displayOrder,
       };
       await adminUpdateLocation(group.id, {
         name: normalized.name,
         nameAr: normalized.nameAr,
-        type: normalized.type,
       });
       onUpdated(normalized);
       setEditing(false);
@@ -87,19 +89,8 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-medium text-[hsl(var(--foreground))]">{group.name}</span>
-            <span className="truncate text-sm text-[hsl(var(--muted-foreground))]">{group.nameAr}</span>
-            <span
-              className={
-                group.type === 'travel'
-                  ? 'rounded-full bg-primary-600 px-2 py-0.5 text-xs font-semibold text-white'
-                  : 'rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white'
-              }
-            >
-              {group.type}
-            </span>
+            <span className="truncate font-medium text-[hsl(var(--foreground))]">{group.nameAr}</span>
           </div>
-          <p className="mt-1 truncate font-mono text-xs text-[hsl(var(--muted-foreground))]">{group.id}</p>
         </div>
         <span
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--muted-foreground))]"
@@ -125,22 +116,10 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
 
           {!editing ? (
             <>
-              <div className="mb-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+              <div className="mb-3 grid grid-cols-1 gap-3 text-sm">
                 <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
                   <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الاسم</p>
-                  <p className="text-[hsl(var(--foreground))]">{group.name}</p>
-                </div>
-                <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">الاسم (عربي)</p>
                   <p className="text-[hsl(var(--foreground))]">{group.nameAr}</p>
-                </div>
-                <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">النوع</p>
-                  <p className="text-[hsl(var(--foreground))]">{group.type === 'travel' ? 'سفر' : 'داخلي'}</p>
-                </div>
-                <div className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
-                  <p className="mb-1 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">المعرّف</p>
-                  <p className="font-mono text-xs text-[hsl(var(--foreground))]">{group.id}</p>
                 </div>
               </div>
 
@@ -174,21 +153,18 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
             </>
           ) : (
             <div className="space-y-3">
-              <p className="font-mono text-xs text-[hsl(var(--muted-foreground))]">المعرّف: {group.id} (غير قابل للتعديل)</p>
-              <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-                <Field label="الاسم" value={draft.name} onChange={(v) => setDraft((p) => ({ ...p, name: v }))} required />
-                <Field label="الاسم (عربي)" value={draft.nameAr} onChange={(v) => setDraft((p) => ({ ...p, nameAr: v }))} required />
-                <label className="mb-3 block">
-                  <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">النوع</span>
-                  <select
-                    value={draft.type}
-                    onChange={(e) => setDraft((p) => ({ ...p, type: e.target.value as Location['type'] }))}
-                    className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
-                  >
-                    <option value="travel">سفر</option>
-                    <option value="internal">داخلي</option>
-                  </select>
-                </label>
+              <div>
+                <Field
+                  label="الاسم"
+                  value={draft.nameAr}
+                  onChange={(v) => {
+                    const next = filterArabicName(v);
+                    setDraft((prev) => ({ ...prev, name: next, nameAr: next }));
+                  }}
+                  required
+                  dir="rtl"
+                />
+                <p className="text-xs text-[hsl(var(--muted-foreground))]">الحروف العربية فقط</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <PrimaryButton

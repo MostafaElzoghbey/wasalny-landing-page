@@ -222,6 +222,22 @@ describe('adminCrud', () => {
       expect(body.some((l) => l.id === 'loc-1')).toBe(true);
     });
 
+    it('POST /locations without type defaults to travel with a generated id', async () => {
+      const res = await adminCrud.request('/locations', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ name: 'القاهرة الجديدة', nameAr: 'القاهرة الجديدة' }),
+      });
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/locations', { headers: { cookie: COOKIE } });
+      const body = (await list.json()) as Array<{ id: string; name: string; nameAr: string; type: string }>;
+      const loc = body.find((l) => l.nameAr === 'القاهرة الجديدة');
+      expect(loc?.type).toBe('travel');
+      expect(typeof loc?.id).toBe('string');
+      expect(loc?.id.length).toBeGreaterThan(0);
+    });
+
     it('POST /route-groups then GET /route-groups reflects it', async () => {
       const res = await adminCrud.request('/route-groups', {
         method: 'POST',

@@ -126,7 +126,7 @@ test.describe('Wave4 Task7 - Admin inline-edit smoke (4 sections)', () => {
     await page.goto('/admin');
     await waitForPageLoader(page);
     await ensureLoggedIn(page);
-    await page.getByRole('button', { name: 'Locations' }).click();
+    await page.getByTestId('admin-nav-locations').click();
     const firstCard = page.locator('[data-testid^="location-card-"]').first();
     await expect(firstCard).toBeVisible({ timeout: 10000 });
     const firstId = (await firstCard.getAttribute('data-testid'))!.replace('location-card-', '');
@@ -137,10 +137,10 @@ test.describe('Wave4 Task7 - Admin inline-edit smoke (4 sections)', () => {
     await page.getByTestId(`location-edit-${firstId}`).click();
     await expect(page.getByTestId(`location-save-${firstId}`)).toBeVisible();
     await page.screenshot({ path: path.join(evidenceDir, '08-locations-edit.png'), fullPage: true });
-    // Change name - first input is Name
-    const nameInput = page.locator(`[data-testid="location-card-${firstId}"] input`).first();
+    // Change name - single Arabic-only name field
+    const nameInput = page.locator(`[data-testid="location-card-${firstId}"]`).getByLabel('الاسم');
     const orig = await nameInput.inputValue();
-    const updated = `${orig} EDT${Date.now() % 1000}`;
+    const updated = `${orig} معدل`;
     await nameInput.fill(updated);
     await page.getByTestId(`location-save-${firstId}`).click();
     await expect(page.getByTestId(`location-edit-${firstId}`)).toBeVisible({ timeout: 10000 });
@@ -149,17 +149,17 @@ test.describe('Wave4 Task7 - Admin inline-edit smoke (4 sections)', () => {
 
     // Cancel discards
     await page.getByTestId(`location-edit-${firstId}`).click();
-    const nameInput2 = page.locator(`[data-testid="location-card-${firstId}"] input`).first();
-    await nameInput2.fill('DISCARD_ME');
+    const nameInput2 = page.locator(`[data-testid="location-card-${firstId}"]`).getByLabel('الاسم');
+    await nameInput2.fill('تجاهل');
     await page.getByTestId(`location-cancel-${firstId}`).click();
     await expect(page.getByTestId(`location-edit-${firstId}`)).toBeVisible();
-    await expect(page.locator(`[data-testid="location-card-${firstId}"]`, { hasText: 'DISCARD_ME' })).toHaveCount(0);
+    await expect(page.locator(`[data-testid="location-card-${firstId}"]`, { hasText: 'تجاهل' })).toHaveCount(0);
 
     // Delete - cancel keeps
     await page.getByTestId(`location-delete-${firstId}`).click();
     await expect(page.getByTestId(`location-delete-confirm-${firstId}`)).toBeVisible();
     await page.screenshot({ path: path.join(evidenceDir, '10-locations-delete-confirm.png'), fullPage: true });
-    await page.getByRole('button', { name: 'Cancel' }).last().click();
+    await page.locator(`[data-testid="location-card-${firstId}"]`).getByRole('button', { name: 'إلغاء' }).click();
     await expect(page.locator(`[data-testid="location-card-${firstId}"]`)).toBeVisible();
   });
 

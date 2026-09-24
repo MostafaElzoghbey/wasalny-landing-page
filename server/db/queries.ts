@@ -551,9 +551,10 @@ export function getContentValue(db: Database.Database, key: string): unknown {
 /** Insert or replace a location. `id` is optional; when omitted one is generated. */
 export function upsertLocation(
   db: Database.Database,
-  loc: Omit<Location, 'id'> & { id?: string },
+  loc: Omit<Location, 'id' | 'type'> & { id?: string; type?: Location['type'] },
 ): void {
   const id = loc.id ?? `loc-${randomUUID()}`;
+  const type = loc.type ?? 'travel';
   const displayOrder =
     loc.displayOrder != null && loc.displayOrder !== 0
       ? loc.displayOrder
@@ -564,7 +565,7 @@ export function upsertLocation(
         ).next;
   db.prepare(
     'INSERT OR REPLACE INTO locations (id, name, nameAr, type, display_order) VALUES (?, ?, ?, ?, ?)',
-  ).run(id, loc.name, loc.nameAr, loc.type, displayOrder);
+  ).run(id, loc.name, loc.nameAr, type, displayOrder);
 }
 
 /** Partially update a location by id. Only provided fields are written. */
