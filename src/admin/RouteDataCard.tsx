@@ -41,7 +41,7 @@ export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted 
     setSaving(true);
     try {
       const next: RouteData = { ...draft, title: draft.title.trim() };
-      const patch = { title: next.title, description: next.description, metaTitle: next.metaTitle, metaDescription: next.metaDescription, heroImage: next.heroImage, priceStart: next.priceStart, distance: next.distance, duration: next.duration, features: next.features };
+      const patch = { title: next.title, fromLabel: next.fromLabel, toLabel: next.toLabel, description: next.description, metaTitle: next.metaTitle, metaDescription: next.metaDescription, heroImage: next.heroImage, priceStart: next.priceStart, distance: next.distance, duration: next.duration, features: next.features };
       await adminUpdateRouteData(group.id, patch);
       onUpdated(next);
       setEditing(false);
@@ -52,7 +52,8 @@ export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted 
     try { await adminDeleteRouteData(group.id); onDeleted(group.id); } catch (e) { setError(e instanceof Error ? e.message : 'فشل الحذف'); } finally { setConfirmDelete(false); }
   }
 
-  const summary = [group.priceStart, group.distance, group.duration].filter(Boolean).join(' · ');
+  const pair = group.fromLabel && group.toLabel ? `${group.fromLabel} → ${group.toLabel}` : '';
+  const summary = [pair, group.priceStart, group.distance, group.duration].filter(Boolean).join(' · ');
 
   return (
     <li data-testid={`routedata-card-${group.id}`} className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] transition">
@@ -105,6 +106,8 @@ export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted 
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
                 <Field label="العنوان" value={draft.title} onChange={(v) => setDraft((p) => ({ ...p, title: v }))} required />
+                <Field label="من" value={draft.fromLabel} onChange={(v) => setDraft((p) => ({ ...p, fromLabel: v }))} required />
+                <Field label="إلى" value={draft.toLabel} onChange={(v) => setDraft((p) => ({ ...p, toLabel: v }))} required />
                 <Field label="عنوان الميتا" value={draft.metaTitle} onChange={(v) => setDraft((p) => ({ ...p, metaTitle: v }))} />
                 <div className="sm:col-span-2">
                   <ImageDropzone mode="single" value={draft.heroImage} onChange={(v) => setDraft((p) => ({ ...p, heroImage: v as string }))} testId="routedata-hero" label="صورة البطل" />

@@ -103,7 +103,7 @@ export function seed(db: Database.Database = getDb()): void {
     });
 
     const insRouteData = db.prepare(
-      'INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
     for (const [id, rd] of Object.entries(routeData)) {
       insRouteData.run(
@@ -119,6 +119,8 @@ export function seed(db: Database.Database = getDb()): void {
         JSON.stringify(rd.features),
         JSON.stringify(rd.faqs),
         rd.displayOrder,
+        rd.fromLabel,
+        rd.toLabel,
       );
     }
   });

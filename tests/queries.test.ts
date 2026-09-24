@@ -10,6 +10,7 @@ import {
   createCar,
   createFaq,
   getFaqs,
+  deriveRoutes,
 } from '../server/db/queries.js';
 
 describe('queries', () => {
@@ -121,5 +122,76 @@ describe('queries', () => {
     const faqs = getFaqs(db);
     expect(faqs).toHaveLength(1);
     expect(faqs[0]).toEqual({ id: created.id, question: 'Q?', answer: 'A.', displayOrder: expect.any(Number) });
+  });
+
+  it('deriveRoutes maps route_data entries to the public Route shape', () => {
+    const routes = deriveRoutes([
+      {
+        id: 'r1',
+        fromLabel: 'دمياط',
+        toLabel: 'القاهرة',
+        title: 't',
+        description: 'd',
+        metaTitle: 'mt',
+        metaDescription: 'md',
+        heroImage: 'h',
+        priceStart: 'p',
+        distance: 'dist',
+        duration: 'dur',
+        features: [],
+        faqs: [],
+        displayOrder: 0,
+      },
+    ]);
+    expect(routes).toEqual([
+      { id: 'r1', from: 'دمياط', to: 'القاهرة', duration: 'dur', description: 'd' },
+    ]);
+  });
+
+  it('getPublicData derives routes from route_data rows in display_order ASC, id ASC order', () => {
+    db.prepare(
+      `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(
+      'r-b',
+      't',
+      'd',
+      'mt',
+      'md',
+      'h',
+      'p',
+      'dist',
+      'dur',
+      '[]',
+      '[]',
+      1,
+      'القاهرة',
+      'دمياط',
+    );
+    db.prepare(
+      `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).run(
+      'r-a',
+      't',
+      'd',
+      'mt',
+      'md',
+      'h',
+      'p',
+      'dist',
+      'dur',
+      '[]',
+      '[]',
+      0,
+      'دمياط',
+      'القاهرة',
+    );
+
+    const data = getPublicData(db);
+    expect(data.routes).toEqual([
+      { id: 'r-a', from: 'دمياط', to: 'القاهرة', duration: 'dur', description: 'd' },
+      { id: 'r-b', from: 'القاهرة', to: 'دمياط', duration: 'dur', description: 'd' },
+    ]);
   });
 });

@@ -162,6 +162,8 @@ describe('adminCrud', () => {
         headers: { 'content-type': 'application/json', cookie: COOKIE },
         body: JSON.stringify({
           id: 'route-1',
+          fromLabel: 'دمياط',
+          toLabel: 'القاهرة',
           title: 'Route',
           description: 'desc',
           metaTitle: 'm',
@@ -189,6 +191,182 @@ describe('adminCrud', () => {
         body: JSON.stringify({ title: 'No Id' }),
       });
       expect(res.status).toBe(400);
+    });
+
+    it('round-trips metaTitle/metaDescription/heroImage/priceStart/fromLabel/toLabel through POST -> GET', async () => {
+      // Given: a route created with unmistakable sentinel values for the four
+      // fields the row mapper used to drop (snake_case read bug) plus the two
+      // new label columns.
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-sentinel',
+          fromLabel: 'من',
+          toLabel: 'إلى',
+          title: 'رحلة الاختبار',
+          description: 'وصف الرحلة',
+          metaTitle: 'سيلن ميتا',
+          metaDescription: 'وصف ميتا للاختبار',
+          heroImage: 'data:image/png;base64,AAAA',
+          priceStart: '1999',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: ['مكيف'],
+          faqs: [],
+        }),
+      });
+      expect(res.status).toBe(200);
+
+      // When: the route is read back through the admin list endpoint.
+      const list = await adminCrud.request('/route-data', { headers: { cookie: COOKIE } });
+      expect(list.status).toBe(200);
+      const body = (await list.json()) as Array<Record<string, unknown>>;
+      const route = body.find((r) => r.id === 'route-sentinel');
+
+      // Then: every recovered field survives byte-identical — not merely present.
+      expect(route).toBeDefined();
+      expect(route?.metaTitle).toBe('سيلن ميتا');
+      expect(route?.metaDescription).toBe('وصف ميتا للاختبار');
+      expect(route?.heroImage).toBe('data:image/png;base64,AAAA');
+      expect(route?.priceStart).toBe('1999');
+      expect(route?.fromLabel).toBe('من');
+      expect(route?.toLabel).toBe('إلى');
+    });
+
+    it('POST /route-data without fromLabel returns 400 with fromLabel is required', async () => {
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-no-from',
+          toLabel: 'القاهرة',
+          title: 'رحلة',
+          description: 'وصف',
+          metaTitle: 'ميتا',
+          metaDescription: 'وصف ميتا',
+          heroImage: 'h.jpg',
+          priceStart: '100',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: [],
+          faqs: [],
+        }),
+      });
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('fromLabel is required');
+    });
+
+    it('POST /route-data without toLabel returns 400 with toLabel is required', async () => {
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-no-to',
+          fromLabel: 'دمياط',
+          title: 'رحلة',
+          description: 'وصف',
+          metaTitle: 'ميتا',
+          metaDescription: 'وصف ميتا',
+          heroImage: 'h.jpg',
+          priceStart: '100',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: [],
+          faqs: [],
+        }),
+      });
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('toLabel is required');
+    });
+
+    it('PUT /route-data/:id with whitespace-only fromLabel returns 400 with fromLabel must not be empty', async () => {
+      // Given: an existing route so the PUT targets a real row.
+      const created = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-put-valid',
+          fromLabel: 'دمياط',
+          toLabel: 'القاهرة',
+          title: 'رحلة',
+          description: 'وصف',
+          metaTitle: 'ميتا',
+          metaDescription: 'وصف ميتا',
+          heroImage: 'h.jpg',
+          priceStart: '100',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: [],
+          faqs: [],
+        }),
+      });
+      expect(created.status).toBe(200);
+
+      // When: a PUT tries to blank out fromLabel with whitespace.
+      const res = await adminCrud.request('/route-data/route-put-valid', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ fromLabel: '   ' }),
+      });
+
+      // Then: the server rejects it and the stored label is untouched.
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('fromLabel must not be empty');
+      const list = await adminCrud.request('/route-data', { headers: { cookie: COOKIE } });
+      const listBody = (await list.json()) as Array<{ id: string; fromLabel: string }>;
+      const route = listBody.find((r) => r.id === 'route-put-valid');
+      expect(route?.fromLabel).toBe('دمياط');
+    });
+
+    it('PUT /route-data/:id with only title preserves metaTitle/metaDescription/heroImage/priceStart/faqs', async () => {
+      // Given: a route carrying non-empty recovered fields and a non-empty faqs array.
+      const faqs = [
+        { question: 'هل الخدمة متاحة يومياً؟', answer: 'نعم، يومياً من السادسة صباحاً' },
+      ];
+      const created = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-partial',
+          fromLabel: 'دمياط',
+          toLabel: 'القاهرة',
+          title: 'العنوان الأصلي',
+          description: 'وصف أصلي',
+          metaTitle: 'ميتا أصلي',
+          metaDescription: 'وصف ميتا أصلي',
+          heroImage: 'data:image/jpeg;base64,QUJD',
+          priceStart: '250',
+          distance: '200 كم',
+          duration: '3 ساعات',
+          features: ['مكيف'],
+          faqs,
+        }),
+      });
+      expect(created.status).toBe(200);
+
+      // When: a partial PUT mentions only title.
+      const updated = await adminCrud.request('/route-data/route-partial', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ title: 'العنوان المحدث' }),
+      });
+      expect(updated.status).toBe(200);
+
+      // Then: title changed while every unmentioned column stays byte-identical.
+      const list = await adminCrud.request('/route-data', { headers: { cookie: COOKIE } });
+      const body = (await list.json()) as Array<Record<string, unknown>>;
+      const route = body.find((r) => r.id === 'route-partial');
+      expect(route).toBeDefined();
+      expect(route?.title).toBe('العنوان المحدث');
+      expect(route?.metaTitle).toBe('ميتا أصلي');
+      expect(route?.metaDescription).toBe('وصف ميتا أصلي');
+      expect(route?.heroImage).toBe('data:image/jpeg;base64,QUJD');
+      expect(route?.priceStart).toBe('250');
+      expect(route?.faqs).toEqual(faqs);
     });
   });
 

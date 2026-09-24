@@ -54,6 +54,8 @@ export interface FaqWithId extends Faq {
 
 export interface RouteData {
   id: string;
+  fromLabel: string;
+  toLabel: string;
   title: string;
   description: string;
   metaTitle: string;

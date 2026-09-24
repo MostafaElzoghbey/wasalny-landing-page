@@ -9,9 +9,12 @@ import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { generateId } from '@/utils/id';
 import { ErrorText, Field, Panel, PrimaryButton } from './ui';
 import { RouteDataCard } from './RouteDataCard';
+import { validateRouteData } from './routeDataHelpers';
 
 export function RouteDataAdmin() {
   const [items, setItems] = useState<RouteData[]>([]);
+  const [fromLabel, setFromLabel] = useState('');
+  const [toLabel, setToLabel] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [metaTitle, setMetaTitle] = useState('');
@@ -45,6 +48,8 @@ export function RouteDataAdmin() {
   }, []);
 
   function resetForm() {
+    setFromLabel('');
+    setToLabel('');
     setTitle('');
     setDescription('');
     setMetaTitle('');
@@ -62,6 +67,8 @@ export function RouteDataAdmin() {
     try {
       const body: RouteData = {
         id: generateId('route'),
+        fromLabel,
+        toLabel,
         title,
         description,
         metaTitle,
@@ -74,6 +81,11 @@ export function RouteDataAdmin() {
         faqs: [],
         displayOrder: 0,
       };
+      const vErr = validateRouteData(body);
+      if (vErr) {
+        setError(vErr);
+        return;
+      }
       await adminCreateRouteData(body);
       resetForm();
       setCreateOpen(false);
@@ -139,6 +151,8 @@ export function RouteDataAdmin() {
         {createOpen && (
           <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-x-4 rounded-lg border border-[hsl(var(--border))] p-4 sm:grid-cols-2">
             <Field label="العنوان" value={title} onChange={setTitle} required />
+            <Field label="من" value={fromLabel} onChange={setFromLabel} required />
+            <Field label="إلى" value={toLabel} onChange={setToLabel} required />
             <Field label="عنوان الميتا" value={metaTitle} onChange={setMetaTitle} />
             <Field label="السعر الابتدائي" value={priceStart} onChange={setPriceStart} />
             <Field label="المسافة" value={distance} onChange={setDistance} />

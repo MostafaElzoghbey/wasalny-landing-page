@@ -77,7 +77,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
             {route.to}
           </span>
         </div>
-        <p className="text-[hsl(var(--muted-foreground))] text-sm mb-2">
+        <p className="text-[hsl(var(--muted-foreground))] text-sm mb-2 line-clamp-2">
           {route.description}
         </p>
         <div className="flex items-center gap-2 text-sm">

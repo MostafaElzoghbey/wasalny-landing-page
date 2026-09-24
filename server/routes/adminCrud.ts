@@ -244,6 +244,12 @@ adminCrud.post('/route-data', requireAdmin, async (c) => {
   if (id === undefined || id === null || id === '') {
     return c.json({ error: 'id is required' }, 400);
   }
+  if (typeof rest.fromLabel !== 'string' || rest.fromLabel.trim() === '') {
+    return c.json({ error: 'fromLabel is required' }, 400);
+  }
+  if (typeof rest.toLabel !== 'string' || rest.toLabel.trim() === '') {
+    return c.json({ error: 'toLabel is required' }, 400);
+  }
   const route = createRouteData(db, id, rest);
   return c.json(route, 200);
 });
@@ -255,6 +261,18 @@ adminCrud.put('/route-data/:id', requireAdmin, async (c) => {
     return c.json({ error: 'id is required' }, 400);
   }
   const patch = await c.req.json<Partial<Omit<RouteData, 'id'>>>();
+  if (
+    patch.fromLabel !== undefined &&
+    (typeof patch.fromLabel !== 'string' || patch.fromLabel.trim() === '')
+  ) {
+    return c.json({ error: 'fromLabel must not be empty' }, 400);
+  }
+  if (
+    patch.toLabel !== undefined &&
+    (typeof patch.toLabel !== 'string' || patch.toLabel.trim() === '')
+  ) {
+    return c.json({ error: 'toLabel must not be empty' }, 400);
+  }
   updateRouteData(db, id, patch);
   return c.json({ ok: true }, 200);
 });

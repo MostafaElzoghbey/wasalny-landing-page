@@ -96,12 +96,14 @@ interface FaqRow {
 
 interface RouteDataRow {
   id: string;
+  fromLabel: string;
+  toLabel: string;
   title: string;
   description: string;
-  meta_title: string;
-  meta_description: string;
-  hero_image: string;
-  price_start: string;
+  metaTitle: string;
+  metaDescription: string;
+  heroImage: string;
+  priceStart: string;
   distance: string;
   duration: string;
   features: string;
@@ -162,12 +164,14 @@ function mapCarRow(row: CarRow): Car {
 function mapRouteDataRow(row: RouteDataRow): RouteData {
   return {
     id: row.id,
+    fromLabel: row.fromLabel,
+    toLabel: row.toLabel,
     title: row.title,
     description: row.description,
-    metaTitle: row.meta_title,
-    metaDescription: row.meta_description,
-    heroImage: row.hero_image,
-    priceStart: row.price_start,
+    metaTitle: row.metaTitle,
+    metaDescription: row.metaDescription,
+    heroImage: row.heroImage,
+    priceStart: row.priceStart,
     distance: row.distance,
     duration: row.duration,
     features: parseJson<string[]>(row.features),
@@ -179,6 +183,21 @@ function mapRouteDataRow(row: RouteDataRow): RouteData {
 // ---------------------------------------------------------------------------
 // Public read: getPublicData
 // ---------------------------------------------------------------------------
+
+/**
+ * Derive the public `routes` array from `route_data` rows so admin-created
+ * routes automatically appear as homepage cards and footer links. The output
+ * shape mirrors the legacy `content.routes` entries exactly.
+ */
+export function deriveRoutes(entries: RouteData[]): Route[] {
+  return entries.map((e) => ({
+    id: e.id,
+    from: e.fromLabel,
+    to: e.toLabel,
+    duration: e.duration,
+    description: e.description,
+  }));
+}
 
 /**
  * Returns the full public payload consumed by the landing page.
@@ -205,7 +224,7 @@ export function getPublicData(db: Database.Database): PublicData {
   return {
     services: getContent<Service[]>(content, 'services', []),
     features: getContent<Feature[]>(content, 'features', []),
-    routes: getContent<Route[]>(content, 'routes', []),
+    routes: deriveRoutes(Object.values(routeData)),
     stats: getContent<Stat[]>(content, 'stats', []),
     contactInfo: getContent<ContactInfo>(content, 'contactInfo', {
       phone: '',
@@ -466,8 +485,8 @@ export function createRouteData(
             .get() as { next: number }
         ).next;
   db.prepare(
-    `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     resolvedId,
     input.title,
@@ -481,6 +500,8 @@ export function createRouteData(
     JSON.stringify(input.features),
     JSON.stringify(input.faqs),
     displayOrder,
+    input.fromLabel,
+    input.toLabel,
   );
   return { id: resolvedId, ...input, displayOrder };
 }
@@ -492,6 +513,8 @@ export function updateRouteData(
   patch: RouteDataPatch,
 ): void {
   const fields: Array<[string, unknown]> = [];
+  if (patch.fromLabel !== undefined) fields.push(['fromLabel', patch.fromLabel]);
+  if (patch.toLabel !== undefined) fields.push(['toLabel', patch.toLabel]);
   if (patch.title !== undefined) fields.push(['title', patch.title]);
   if (patch.description !== undefined)
     fields.push(['description', patch.description]);
