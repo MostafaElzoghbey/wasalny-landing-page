@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ImageDropzone } from './ImageDropzone';
 
 // jsdom does not implement URL.createObjectURL / revokeObjectURL.
@@ -53,13 +52,14 @@ describe('ImageDropzone', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('adds a valid URL via the URL input', async () => {
-    const user = userEvent.setup();
+  it('adds a file via the file input in multiple mode', async () => {
     const { onChange } = setup();
-    const urlInput = screen.getByTestId('dropzone-url-input');
-    await user.type(urlInput, 'https://example.com/a.jpg');
-    fireEvent.click(screen.getByTestId('dropzone-url-add'));
-    expect(onChange).toHaveBeenCalledWith(['https://example.com/a.jpg']);
+    const input = screen.getByTestId('dropzone-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makeFile('a.png', 'image/png')] } });
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+    const next = onChange.mock.calls[0][0] as string[];
+    expect(next).toHaveLength(1);
+    expect(next[0]).toMatch(/^data:/);
   });
 
   it('removes an image when its delete button is clicked', () => {
@@ -75,22 +75,26 @@ describe('ImageDropzone', () => {
     expect(onChange).toHaveBeenCalledWith(['https://a.com/2.jpg', 'https://a.com/1.jpg']);
   });
 
-  it('replaces the single image in single mode', () => {
+  it('replaces the single image in single mode', async () => {
     const { onChange } = setup({ mode: 'single', value: 'https://a.com/old.jpg' });
-    const urlInput = screen.getByTestId('dropzone-url-input');
-    fireEvent.change(urlInput, { target: { value: 'https://a.com/new.png' } });
-    fireEvent.click(screen.getByTestId('dropzone-url-add'));
-    expect(onChange).toHaveBeenCalledWith('https://a.com/new.png');
+    const input = screen.getByTestId('dropzone-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makeFile('new.png', 'image/png')] } });
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+    const next = onChange.mock.calls[0][0] as string;
+    expect(next).toMatch(/^data:/);
   });
 
-  it('shows an error for an invalid URL', async () => {
-    const user = userEvent.setup();
+  it('shows an error for an unsupported file type', async () => {
     const { onChange } = setup();
-    const urlInput = screen.getByTestId('dropzone-url-input');
-    await user.type(urlInput, 'not-a-url');
-    fireEvent.click(screen.getByTestId('dropzone-url-add'));
-    // No valid URL is added — the value stays empty.
-    expect(onChange).toHaveBeenCalledWith([]);
-    expect(screen.getByRole('alert')).toBeInTheDocument();
+    const input = screen.getByTestId('dropzone-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makeFile('a.pdf', 'application/pdf')] } });
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('renders no URL input', () => {
+    setup();
+    expect(screen.queryByTestId('dropzone-url-input')).toBeNull();
+    expect(screen.queryByPlaceholderText('إضافة رابط')).toBeNull();
   });
 });

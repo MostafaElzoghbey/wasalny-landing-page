@@ -36,6 +36,26 @@ const NAV_ITEMS: NavItem[] = [
   { key: 'content', label: 'المحتوى' },
 ];
 
+const SECTION_STORAGE_KEY = 'wasalny-admin-section';
+
+function readStoredSection(): SectionKey | null {
+  try {
+    const saved = window.localStorage.getItem(SECTION_STORAGE_KEY);
+    if (saved && NAV_ITEMS.some((item) => item.key === saved)) return saved as SectionKey;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function storeSection(key: SectionKey): void {
+  try {
+    window.localStorage.setItem(SECTION_STORAGE_KEY, key);
+  } catch {
+    return;
+  }
+}
+
 export function AdminApp() {
   const [email, setEmail] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
@@ -43,7 +63,12 @@ export function AdminApp() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [active, setActive] = useState<SectionKey>('faqs');
+  const [active, setActive] = useState<SectionKey>(() => readStoredSection() ?? 'cars');
+
+  function selectSection(key: SectionKey): void {
+    setActive(key);
+    storeSection(key);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -138,8 +163,8 @@ export function AdminApp() {
           {NAV_ITEMS.map((item) => (
             <button
               key={item.key}
-              data-testid={item.testid}
-              onClick={() => setActive(item.key)}
+              data-testid={item.testid ?? `admin-nav-${item.key}`}
+              onClick={() => selectSection(item.key)}
               className={cn(
                 'rounded-lg px-3 py-2 text-right text-sm font-medium transition',
                 active === item.key

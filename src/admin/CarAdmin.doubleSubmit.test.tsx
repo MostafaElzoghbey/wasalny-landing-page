@@ -7,6 +7,7 @@ import { adminCreateCar, adminGetCars, adminDeleteCar, adminUpdateCar } from '@/
 import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { CarAdmin } from './CarAdmin';
 import { CarCard } from './CarCard';
+import { addDropzoneImage } from '../../tests/helpers/addDropzoneImage';
 
 const { mockCapture } = vi.hoisted(() => ({
   mockCapture: vi.fn(),
@@ -41,10 +42,8 @@ const newCar: Car = {
   displayOrder: 1,
 };
 
-function addImageUrl(form: HTMLElement, url: string): void {
-  const urlInput = within(form).getByTestId('car-images-create-url-input') as HTMLInputElement;
-  fireEvent.change(urlInput, { target: { value: url } });
-  fireEvent.click(within(form).getByTestId('car-images-create-url-add'));
+async function addImageFile(form: HTMLElement): Promise<void> {
+  await addDropzoneImage(form, 'car-images-create');
 }
 
 describe('CarAdmin double-submit guard', () => {
@@ -67,7 +66,7 @@ describe('CarAdmin double-submit guard', () => {
     const form = within(drill).getByTestId('fleet-create');
     const input = form.querySelector('input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'سيارة جديدة' } });
-    addImageUrl(form, 'https://cdn.example.com/new.jpg');
+    await addImageFile(form);
 
     const submitBtn = within(form).getByText('إنشاء سيارة');
     // Rapid double-click
@@ -87,7 +86,7 @@ describe('CarAdmin double-submit guard', () => {
     const form = within(drill).getByTestId('fleet-create');
     const input = form.querySelector('input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'سيارة جديدة' } });
-    addImageUrl(form, 'https://cdn.example.com/new.jpg');
+    await addImageFile(form);
 
     const submitBtn = within(form).getByText('إنشاء سيارة') as HTMLButtonElement;
     fireEvent.click(submitBtn);

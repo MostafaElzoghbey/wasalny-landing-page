@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface ImageDropzoneProps {
   mode: "single" | "multiple";
@@ -15,7 +15,6 @@ export const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/svg
 
 const ALLOWED_MIME_SET: ReadonlySet<string> = new Set(ALLOWED_MIME);
 
-const URL_RE = /^https?:\/\/.+/;
 const EXT_RE = /\.(jpg|jpeg|png|webp|svg)(\?.*)?$/i;
 
 function validateFile(file: File): string | null {
@@ -25,33 +24,22 @@ function validateFile(file: File): string | null {
   return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
 }
 
-function validateUrl(url: string): string | null {
-  const v = url.trim();
-  if (!v) return "الرابط فارغ";
-  if (v.startsWith("data:image/")) return null;
-  if (v.startsWith("blob:")) return null;
-  if (v.startsWith("/") || v.startsWith("./") || v.startsWith("../")) {
-    if (!EXT_RE.test(v)) return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
-    return null;
-  }
-  if (!URL_RE.test(v)) return "الرابط يجب أن يبدأ بـ http:// أو https://";
-  if (!EXT_RE.test(v)) return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
-  return null;
-}
-
 export function ImageDropzone({ mode, value, onChange, maxImages, testId = "image-dropzone", label, previewPrefix }: ImageDropzoneProps) {
-  const normalized: string[] = Array.isArray(value) ? value : value ? [value] : [];
+  const normalized: string[] = useMemo(
+    () => (Array.isArray(value) ? value : value ? [value] : []),
+    [value],
+  );
   const limit = maxImages ?? (mode === "single" ? 1 : 10);
   const [dragOver, setDragOver] = useState(false);
-  const [urlInput, setUrlInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const blobUrlsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    const tracked = blobUrlsRef.current;
     return () => {
-      for (const u of blobUrlsRef.current) URL.revokeObjectURL(u);
+      for (const u of tracked) URL.revokeObjectURL(u);
     };
   }, []);
 
@@ -61,30 +49,6 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
       else onChange(next);
     },
     [mode, onChange],
-  );
-
-  const addUrls = useCallback(
-    (urls: string[]) => {
-      if (urls.length === 0) return;
-      if (mode === "single") {
-        const err = validateUrl(urls[0]);
-        if (err) { setError(err); return; }
-        setError(null);
-        emit([urls[0]]);
-        return;
-      }
-      const next = [...normalized];
-      for (const u of urls) {
-        const err = validateUrl(u);
-        if (err) { setError(err); continue; }
-        if (next.length >= limit) { setError(`الحد الأقصى ${limit} صور`); break; }
-        if (next.includes(u)) continue;
-        next.push(u);
-        setError(null);
-      }
-      emit(next);
-    },
-    [emit, limit, mode, normalized],
   );
 
   const handleFiles = useCallback(
@@ -170,14 +134,7 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
         <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
           {mode === "single" ? "صورة واحدة" : `حتى ${limit} صور`}
         </p>
-        <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" multiple={mode === "multiple"} className="hidden" onChange={(e) => { handleFiles(e.target.files); if (inputRef.current) inputRef.current.value = ""; }} onClick={(e) => e.stopPropagation()} />
-      </div>
-
-      <div className="mt-3 flex gap-2">
-        <input dir="rtl" value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="إضافة رابط" className="flex-1 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none" data-testid={`${testId}-url-input`} />
-        <button type="button" onClick={() => { const v = urlInput.trim(); if (!v) return; addUrls([v]); setUrlInput(""); }} className="rounded-lg bg-[hsl(var(--primary))] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90" data-testid={`${testId}-url-add`}>
-          إضافة
-        </button>
+        <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" multiple={mode === "multiple"} className="hidden" data-testid={`${testId}-file-input`} onChange={(e) => { handleFiles(e.target.files); if (inputRef.current) inputRef.current.value = ""; }} onClick={(e) => e.stopPropagation()} />
       </div>
 
       {error ? <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40" role="alert">{error}</p> : null}

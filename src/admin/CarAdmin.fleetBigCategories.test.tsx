@@ -7,6 +7,7 @@ import { adminCreateCar, adminGetCars } from '@/data/api';
 import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { CATEGORY_LABELS } from './carHelpers';
 import { CarAdmin } from './CarAdmin';
+import { addDropzoneImage } from '../../tests/helpers/addDropzoneImage';
 
 const { mockCapture, mockRef } = vi.hoisted(() => ({
   mockCapture: vi.fn(),
@@ -120,11 +121,7 @@ describe('CarAdmin fleet big-categories contract', () => {
     if (nameInput) {
       fireEvent.change(nameInput, { target: { value: 'سيارة جديدة' } });
     }
-    const urlInput = createForm.querySelector('[data-testid="car-images-create-url-input"]') as HTMLInputElement | null;
-    if (urlInput) {
-      fireEvent.change(urlInput, { target: { value: 'https://cdn.example.com/new.jpg' } });
-      fireEvent.click(createForm.querySelector('[data-testid="car-images-create-url-add"]')!);
-    }
+    await addDropzoneImage(createForm, 'car-images-create');
     const submitBtn = createForm.querySelector('button[type="submit"]') as HTMLButtonElement | null;
     if (submitBtn) fireEvent.click(submitBtn);
     await waitFor(() => expect(vi.mocked(adminCreateCar)).toHaveBeenCalled());

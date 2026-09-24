@@ -19,11 +19,6 @@ function setup(props: Partial<Parameters<typeof ImageDropzone>[0]> = {}) {
   return { onChange };
 }
 
-function addUrl(url: string) {
-  fireEvent.change(screen.getByTestId('dropzone-url-input'), { target: { value: url } });
-  fireEvent.click(screen.getByTestId('dropzone-url-add'));
-}
-
 function bigFile(name: string, type: string, bytes: number): File {
   return new File([new Uint8Array(bytes)], name, { type });
 }
@@ -58,41 +53,5 @@ describe('ImageDropzone hardening matrix (RED first)', () => {
     const next = onChange.mock.calls[0][0] as string[];
     expect(next).toHaveLength(1);
     expect(next[0]).toMatch(/^data:/);
-  });
-
-  it('accepts relative /uploads/a.jpg (bug: rejected)', () => {
-    const { onChange } = setup();
-    addUrl('/uploads/a.jpg');
-    expect(onChange).toHaveBeenCalledWith(['/uploads/a.jpg']);
-  });
-
-  it('accepts data: URL (bug: rejected)', () => {
-    const { onChange } = setup();
-    addUrl('data:image/png;base64,iVBORw0KGgo=');
-    expect(onChange).toHaveBeenCalledWith(['data:image/png;base64,iVBORw0KGgo=']);
-  });
-
-  it('accepts blob: URL', () => {
-    const { onChange } = setup();
-    addUrl('blob:http://localhost/abc-123');
-    expect(onChange).toHaveBeenCalledWith(['blob:http://localhost/abc-123']);
-  });
-
-  it('still rejects remote http(s) without image extension', () => {
-    const { onChange } = setup();
-    addUrl('https://example.com/file');
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(onChange).toHaveBeenCalledWith([]);
-  });
-
-  it('still rejects javascript: and empty URLs', () => {
-    const first = setup();
-    addUrl('javascript:alert(1)');
-    expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(first.onChange).toHaveBeenCalledWith([]);
-    document.body.innerHTML = '';
-    const second = setup();
-    addUrl('   ');
-    expect(second.onChange).not.toHaveBeenCalled();
   });
 });

@@ -5,6 +5,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import type { Car } from '@/types';
 import { adminGetCars, adminUpdateCar } from '@/data/api';
 import { CarAdmin } from './CarAdmin';
+import { addDropzoneImage } from '../../tests/helpers/addDropzoneImage';
 
 vi.mock('@/data/api', () => ({
   adminGetCars: vi.fn(),
@@ -53,16 +54,15 @@ describe('carImageRowEdit – per-row inline edit (S1)', () => {
     const altInput = within(row).getByTestId(`car-imagerow-alt-${twoImageCar.id}-1`);
     fireEvent.change(altInput, { target: { value: 'بديل واحد جديد' } });
 
-    const urlInput = within(row).getByTestId(`car-imagerow-images-${twoImageCar.id}-1-url-input`);
-    fireEvent.change(urlInput, { target: { value: 'https://cdn.example.com/row1-new.jpg' } });
-    fireEvent.click(within(row).getByTestId(`car-imagerow-images-${twoImageCar.id}-1-url-add`));
+    await addDropzoneImage(row, `car-imagerow-images-${twoImageCar.id}-1`);
 
     fireEvent.click(within(row).getByTestId(`car-imagerow-save-${twoImageCar.id}-1`));
 
     await waitFor(() => expect(vi.mocked(adminUpdateCar)).toHaveBeenCalledTimes(1));
     const [putId, payload] = vi.mocked(adminUpdateCar).mock.calls[0] as unknown as [string, Partial<Car>];
     expect(putId).toBe(twoImageCar.id);
-    expect(payload.images?.[1]).toBe('https://cdn.example.com/row1-new.jpg');
+    expect(payload.images?.[1]).toMatch(/^data:/);
+    expect(payload.images?.[1]).not.toBe('https://cdn.example.com/row1.jpg');
     expect(payload.images?.[0]).toBe('https://cdn.example.com/row0.jpg');
     expect(payload.imageAlts?.[1]).toBe('بديل واحد جديد');
     expect(payload.imageAlts?.[0]).toBe('بديل صفر');

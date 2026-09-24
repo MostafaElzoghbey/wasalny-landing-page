@@ -124,34 +124,31 @@ test('admin image dropzone: URL add shows preview, drag reorder changes order', 
   await adminLogin(page);
   await openCreateForm(page);
 
-  const dropzone = page.getByTestId('car-images');
-  const urlInput = dropzone.getByTestId('car-images-url-input');
-  const urlAdd = dropzone.getByTestId('car-images-url-add');
+  const dropzone = page.getByTestId('car-images-create');
+  const fileInput = dropzone.getByTestId('car-images-create-file-input');
 
-  const imgA = 'https://example.com/a.jpg';
-  const imgB = 'https://example.com/b.jpg';
-  const imgC = 'https://example.com/c.jpg';
+  await expect(dropzone.getByTestId('car-images-url-input')).toHaveCount(0);
 
-  // Add three URLs via the URL input.
-  for (const url of [imgA, imgB, imgC]) {
-    await urlInput.fill(url);
-    await urlAdd.click();
-  }
+  await fileInput.setInputFiles([
+    { name: 'a.png', mimeType: 'image/png', buffer: Buffer.from('89504e470d0a1a0a61', 'hex') },
+    { name: 'b.png', mimeType: 'image/png', buffer: Buffer.from('89504e470d0a1a0a62', 'hex') },
+    { name: 'c.png', mimeType: 'image/png', buffer: Buffer.from('89504e470d0a1a0a63', 'hex') },
+  ]);
 
-  // Previews appear in order.
-  await expect(dropzone.getByTestId('dropzone-preview-0')).toContainText(imgA);
-  await expect(dropzone.getByTestId('dropzone-preview-1')).toContainText(imgB);
-  await expect(dropzone.getByTestId('dropzone-preview-2')).toContainText(imgC);
+  await expect(dropzone.getByTestId('dropzone-preview-0')).toBeVisible();
+  await expect(dropzone.getByTestId('dropzone-preview-1')).toBeVisible();
+  await expect(dropzone.getByTestId('dropzone-preview-2')).toBeVisible();
 
-  // Drag preview 0 onto preview 2 to reorder (A moves after C).
+  const srcBefore = await dropzone.getByTestId('dropzone-preview-0').locator('img').getAttribute('src');
+  const midBefore = await dropzone.getByTestId('dropzone-preview-1').locator('img').getAttribute('src');
+
   const src = dropzone.getByTestId('dropzone-preview-0');
   const dst = dropzone.getByTestId('dropzone-preview-2');
   await src.dragTo(dst);
 
-  // Order changed: B, C, A.
-  await expect(dropzone.getByTestId('dropzone-preview-0')).toContainText(imgB);
-  await expect(dropzone.getByTestId('dropzone-preview-1')).toContainText(imgC);
-  await expect(dropzone.getByTestId('dropzone-preview-2')).toContainText(imgA);
+  const firstAfter = await dropzone.getByTestId('dropzone-preview-0').locator('img').getAttribute('src');
+  expect(firstAfter).toBe(midBefore);
+  expect(firstAfter).not.toBe(srcBefore);
 });
 
 test('admin reorder persistence: move-down then reload keeps order via GET', async ({ page }) => {
@@ -265,7 +262,7 @@ test('admin RTL visual: Arabic headings and RTL chips', async ({ page }) => {
   await expect(chipInput).toHaveAttribute('dir', 'rtl');
 
   // The dropzone is RTL too.
-  await expect(page.getByTestId('car-images')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByTestId('car-images-create')).toHaveAttribute('dir', 'rtl');
 
   // Arabic labels present.
   await expect(page.getByLabel('الاسم')).toBeVisible();

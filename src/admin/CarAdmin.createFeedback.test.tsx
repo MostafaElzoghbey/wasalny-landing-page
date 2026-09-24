@@ -6,6 +6,7 @@ import type { Car } from '@/types';
 import { adminCreateCar, adminGetCars } from '@/data/api';
 import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { CarAdmin } from './CarAdmin';
+import { addDropzoneImage } from '../../tests/helpers/addDropzoneImage';
 
 const { mockCapture } = vi.hoisted(() => ({
   mockCapture: vi.fn(),
@@ -50,9 +51,7 @@ describe('CarAdmin create feedback', () => {
     const drilldown = await screen.findByTestId('category-drilldown-sedan');
     const form = within(drilldown).getByTestId('fleet-create');
 
-    const urlInput = within(form).getByTestId('car-images-create-url-input') as HTMLInputElement;
-    fireEvent.change(urlInput, { target: { value: 'https://cdn.example.com/new.jpg' } });
-    fireEvent.click(within(form).getByTestId('car-images-create-url-add'));
+    await addDropzoneImage(form, 'car-images-create');
 
     const input = form.querySelector('input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: 'سيدان جديدة' } });

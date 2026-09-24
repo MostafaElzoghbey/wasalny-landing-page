@@ -6,6 +6,7 @@ import type { Car } from '@/types';
 import { adminCreateCar, adminGetCars } from '@/data/api';
 import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { CarAdmin } from './CarAdmin';
+import { addDropzoneImage } from '../../tests/helpers/addDropzoneImage';
 
 const { mockCapture } = vi.hoisted(() => ({
   mockCapture: vi.fn(),
@@ -49,10 +50,8 @@ async function openSedanDrilldown() {
   return within(screen.getByTestId('category-drilldown-sedan')).getByTestId('fleet-create');
 }
 
-function addImageUrl(form: HTMLElement, url: string) {
-  const urlInput = within(form).getByTestId('car-images-create-url-input') as HTMLInputElement;
-  fireEvent.change(urlInput, { target: { value: url } });
-  fireEvent.click(within(form).getByTestId('car-images-create-url-add'));
+async function addImageFile(form: HTMLElement): Promise<void> {
+  await addDropzoneImage(form, 'car-images-create');
 }
 
 describe('CarAdmin validate-gated create + seoDescription', () => {
@@ -65,7 +64,7 @@ describe('CarAdmin validate-gated create + seoDescription', () => {
 
   it('spaces-only nameAr shows inline error and sends zero POSTs', async () => {
     const form = await openSedanDrilldown();
-    addImageUrl(form, 'https://cdn.example.com/new.jpg');
+    await addImageFile(form);
 
     const input = form.querySelector('input') as HTMLInputElement;
     fireEvent.change(input, { target: { value: '   ' } });
@@ -80,7 +79,7 @@ describe('CarAdmin validate-gated create + seoDescription', () => {
 
   it('create payload includes trimmed nameAr/description, derived categoryAr, seoDescription, images, features, explicit displayOrder', async () => {
     const form = await openSedanDrilldown();
-    addImageUrl(form, 'https://cdn.example.com/new.jpg');
+    await addImageFile(form);
 
     const inputs = form.querySelectorAll('input');
     const nameInput = inputs[0] as HTMLInputElement;
@@ -111,7 +110,9 @@ describe('CarAdmin validate-gated create + seoDescription', () => {
     expect(callArg['description']).toBe('وصف السيارة');
     expect(callArg['categoryAr']).toBe('سيدان');
     expect(callArg['seoDescription']).toBe('وصف SEO');
-    expect(callArg['images']).toEqual(['https://cdn.example.com/new.jpg']);
+    const images = callArg['images'] as string[];
+    expect(images).toHaveLength(1);
+    expect(images[0]).toMatch(/^data:/);
     expect(callArg['features']).toEqual(['تكييف']);
     expect(callArg['displayOrder']).toBe(2);
   });
