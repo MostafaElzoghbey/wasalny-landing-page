@@ -14,6 +14,7 @@ import { CategoryCard } from './CategoryCard';
 import { CAR_CATEGORIES, CATEGORY_LABELS, validateCar } from './carHelpers';
 import { expandCarToImageRows } from './carImageRows';
 import { useImageRowMoves } from './useImageRowMoves';
+import { useCategoryDrilldownHistory } from './useCategoryDrilldownHistory';
 
 interface CategoryCarListProps {
   categoryCars: Car[];
@@ -86,21 +87,26 @@ export function CarAdmin() {
     try { setCars(await adminGetCars()); } catch (e) { setError(e instanceof Error ? e.message : 'فشل تحميل السيارات'); } finally { setLoading(false); }
   }
   useEffect(() => { void load(); }, []);
-  function handleSelectCategory(cat: Car['category']): void {
+  function transitionToCategory(next: Car['category'] | null): void {
+    if (next === selectedCategory) return;
     setError(null);
     setCreateError(null);
-    if (prefersReduced()) { setSelectedCategory(cat); return; }
+    if (prefersReduced()) { setSelectedCategory(next); return; }
     const state = Flip.getState('[data-flip-id]');
-    flushSync(() => setSelectedCategory(cat));
+    flushSync(() => setSelectedCategory(next));
     Flip.from(state, { duration: 0.35, ease: 'power2.inOut', absolute: true, scale: true, stagger: 0.03, targets: '[data-flip-id]', prune: true, clearProps: 'all' });
   }
+  const { recordDrilldownEntry, consumeDrilldownEntry } = useCategoryDrilldownHistory({
+    enterCategory: (category: Car['category']) => transitionToCategory(category),
+    exitToGrid: () => transitionToCategory(null),
+  });
+  function handleSelectCategory(cat: Car['category']): void {
+    transitionToCategory(cat);
+    recordDrilldownEntry(cat);
+  }
   function handleBackToGrid(): void {
-    setError(null);
-    setCreateError(null);
-    if (prefersReduced()) { setSelectedCategory(null); return; }
-    const state = Flip.getState('[data-flip-id]');
-    flushSync(() => setSelectedCategory(null));
-    Flip.from(state, { duration: 0.35, ease: 'power2.inOut', absolute: true, scale: true, stagger: 0.03, targets: '[data-flip-id]', prune: true, clearProps: 'all' });
+    transitionToCategory(null);
+    consumeDrilldownEntry();
   }
   function resetForm(): void { setNameAr(''); setDescription(''); setSeoDescription(''); setImages([]); setFeatures([]); }
   async function handleCreate(e: FormEvent): Promise<void> {
@@ -159,7 +165,7 @@ export function CarAdmin() {
               <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
               <Field label="الوصف" value={description} onChange={setDescription} textarea />
               <Field label="وصف تحسين محركات البحث" value={seoDescription} onChange={setSeoDescription} />
-              <div className="sm:col-span-2"><ImageDropzone mode="multiple" value={images} onChange={(v) => setImages(v as string[])} maxImages={10} testId="car-images-create" label="الصور" /></div>
+              <div className="sm:col-span-2"><ImageDropzone mode="multiple" value={images} onChange={(v) => setImages(v as string[])} testId="car-images-create" label="الصور" /></div>
               <ChipInput label="المميزات" value={features} onChange={setFeatures} placeholder="اكتب واضغط Enter" testId="chip-input-features" />
             </div>
             <PrimaryButton type="submit" disabled={isCreating}>{isCreating ? 'جارٍ الإنشاء…' : 'إنشاء سيارة'}</PrimaryButton>

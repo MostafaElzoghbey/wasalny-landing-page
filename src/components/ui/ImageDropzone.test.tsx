@@ -97,4 +97,34 @@ describe('ImageDropzone', () => {
     expect(screen.queryByTestId('dropzone-url-input')).toBeNull();
     expect(screen.queryByPlaceholderText('إضافة رابط')).toBeNull();
   });
+
+  it('accepts twelve images in a single selection with no limit alert', async () => {
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <ImageDropzone
+        mode="multiple"
+        value={[]}
+        onChange={onChange}
+        testId="dropzone"
+      />,
+    );
+    expect(screen.queryByText(/حتى\s*\d+\s*صور/)).toBeNull();
+    const files = Array.from({ length: 12 }, (_, i) => makeFile(`img-${i}.png`, 'image/png'));
+    const input = screen.getByTestId('dropzone-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files } });
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+    const next = onChange.mock.calls[0][0] as string[];
+    expect(next).toHaveLength(12);
+    rerender(
+      <ImageDropzone
+        mode="multiple"
+        value={next}
+        onChange={onChange}
+        testId="dropzone"
+      />,
+    );
+    expect(screen.getAllByAltText('صورة')).toHaveLength(12);
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByText(/حتى\s*\d+\s*صور/)).toBeNull();
+  });
 });

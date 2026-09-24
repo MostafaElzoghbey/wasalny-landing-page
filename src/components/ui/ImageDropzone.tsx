@@ -4,7 +4,6 @@ interface ImageDropzoneProps {
   mode: "single" | "multiple";
   value: string | string[];
   onChange: (next: string | string[]) => void;
-  maxImages?: number;
   testId?: string;
   label?: string;
   previewPrefix?: string;
@@ -24,12 +23,11 @@ function validateFile(file: File): string | null {
   return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
 }
 
-export function ImageDropzone({ mode, value, onChange, maxImages, testId = "image-dropzone", label, previewPrefix }: ImageDropzoneProps) {
+export function ImageDropzone({ mode, value, onChange, testId = "image-dropzone", label, previewPrefix }: ImageDropzoneProps) {
   const normalized: string[] = useMemo(
     () => (Array.isArray(value) ? value : value ? [value] : []),
     [value],
   );
-  const limit = maxImages ?? (mode === "single" ? 1 : 10);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -73,9 +71,7 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
           .catch(() => setError("فشل قراءة الملف"));
         return;
       }
-      const capacity = limit - normalized.length;
-      if (capacity <= 0) { setError(`الحد الأقصى ${limit} صور`); return; }
-      const candidates = Array.from(files).slice(0, capacity);
+      const candidates = Array.from(files);
       const valid: File[] = [];
       let firstErr: string | null = null;
       for (const f of candidates) {
@@ -95,7 +91,7 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
         })
         .catch(() => setError("فشل قراءة الملف"));
     },
-    [emit, limit, mode, normalized],
+    [emit, mode, normalized],
   );
 
   function handleDrop(e: React.DragEvent<HTMLDivElement>) {
@@ -131,9 +127,7 @@ export function ImageDropzone({ mode, value, onChange, maxImages, testId = "imag
         className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition ${dragOver ? "border-primary-500 bg-primary-50 dark:bg-primary-950/20" : "border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-primary-300"}`}
       >
         <p className="text-sm text-[hsl(var(--muted-foreground))]">اسحب الصور أو اضغط للاختيار</p>
-        <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
-          {mode === "single" ? "صورة واحدة" : `حتى ${limit} صور`}
-        </p>
+        {mode === "single" ? <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">صورة واحدة</p> : null}
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" multiple={mode === "multiple"} className="hidden" data-testid={`${testId}-file-input`} onChange={(e) => { handleFiles(e.target.files); if (inputRef.current) inputRef.current.value = ""; }} onClick={(e) => e.stopPropagation()} />
       </div>
 

@@ -162,7 +162,7 @@ export function CarCard({ group, onUpdated, onDeleted }: CarCardProps) {
             <Field label="وصف تحسين محركات البحث" value={draft.seoDescription ?? ''} onChange={(v) => setDraft((p) => ({ ...p, seoDescription: v }))} />
           </div>
           <Field label="الوصف" value={draft.description} onChange={(v) => setDraft((p) => ({ ...p, description: v }))} textarea />
-          <ImageDropzone mode="multiple" value={draft.images} onChange={(v) => setDraft((p) => ({ ...p, images: v as string[] }))} maxImages={10} testId={`car-images-edit-${group.id}`} label="الصور" previewPrefix={group.id} />
+          <ImageDropzone mode="multiple" value={draft.images} onChange={(v) => setDraft((p) => ({ ...p, images: v as string[] }))} testId={`car-images-edit-${group.id}`} label="الصور" previewPrefix={group.id} />
           {draft.images.length > 0 && (
             <OrderedImageList
               value={draft.images}
