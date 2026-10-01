@@ -35,12 +35,12 @@ describe('password hashing', () => {
     expect(await verifyPassword('wrong-password', stored)).toBe(false);
   });
 
-  it('encodes scheme, 210k iterations, 16-byte salt and 256-bit hash', async () => {
+  it('encodes scheme, 100k iterations, 16-byte salt and 256-bit hash', async () => {
     const stored = await hashPassword('secret123');
     const [scheme, iterations, saltHex, hashHex] = stored.split('$');
 
     expect(scheme).toBe('pbkdf2-sha256');
-    expect(iterations).toBe('210000');
+    expect(iterations).toBe('100000');
     expect(saltHex).toMatch(/^[0-9a-f]{32}$/);
     expect(hashHex).toMatch(/^[0-9a-f]{64}$/);
     expect(needsRehash(stored)).toBe(false);
@@ -79,11 +79,17 @@ describe('password hashing', () => {
   });
 
   it('flags a row derived with fewer iterations than current policy', () => {
-    const fresh = 'pbkdf2-sha256$210000$' + 'a'.repeat(32) + '$' + 'b'.repeat(64);
+    const fresh = 'pbkdf2-sha256$100000$' + 'a'.repeat(32) + '$' + 'b'.repeat(64);
     const weak = 'pbkdf2-sha256$1000$' + 'a'.repeat(32) + '$' + 'b'.repeat(64);
 
     expect(needsRehash(fresh)).toBe(false);
     expect(needsRehash(weak)).toBe(true);
+  });
+
+  it('rejects above-ceiling iterations without throwing (workerd caps at 100k)', async () => {
+    const over = 'pbkdf2-sha256$210000$' + 'a'.repeat(32) + '$' + 'b'.repeat(64);
+    await expect(verifyPassword('secret123', over)).resolves.toBe(false);
+    expect(needsRehash(over)).toBe(true);
   });
 });
 

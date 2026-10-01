@@ -34,8 +34,17 @@
 /** Encoded-scheme discriminator, also the first `$`-separated field. */
 const SCHEME = 'pbkdf2-sha256';
 
-/** OWASP 2023 floor for PBKDF2-HMAC-SHA256. */
-const PBKDF2_ITERATIONS = 210_000;
+/**
+ * PBKDF2-HMAC-SHA256 iteration count.
+ *
+ * workerd rejects `deriveBits` above 100,000 iterations
+ * (`NotSupportedError: Pbkdf2 failed`), so this MUST stay at or below that
+ * ceiling — higher values 500 every login on production while passing locally.
+ */
+const PBKDF2_ITERATIONS = 100_000;
+
+/** workerd hard ceiling for PBKDF2 `deriveBits` (see above). */
+const MAX_SUPPORTED_ITERATIONS = 100_000;
 const SALT_BYTES = 16;
 const HASH_BITS = 256;
 const HASH_BYTES = HASH_BITS / 8;
@@ -167,6 +176,9 @@ export async function verifyPassword(
   if (saltColumn !== undefined && saltColumn !== null && parsed.saltHex !== saltColumn) {
     return false;
   }
+  if (parsed.iterations > MAX_SUPPORTED_ITERATIONS) {
+    return false;
+  }
   const derived = await deriveBits(password, fromHex(parsed.saltHex), parsed.iterations);
   return timingSafeEqual(fromHex(parsed.hashHex), derived);
 }
@@ -178,7 +190,7 @@ export async function verifyPassword(
  */
 export function needsRehash(stored: string): boolean {
   const parsed = parseHash(stored);
-  return parsed === null || parsed.iterations < PBKDF2_ITERATIONS;
+  return parsed === null || parsed.iterations !== PBKDF2_ITERATIONS;
 }
 
 /** Opaque session id: 32 CSPRNG bytes as 64 lowercase hex chars. */

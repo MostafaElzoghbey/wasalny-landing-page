@@ -66,7 +66,10 @@ function parseArgs(argv: readonly string[]): Args {
     process.exit(1);
   }
 
-  const wranglerFlags = ['--local', ...forwarded.filter((f) => f !== '--local')];
+  const hasTarget = forwarded.includes('--local') || forwarded.includes('--remote');
+  const wranglerFlags = hasTarget
+    ? forwarded.filter((f) => !(remote && f === '--local'))
+    : ['--local', ...forwarded];
 
   return { email, password, remote, wranglerFlags };
 }

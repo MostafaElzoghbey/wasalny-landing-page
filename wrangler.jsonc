@@ -3,14 +3,12 @@
   "name": "wasalny",
   "compatibility_date": "2026-09-30",
   "main": "server/worker.ts",
-  // D1 database for the Wasalny API (Task 1 scaffolding).
-  // TODO: replace database_id placeholder with the real ID from
-  // `npx wrangler d1 create wasalny-db` and re-run `npx wrangler types`.
+  // D1 database for the Wasalny API (production: wasalny-db, created 2026-06-28).
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "wasalny-db",
-      "database_id": "TODO-replace-with-wrangler-d1-create-wasalny-db-id",
+      "database_id": "1af008e9-0eaf-4540-9cf2-1993ee4375d1",
       // Migrations live next to the Node runner (server/db/migrations), not in
       // the wrangler default ./migrations. Same files, same order, two runners:
       // migrate.ts (better-sqlite3) reads schema_migrations, wrangler reads
