@@ -1,9 +1,5 @@
-process.env.NODE_ENV = 'test';
-
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
-import type Database from 'better-sqlite3';
-import { getDb } from '../server/db/connection.js';
-import { migrate } from '../server/db/migrate.js';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import { createHarness, type D1Harness } from './helpers/d1.js';
 import {
   getPublicData,
   getPricingData,
@@ -14,51 +10,44 @@ import {
 } from '../server/db/queries.js';
 
 describe('queries', () => {
-  let db: Database.Database;
+  let h: D1Harness;
 
-  beforeAll(() => {
-    // Force an in-memory database so the test never touches data/app.db.
-    process.env.NODE_ENV = 'test';
-    db = getDb();
-    migrate(db);
+  beforeAll(async () => {
+    h = await createHarness();
+    await h.applyMigrations();
   });
 
-  beforeEach(() => {
-    // The in-memory database is a singleton shared across tests in this file,
-    // so reset every table before each case to keep fixtures isolated.
-    for (const table of [
-      'cars',
-      'faqs',
-      'route_data',
-      'content',
-      'pricing_config',
-      'locations',
-      'route_groups',
-      'route_pricing',
-      'vehicle_pricing',
-    ]) {
-      db.prepare(`DELETE FROM ${table}`).run();
-    }
+  afterAll(async () => {
+    await h.dispose();
   });
 
-  it('getPublicData returns parsed car rows from the cars table', () => {
-    db.prepare(
-      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+  beforeEach(async () => {
+    // The harness database is per-file, so reset every table before each case
+    // to keep fixtures isolated.
+    await h.resetTables();
+  });
+
+  it('getPublicData returns parsed car rows from the cars table', async () => {
+    await h.db
+      .prepare(
+        `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      'car-1',
-      'تست',
-      'sedan',
-      'سيدان',
-      'desc',
-      null,
-      '["a"]',
-      '[]',
-      '["x"]',
-      1,
-    );
+      )
+      .bind(
+        'car-1',
+        'تست',
+        'sedan',
+        'سيدان',
+        'desc',
+        null,
+        '["a"]',
+        '[]',
+        '["x"]',
+        1,
+      )
+      .run();
 
-    const data = getPublicData(db);
+    const data = await getPublicData(h.db);
 
     expect(data.cars).toHaveLength(1);
     expect(data.cars[0].images).toEqual(['a']);
@@ -66,29 +55,28 @@ describe('queries', () => {
     expect(data.cars[0].seoDescription).toBeUndefined();
   });
 
-  it('getPricingData returns a shaped pricingConfig after inserting pricing_config rows', () => {
-    const insert = db.prepare(
-      'INSERT INTO pricing_config (key, value) VALUES (?, ?)',
-    );
-    insert.run('whatsappNumber', '201005656117');
+  it('getPricingData returns a shaped pricingConfig after inserting pricing_config rows', async () => {
+    await h.db
+      .prepare('INSERT INTO pricing_config (key, value) VALUES (?, ?)')
+      .bind('whatsappNumber', '201005656117')
+      .run();
 
-    const data = getPricingData(db);
+    const data = await getPricingData(h.db);
 
     expect(data.pricingConfig).toEqual({
       whatsappNumber: '201005656117',
     });
   });
 
-  it('getPricingData pricingConfig contains only whatsappNumber key', () => {
-    const insert = db.prepare(
-      'INSERT INTO pricing_config (key, value) VALUES (?, ?)',
-    );
-    insert.run('whatsappNumber', '201005656117');
-    insert.run('currency', 'EGP');
-    insert.run('currencyAr', 'جنيه');
-    insert.run('contactEmail', 'booking@wasalny.com');
+  it('getPricingData pricingConfig contains only whatsappNumber key', async () => {
+    const insert = (key: string, value: string) =>
+      h.db.prepare('INSERT INTO pricing_config (key, value) VALUES (?, ?)').bind(key, value).run();
+    await insert('whatsappNumber', '201005656117');
+    await insert('currency', 'EGP');
+    await insert('currencyAr', 'جنيه');
+    await insert('contactEmail', 'booking@wasalny.com');
 
-    const data = getPricingData(db);
+    const data = await getPricingData(h.db);
 
     expect(data.pricingConfig).toEqual({
       whatsappNumber: '201005656117',
@@ -96,8 +84,8 @@ describe('queries', () => {
     expect(Object.keys(data.pricingConfig)).toEqual(['whatsappNumber']);
   });
 
-  it('createCar then getPublicData round-trips a car with parsed JSON columns', () => {
-    const created = createCar(db, {
+  it('createCar then getPublicData round-trips a car with parsed JSON columns', async () => {
+    const created = await createCar(h.db, {
       nameAr: 'سيدان',
       category: 'sedan',
       categoryAr: 'سيدان',
@@ -108,18 +96,18 @@ describe('queries', () => {
     });
     expect(created.id).toBeTypeOf('string');
 
-    const data = getPublicData(db);
+    const data = await getPublicData(h.db);
     expect(data.cars).toHaveLength(1);
     expect(data.cars[0].images).toEqual(['a', 'b']);
     expect(data.cars[0].imageAlts).toEqual(['alt-a']);
     expect(data.cars[0].seoDescription).toBeUndefined();
   });
 
-  it('createFaq then getFaqs round-trips a faq', () => {
-    const created = createFaq(db, { question: 'Q?', answer: 'A.' });
+  it('createFaq then getFaqs round-trips a faq', async () => {
+    const created = await createFaq(h.db, { question: 'Q?', answer: 'A.' });
     expect(created.id).toBeTypeOf('string');
 
-    const faqs = getFaqs(db);
+    const faqs = await getFaqs(h.db);
     expect(faqs).toHaveLength(1);
     expect(faqs[0]).toEqual({ id: created.id, question: 'Q?', answer: 'A.', displayOrder: expect.any(Number) });
   });
@@ -148,47 +136,39 @@ describe('queries', () => {
     ]);
   });
 
-  it('getPublicData derives routes from route_data rows in display_order ASC, id ASC order', () => {
-    db.prepare(
-      `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
+  it('getPublicData derives routes from route_data rows in display_order ASC, id ASC order', async () => {
+    const insertRoute = (
+      id: string,
+      displayOrder: number,
+      fromLabel: string,
+      toLabel: string,
+    ) =>
+      h.db
+        .prepare(
+          `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      'r-b',
-      't',
-      'd',
-      'mt',
-      'md',
-      'h',
-      'p',
-      'dist',
-      'dur',
-      '[]',
-      '[]',
-      1,
-      'القاهرة',
-      'دمياط',
-    );
-    db.prepare(
-      `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      'r-a',
-      't',
-      'd',
-      'mt',
-      'md',
-      'h',
-      'p',
-      'dist',
-      'dur',
-      '[]',
-      '[]',
-      0,
-      'دمياط',
-      'القاهرة',
-    );
+        )
+        .bind(
+          id,
+          't',
+          'd',
+          'mt',
+          'md',
+          'h',
+          'p',
+          'dist',
+          'dur',
+          '[]',
+          '[]',
+          displayOrder,
+          fromLabel,
+          toLabel,
+        )
+        .run();
+    await insertRoute('r-b', 1, 'القاهرة', 'دمياط');
+    await insertRoute('r-a', 0, 'دمياط', 'القاهرة');
 
-    const data = getPublicData(db);
+    const data = await getPublicData(h.db);
     expect(data.routes).toEqual([
       { id: 'r-a', from: 'دمياط', to: 'القاهرة', duration: 'dur', description: 'd' },
       { id: 'r-b', from: 'القاهرة', to: 'دمياط', duration: 'dur', description: 'd' },

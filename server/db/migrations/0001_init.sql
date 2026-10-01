@@ -2,6 +2,8 @@
 -- Idempotent initial schema for the Wasalny landing-page data layer.
 -- All JSON / array values are stored as TEXT (parsed by the application layer).
 -- Safe to re-run: every statement uses CREATE TABLE IF NOT EXISTS.
+-- Ledger: on D1 this table is created but never written (wrangler tracks
+-- d1_migrations instead) — see LEDGER.md in this directory.
 
 CREATE TABLE IF NOT EXISTS locations (
   id       TEXT PRIMARY KEY,

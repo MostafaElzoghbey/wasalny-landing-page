@@ -1,63 +1,51 @@
-process.env.NODE_ENV = 'test';
-
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
-import type Database from 'better-sqlite3';
-import { getDb } from '../server/db/connection.js';
-import { migrate } from '../server/db/migrate.js';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import { createHarness, type D1Harness } from './helpers/d1.js';
 import { publicApi } from '../server/routes/public.js';
 
 describe('public API', () => {
-  let db: Database.Database;
+  let h: D1Harness;
 
-  beforeAll(() => {
-    // Force an in-memory database so the test never touches data/app.db.
-    process.env.NODE_ENV = 'test';
-    db = getDb();
-    migrate(db);
+  beforeAll(async () => {
+    h = await createHarness();
+    await h.applyMigrations();
   });
 
-  beforeEach(() => {
-    // The in-memory database is a singleton shared across tests in this file,
-    // so reset every table before each case to keep fixtures isolated.
-    for (const table of [
-      'cars',
-      'faqs',
-      'route_data',
-      'content',
-      'pricing_config',
-      'locations',
-      'route_groups',
-      'route_pricing',
-      'vehicle_pricing',
-    ]) {
-      db.prepare(`DELETE FROM ${table}`).run();
-    }
+  afterAll(async () => {
+    await h.dispose();
+  });
+
+  beforeEach(async () => {
+    // The harness database is per-file, so reset every table before each case
+    // to keep fixtures isolated.
+    await h.resetTables();
   });
 
   it('GET /data returns correctly-shaped public data reflecting inserted rows', async () => {
     // Seed a single car and a single faq directly via parameterized SQL.
-    db.prepare(
-      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+    await h.db
+      .prepare(
+        `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      'car-1',
-      'تست',
-      'sedan',
-      'سيدان',
-      'desc',
-      null,
-      '["a"]',
-      '[]',
-      '["x"]',
-      1,
-    );
-    db.prepare('INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)').run(
-      'faq-1',
-      'Q?',
-      'A.',
-    );
+      )
+      .bind(
+        'car-1',
+        'تست',
+        'sedan',
+        'سيدان',
+        'desc',
+        null,
+        '["a"]',
+        '[]',
+        '["x"]',
+        1,
+      )
+      .run();
+    await h.db
+      .prepare('INSERT INTO faqs (id, question, answer) VALUES (?, ?, ?)')
+      .bind('faq-1', 'Q?', 'A.')
+      .run();
 
-    const res = await publicApi.request('/data');
+    const res = await publicApi.request('/data', {}, h.env);
     expect(res.status).toBe(200);
 
     const body = (await res.json()) as Record<string, unknown>;
@@ -76,10 +64,43 @@ describe('public API', () => {
 
   it('GET /data exposes recovered routeData fields and a routes array derived from route_data', async () => {
     // Given: two route_data rows with distinct display_order and Arabic labels.
-    db.prepare(
-      `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
+    const insertRoute = (
+      id: string,
+      title: string,
+      description: string,
+      metaTitle: string,
+      metaDescription: string,
+      heroImage: string,
+      priceStart: string,
+      distance: string,
+      duration: string,
+      displayOrder: number,
+      fromLabel: string,
+      toLabel: string,
+    ) =>
+      h.db
+        .prepare(
+          `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
+        )
+        .bind(
+          id,
+          title,
+          description,
+          metaTitle,
+          metaDescription,
+          heroImage,
+          priceStart,
+          distance,
+          duration,
+          '[]',
+          '[]',
+          displayOrder,
+          fromLabel,
+          toLabel,
+        )
+        .run();
+    await insertRoute(
       'r-late',
       'رحلة متأخرة',
       'وصف متأخر',
@@ -89,16 +110,11 @@ describe('public API', () => {
       '300',
       '220 كم',
       '3 ساعات',
-      '[]',
-      '[]',
       1,
       'القاهرة',
       'دمياط',
     );
-    db.prepare(
-      `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
+    await insertRoute(
       'r-early',
       'رحلة مبكرة',
       'وصف مبكر',
@@ -108,15 +124,13 @@ describe('public API', () => {
       '150',
       '200 كم',
       '2.5 ساعات',
-      '[]',
-      '[]',
       0,
       'دمياط',
       'القاهرة',
     );
 
     // When: the public payload is fetched.
-    const res = await publicApi.request('/data');
+    const res = await publicApi.request('/data', {}, h.env);
     expect(res.status).toBe(200);
     const body = (await res.json()) as {
       routeData: Record<string, Record<string, unknown>>;
@@ -142,12 +156,12 @@ describe('public API', () => {
   });
 
   it('GET /pricing returns correctly-shaped pricing data with only whatsappNumber in pricingConfig', async () => {
-    const insert = db.prepare(
-      'INSERT INTO pricing_config (key, value) VALUES (?, ?)',
-    );
-    insert.run('whatsappNumber', '201005656117');
+    await h.db
+      .prepare('INSERT INTO pricing_config (key, value) VALUES (?, ?)')
+      .bind('whatsappNumber', '201005656117')
+      .run();
 
-    const res = await publicApi.request('/pricing');
+    const res = await publicApi.request('/pricing', {}, h.env);
     expect(res.status).toBe(200);
 
     const body = (await res.json()) as Record<string, unknown>;

@@ -82,6 +82,29 @@ export interface PricingData {
   pricingConfig: PricingConfig;
 }
 
+/**
+ * Shape served by `GET /api/data`: the full public payload plus the pricing
+ * tables and the raw content map, so one round trip feeds the landing page and
+ * the pricing calculator. Additive over {@link PublicData} — no existing key
+ * changed shape.
+ */
+export interface DataResponse extends PublicData {
+  locations: Location[];
+  routeGroups: RouteGroup[];
+  content: Record<string, unknown>;
+  pricing: PricingData;
+}
+
+/**
+ * Shape served by `GET /api/pricing`: the pricing payload plus a per-group
+ * pricing record and a `config` alias of {@link PricingData.pricingConfig}.
+ * Additive — no existing key changed shape.
+ */
+export interface PricingResponse extends PricingData {
+  routePricing: Record<string, RouteGroup['pricing']>;
+  config: PricingConfig;
+}
+
 // ---------------------------------------------------------------------------
 // Admin CRUD input types
 // ---------------------------------------------------------------------------

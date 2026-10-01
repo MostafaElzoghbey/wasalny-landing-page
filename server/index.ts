@@ -18,6 +18,11 @@ const port = Number(process.env.PORT ?? 8787);
 
 boot();
 
+// API-only: static assets and the SPA fallback now come from Cloudflare's asset
+// server (`assets` in wrangler.jsonc), so this runner answers /api/* only.
+// `npm start` no longer serves ./dist — run `npx wrangler dev` (or
+// `npm run dev` + this server) for the site itself.
+
 serve({ fetch: app.fetch, port }, (info) => {
   console.log(`Wasalny server listening on http://localhost:${info.port} (NODE_ENV=${process.env.NODE_ENV ?? 'development'})`);
 });

@@ -1,8 +1,8 @@
 // tests/repro_ordering_and_cars.test.ts
 // RED repro harness — proves two bug classes BEFORE any fix:
 //
-//   S-ORD-1  seed() ignores display_order for locations/faqs/route_data/
-//            route_groups (server/db/seed.ts:29,36,99,104) → all rows 0.
+//   S-ORD-1  seed must write sequential display_order for locations/faqs/
+//            route_data/route_groups/cars (seed-001.sql).
 //   S-ORD-2  Admin doReorder keeps stale client-side displayOrder (all 0)
 //            because setItems(next) never rewrites displayOrder
 //            (FaqAdmin.tsx:68-79, LocationAdmin.tsx:79-90,
@@ -11,16 +11,12 @@
 //            from category via CATEGORY_LABELS (carHelpers.ts:33-46,
 //            CarAdmin.tsx:13, CarAdmin.tsx:100).
 //
-// All assertions use REAL logic: the actual seed(), the actual query layer
+// All assertions use REAL logic: the actual seed SQL, the actual query layer
 // (getFaqs / getPricingData / getPublicData), the actual reorderEntities(),
 // and the actual validateCar()/CAR_CATEGORIES(). No mocks.
 
-process.env.NODE_ENV = 'test';
-
-import { describe, it, expect } from 'vitest';
-import Database from 'better-sqlite3';
-import { seed } from '../server/db/seed.js';
-import { migrate } from '../server/db/migrate.js';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { createHarness, type D1Harness } from './helpers/d1.js';
 import { getFaqs, getPricingData, getPublicData, reorderEntities } from '../server/db/queries.js';
 import { validateCar, CAR_CATEGORIES } from '../src/admin/carHelpers';
 import type { Car } from '@/types';
@@ -29,14 +25,17 @@ import type { Car } from '@/types';
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Fresh in-memory DB with migrations + seed applied (real seed logic). */
-function seededDb(): Database.Database {
-  const db = new Database(':memory:');
-  db.pragma('foreign_keys = ON');
-  migrate(db);
-  seed(db);
-  return db;
-}
+let h: D1Harness;
+
+beforeAll(async () => {
+  h = await createHarness();
+  await h.applyMigrations();
+  await h.applySeed();
+});
+
+afterAll(async () => {
+  await h.dispose();
+});
 
 /**
  * display_order values sorted ascending. The contract after seed is that the
@@ -44,11 +43,11 @@ function seededDb(): Database.Database {
  * locations/route_groups/route_data; faqs are insertion-ordered). Sorting
  * avoids coupling to id order, which does not match source order.
  */
-function displayOrders(db: Database.Database, table: string): number[] {
-  const rows = db
+async function displayOrders(table: string): Promise<number[]> {
+  const { results } = await h.db
     .prepare(`SELECT display_order FROM ${table}`)
-    .all() as Array<{ display_order: number }>;
-  return rows.map((r) => r.display_order).sort((a, b) => a - b);
+    .all<{ display_order: number }>();
+  return results.map((r) => r.display_order).sort((a, b) => a - b);
 }
 
 /** Assert the multiset of values is exactly 0..n-1 (sequential, no dupes). */
@@ -64,20 +63,19 @@ interface Orderable {
 /**
  * Faithful replication of the admin doReorder flow. The client keeps `next`
  * as-is (stale displayOrder) while the server rewrites display_order = index
- * via reorderEntities (queries.ts:710-736). Returns what the UI renders.
+ * via reorderEntities. Returns what the UI renders.
  */
-function simulateAdminDoReorder<T extends Orderable>(
-  db: Database.Database,
+async function simulateAdminDoReorder<T extends Orderable>(
   table: 'faqs' | 'locations' | 'route_data' | 'route_groups',
   items: T[],
   fromIndex: number,
   toIndex: number,
-): T[] {
+): Promise<T[]> {
   const next = [...items];
   const [moved] = next.splice(fromIndex, 1);
-  next.splice(toIndex, 0, moved);
+  next.splice(toIndex, 0, moved!);
   // Server side: POST /<entity>/reorder → reorderEntities sets display_order = index.
-  reorderEntities(db, table, next.map((x) => x.id));
+  await reorderEntities(h.db, table, next.map((x) => x.id));
   // Client side fixed: setItems(next.map((x,i)=>({...x, displayOrder:i}))) — mirrors FaqAdmin/LocationAdmin/etc fix
   const nextWithOrder = next.map((x, i) => ({ ...x, displayOrder: i }));
   return nextWithOrder as T[];
@@ -88,34 +86,29 @@ function simulateAdminDoReorder<T extends Orderable>(
 // ---------------------------------------------------------------------------
 
 describe('S-ORD-1 seed display_order is sequential 0..n-1', () => {
-  it('locations get sequential display_order after seed', () => {
-    const db = seededDb();
-    // seed.ts:28-33 INSERT INTO locations (id, name, nameAr, type) — no display_order.
-    expectSequential(displayOrders(db, 'locations'));
+  it('locations get sequential display_order after seed', async () => {
+    // seed-001.sql INSERT INTO locations carries explicit display_order.
+    expectSequential(await displayOrders('locations'));
   });
 
-  it('faqs get sequential display_order after seed', () => {
-    const db = seededDb();
-    // seed.ts:99-102 INSERT INTO faqs (id, question, answer) — no display_order.
-    expectSequential(displayOrders(db, 'faqs'));
+  it('faqs get sequential display_order after seed', async () => {
+    // seed-001.sql INSERT INTO faqs carries explicit display_order.
+    expectSequential(await displayOrders('faqs'));
   });
 
-  it('route_data gets sequential display_order after seed', () => {
-    const db = seededDb();
-    // seed.ts:104-121 INSERT INTO route_data (id, title, ...) — no display_order.
-    expectSequential(displayOrders(db, 'route_data'));
+  it('route_data gets sequential display_order after seed', async () => {
+    // seed-001.sql INSERT INTO route_data carries explicit display_order.
+    expectSequential(await displayOrders('route_data'));
   });
 
-  it('route_groups get sequential display_order after seed', () => {
-    const db = seededDb();
-    // seed.ts:35-47 INSERT INTO route_groups (id, type, ...) — no display_order.
-    expectSequential(displayOrders(db, 'route_groups'));
+  it('route_groups get sequential display_order after seed', async () => {
+    // seed-001.sql INSERT INTO route_groups carries explicit display_order.
+    expectSequential(await displayOrders('route_groups'));
   });
 
-  it('cars get sequential display_order after seed (control — already correct)', () => {
-    const db = seededDb();
-    // seed.ts:70-86 DOES insert c.displayOrder — this is the passing control.
-    expectSequential(displayOrders(db, 'cars'));
+  it('cars get sequential display_order after seed (control — already correct)', async () => {
+    // seed-001.sql INSERT INTO cars carries explicit display_order.
+    expectSequential(await displayOrders('cars'));
   });
 });
 
@@ -124,38 +117,34 @@ describe('S-ORD-1 seed display_order is sequential 0..n-1', () => {
 // ---------------------------------------------------------------------------
 
 describe('S-ORD-2 admin doReorder yields sequential client displayOrder', () => {
-  it('FaqAdmin doReorder (FaqAdmin.tsx:68-79) keeps client displayOrder sequential', () => {
-    const db = seededDb();
-    const faqs = getFaqs(db); // all displayOrder 0 after seed
-    const next = simulateAdminDoReorder(db, 'faqs', faqs, 0, 2);
+  it('FaqAdmin doReorder (FaqAdmin.tsx:68-79) keeps client displayOrder sequential', async () => {
+    const faqs = await getFaqs(h.db);
+    const next = await simulateAdminDoReorder('faqs', faqs, 0, 2);
     // The UI renders `next` — badges must show 0,1,2,... after a reorder.
     expect(next.map((f) => f.displayOrder)).toEqual(
       next.map((_, i) => i),
     );
   });
 
-  it('LocationAdmin doReorder (LocationAdmin.tsx:79-90) keeps client displayOrder sequential', () => {
-    const db = seededDb();
-    const locations = getPricingData(db).locations; // all displayOrder 0 after seed
-    const next = simulateAdminDoReorder(db, 'locations', locations, 0, 2);
+  it('LocationAdmin doReorder (LocationAdmin.tsx:79-90) keeps client displayOrder sequential', async () => {
+    const locations = (await getPricingData(h.db)).locations;
+    const next = await simulateAdminDoReorder('locations', locations, 0, 2);
     expect(next.map((l) => l.displayOrder)).toEqual(
       next.map((_, i) => i),
     );
   });
 
-  it('RouteDataAdmin doReorder (RouteDataAdmin.tsx:93-104) keeps client displayOrder sequential', () => {
-    const db = seededDb();
-    const routeData = Object.values(getPublicData(db).routeData); // all displayOrder 0 after seed
-    const next = simulateAdminDoReorder(db, 'route_data', routeData, 0, 2);
+  it('RouteDataAdmin doReorder (RouteDataAdmin.tsx:93-104) keeps client displayOrder sequential', async () => {
+    const routeData = Object.values((await getPublicData(h.db)).routeData);
+    const next = await simulateAdminDoReorder('route_data', routeData, 0, 2);
     expect(next.map((r) => r.displayOrder)).toEqual(
       next.map((_, i) => i),
     );
   });
 
-  it('RouteGroupAdmin doReorder (RouteGroupAdmin.tsx:143-154) keeps client displayOrder sequential', () => {
-    const db = seededDb();
-    const groups = getPricingData(db).routeGroups; // all displayOrder 0 after seed
-    const next = simulateAdminDoReorder(db, 'route_groups', groups, 0, 2);
+  it('RouteGroupAdmin doReorder (RouteGroupAdmin.tsx:143-154) keeps client displayOrder sequential', async () => {
+    const groups = (await getPricingData(h.db)).routeGroups;
+    const next = await simulateAdminDoReorder('route_groups', groups, 0, 2);
     expect(next.map((g) => g.displayOrder)).toEqual(
       next.map((_, i) => i),
     );

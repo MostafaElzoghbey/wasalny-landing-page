@@ -1,10 +1,15 @@
 // server/routes/adminCrud.ts
 // Admin CRUD API for the Wasalny data layer. Every route is protected by the
 // `requireAdmin` middleware so unauthenticated requests are rejected with 401.
+//
+// Every handler is async and reads through the request-scoped D1 binding
+// (`getDb(c.env)`); `../db/queries.ts` exposes promise-returning query functions,
+// so no call site may skip its `await`.
 
 import { Hono } from 'hono';
 import type { Context } from 'hono';
-import { getDb } from '../db/connection.js';
+import { getDb } from '../db/d1.js';
+import type { AppEnv } from '../db/d1.js';
 import {
   createCar,
   updateCar,
@@ -34,7 +39,7 @@ import { requireAdmin } from '../middleware/auth.js';
 import type { CarInput } from '../types.js';
 import type { RouteData, Faq, Location, RouteGroup } from '@/types';
 
-export const adminCrud = new Hono();
+export const adminCrud = new Hono<{ Bindings: AppEnv }>();
 
 // ---------------------------------------------------------------------------
 // Reorder helper
@@ -52,10 +57,10 @@ function isStringArray(value: unknown): value is string[] {
  * atomically. Returns 400 on any invalid input, 200 on success.
  */
 async function reorderRoute(
-  c: Context,
+  c: Context<{ Bindings: AppEnv }>,
   table: ReorderTable,
 ): Promise<Response> {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<{ ids?: unknown }>();
   if (!isStringArray(body.ids) || body.ids.length === 0) {
     return c.json({ error: 'ids must be a non-empty array of strings' }, 400);
@@ -64,7 +69,7 @@ async function reorderRoute(
     return c.json({ error: 'ids must not contain duplicates' }, 400);
   }
   try {
-    reorderEntities(db, table, body.ids);
+    await reorderEntities(db, table, body.ids);
   } catch {
     return c.json({ error: 'one or more ids do not exist' }, 400);
   }
@@ -147,22 +152,22 @@ function validateCarInput(
 // Cars
 // ---------------------------------------------------------------------------
 
-adminCrud.get('/cars', requireAdmin, (c) => {
-  const db = getDb();
-  return c.json(getPublicData(db).cars);
+adminCrud.get('/cars', requireAdmin, async (c) => {
+  const db = getDb(c.env);
+  return c.json((await getPublicData(db)).cars);
 });
 
 adminCrud.post('/cars', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<CarInput>();
   const err = validateCarInput(body, { partial: false });
   if (err) return c.json(err, 400);
-  const car = createCar(db, body);
+  const car = await createCar(db, body);
   return c.json(car, 200);
 });
 
 adminCrud.put('/cars/:id', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
@@ -170,75 +175,75 @@ adminCrud.put('/cars/:id', requireAdmin, async (c) => {
   const patch = await c.req.json<Partial<CarInput>>();
   const err = validateCarInput(patch, { partial: true });
   if (err) return c.json(err, 400);
-  updateCar(db, id, patch);
+  await updateCar(db, id, patch);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.delete('/cars/:id', requireAdmin, (c) => {
-  const db = getDb();
+adminCrud.delete('/cars/:id', requireAdmin, async (c) => {
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
   }
-  deleteCar(db, id);
+  await deleteCar(db, id);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.post('/cars/reorder', requireAdmin, (c) => reorderRoute(c, 'cars'));
+adminCrud.post('/cars/reorder', requireAdmin, async (c) => reorderRoute(c, 'cars'));
 
 // ---------------------------------------------------------------------------
 // FAQs
 // ---------------------------------------------------------------------------
 
-adminCrud.get('/faqs', requireAdmin, (c) => {
-  const db = getDb();
-  return c.json(getFaqs(db));
+adminCrud.get('/faqs', requireAdmin, async (c) => {
+  const db = getDb(c.env);
+  return c.json(await getFaqs(db));
 });
 
 adminCrud.post('/faqs', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<Faq>();
   if (body.question === undefined || body.answer === undefined) {
     return c.json({ error: 'question and answer are required' }, 400);
   }
-  const faq = createFaq(db, body);
+  const faq = await createFaq(db, body);
   return c.json(faq, 200);
 });
 
 adminCrud.put('/faqs/:id', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
   }
   const patch = await c.req.json<Partial<Faq>>();
-  updateFaq(db, id, patch);
+  await updateFaq(db, id, patch);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.delete('/faqs/:id', requireAdmin, (c) => {
-  const db = getDb();
+adminCrud.delete('/faqs/:id', requireAdmin, async (c) => {
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
   }
-  deleteFaq(db, id);
+  await deleteFaq(db, id);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.post('/faqs/reorder', requireAdmin, (c) => reorderRoute(c, 'faqs'));
+adminCrud.post('/faqs/reorder', requireAdmin, async (c) => reorderRoute(c, 'faqs'));
 
 // ---------------------------------------------------------------------------
 // RouteData
 // ---------------------------------------------------------------------------
 
-adminCrud.get('/route-data', requireAdmin, (c) => {
-  const db = getDb();
-  return c.json(Object.values(getPublicData(db).routeData));
+adminCrud.get('/route-data', requireAdmin, async (c) => {
+  const db = getDb(c.env);
+  return c.json(Object.values((await getPublicData(db)).routeData));
 });
 
 adminCrud.post('/route-data', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<RouteData>();
   const { id, ...rest } = body;
   if (id === undefined || id === null || id === '') {
@@ -250,12 +255,12 @@ adminCrud.post('/route-data', requireAdmin, async (c) => {
   if (typeof rest.toLabel !== 'string' || rest.toLabel.trim() === '') {
     return c.json({ error: 'toLabel is required' }, 400);
   }
-  const route = createRouteData(db, id, rest);
+  const route = await createRouteData(db, id, rest);
   return c.json(route, 200);
 });
 
 adminCrud.put('/route-data/:id', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
@@ -273,43 +278,43 @@ adminCrud.put('/route-data/:id', requireAdmin, async (c) => {
   ) {
     return c.json({ error: 'toLabel must not be empty' }, 400);
   }
-  updateRouteData(db, id, patch);
+  await updateRouteData(db, id, patch);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.delete('/route-data/:id', requireAdmin, (c) => {
-  const db = getDb();
+adminCrud.delete('/route-data/:id', requireAdmin, async (c) => {
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
   }
-  deleteRouteData(db, id);
+  await deleteRouteData(db, id);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.post('/route-data/reorder', requireAdmin, (c) => reorderRoute(c, 'route_data'));
+adminCrud.post('/route-data/reorder', requireAdmin, async (c) => reorderRoute(c, 'route_data'));
 
 // ---------------------------------------------------------------------------
 // Content
 // ---------------------------------------------------------------------------
 
-adminCrud.get('/content/:key', requireAdmin, (c) => {
-  const db = getDb();
+adminCrud.get('/content/:key', requireAdmin, async (c) => {
+  const db = getDb(c.env);
   const key = c.req.param('key');
   if (key === undefined) {
     return c.json({ error: 'key is required' }, 400);
   }
-  const value = getContentValue(db, key);
+  const value = await getContentValue(db, key);
   return c.json({ value: value ?? null });
 });
 
 adminCrud.patch('/content', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<{ key: string; value: unknown }>();
   if (body.key === undefined) {
     return c.json({ error: 'key is required' }, 400);
   }
-  updateContentValue(db, body.key, body.value);
+  await updateContentValue(db, body.key, body.value);
   return c.json({ ok: true }, 200);
 });
 
@@ -317,20 +322,20 @@ adminCrud.patch('/content', requireAdmin, async (c) => {
 // Locations
 // ---------------------------------------------------------------------------
 
-adminCrud.get('/locations', requireAdmin, (c) => {
-  const db = getDb();
-  return c.json(getPricingData(db).locations);
+adminCrud.get('/locations', requireAdmin, async (c) => {
+  const db = getDb(c.env);
+  return c.json((await getPricingData(db)).locations);
 });
 
 adminCrud.post('/locations', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<Location>();
-  upsertLocation(db, body);
+  await upsertLocation(db, body);
   return c.json({ ok: true }, 200);
 });
 
 adminCrud.put('/locations/:id', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
@@ -345,33 +350,33 @@ adminCrud.put('/locations/:id', requireAdmin, async (c) => {
   if (patch.type !== undefined && patch.type !== 'travel' && patch.type !== 'internal') {
     return c.json({ error: 'type must be travel or internal' }, 400);
   }
-  updateLocation(db, id, patch);
+  await updateLocation(db, id, patch);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.delete('/locations/:id', requireAdmin, (c) => {
-  const db = getDb();
+adminCrud.delete('/locations/:id', requireAdmin, async (c) => {
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
   }
-  deleteLocation(db, id);
+  await deleteLocation(db, id);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.post('/locations/reorder', requireAdmin, (c) => reorderRoute(c, 'locations'));
+adminCrud.post('/locations/reorder', requireAdmin, async (c) => reorderRoute(c, 'locations'));
 
 // ---------------------------------------------------------------------------
 // RouteGroups
 // ---------------------------------------------------------------------------
 
-adminCrud.get('/route-groups', requireAdmin, (c) => {
-  const db = getDb();
-  return c.json(getPricingData(db).routeGroups);
+adminCrud.get('/route-groups', requireAdmin, async (c) => {
+  const db = getDb(c.env);
+  return c.json((await getPricingData(db)).routeGroups);
 });
 
 adminCrud.post('/route-groups', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<RouteGroup>();
   if (body.nameAr === undefined) {
     return c.json({ error: 'nameAr is required' }, 400);
@@ -380,15 +385,15 @@ adminCrud.post('/route-groups', requireAdmin, async (c) => {
     return c.json({ error: 'pricing must be non-negative integers' }, 400);
   }
   if (body.pricing !== undefined) {
-    upsertRouteGroupWithPricing(db, body);
+    await upsertRouteGroupWithPricing(db, body);
   } else {
-    upsertRouteGroup(db, body);
+    await upsertRouteGroup(db, body);
   }
   return c.json({ ok: true }, 200);
 });
 
 adminCrud.put('/route-groups/:id', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
@@ -415,21 +420,21 @@ adminCrud.put('/route-groups/:id', requireAdmin, async (c) => {
   if (!isValidPricing(body.pricing)) {
     return c.json({ error: 'pricing must be non-negative integers' }, 400);
   }
-  upsertRouteGroupWithPricing(db, { ...body, id });
+  await upsertRouteGroupWithPricing(db, { ...body, id });
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.delete('/route-groups/:id', requireAdmin, (c) => {
-  const db = getDb();
+adminCrud.delete('/route-groups/:id', requireAdmin, async (c) => {
+  const db = getDb(c.env);
   const id = c.req.param('id');
   if (id === undefined) {
     return c.json({ error: 'id is required' }, 400);
   }
-  deleteRouteGroup(db, id);
+  await deleteRouteGroup(db, id);
   return c.json({ ok: true }, 200);
 });
 
-adminCrud.post('/route-groups/reorder', requireAdmin, (c) => reorderRoute(c, 'route_groups'));
+adminCrud.post('/route-groups/reorder', requireAdmin, async (c) => reorderRoute(c, 'route_groups'));
 
 // ---------------------------------------------------------------------------
 // PricingConfig
@@ -447,7 +452,7 @@ function normalizeWhatsAppNumber(raw: string): string | null {
 }
 
 adminCrud.post('/pricing-config', requireAdmin, async (c) => {
-  const db = getDb();
+  const db = getDb(c.env);
   const body = await c.req.json<{ key: string; value: string }>();
   if (body.key === undefined || body.value === undefined) {
     return c.json({ error: 'key and value are required' }, 400);
@@ -463,6 +468,6 @@ adminCrud.post('/pricing-config', requireAdmin, async (c) => {
     return c.json({ error: 'invalid whatsappNumber' }, 400);
   }
 
-  setPricingConfig(db, PRICING_KEY_WHATSAPP, normalized);
+  await setPricingConfig(db, PRICING_KEY_WHATSAPP, normalized);
   return c.json({ ok: true }, 200);
 });

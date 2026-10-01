@@ -1,24 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-process.env.NODE_ENV = 'test';
-import { describe, it, expect } from 'vitest';
-import Database from 'better-sqlite3';
-import { migrate } from '../server/db/migrate.js';
-import { seed } from '../server/db/seed.js';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { createHarness, type D1Harness } from './helpers/d1.js';
 import { getPublicData, createCar } from '../server/db/queries.js';
 import { CAR_CATEGORIES, CATEGORY_LABELS } from '../src/admin/carHelpers';
 
-function freshDb(): Database.Database {
-  const db = new Database(':memory:');
-  db.pragma('foreign_keys = ON');
-  migrate(db);
-  seed(db);
-  return db;
-}
-
 describe('S-CAR flat-5 integration', () => {
-  it('grouped is exactly 5 flat groups, no nested category', () => {
-    const db = freshDb();
-    const { cars } = getPublicData(db);
+  let h: D1Harness;
+
+  beforeAll(async () => {
+    h = await createHarness();
+    await h.applyMigrations();
+    await h.applySeed();
+  });
+
+  afterAll(async () => {
+    await h.dispose();
+  });
+
+  it('grouped is exactly 5 flat groups, no nested category', async () => {
+    const { cars } = await getPublicData(h.db);
     const grouped = CAR_CATEGORIES.map((cat) => ({
       category: cat,
       cars: cars.filter((c) => c.category === cat),
@@ -30,11 +29,10 @@ describe('S-CAR flat-5 integration', () => {
     expect(CATEGORY_LABELS.sedan).toBe('سيدان');
   });
 
-  it('new car appears directly under its category header', () => {
-    const db = freshDb();
-    const before = getPublicData(db).cars;
+  it('new car appears directly under its category header', async () => {
+    const before = (await getPublicData(h.db)).cars;
     const beforeSedan = before.filter((c) => c.category === 'sedan').length;
-    createCar(db, {
+    await createCar(h.db, {
       nameAr: 'سيارة اختبار',
       category: 'sedan',
       categoryAr: CATEGORY_LABELS.sedan,
@@ -42,8 +40,8 @@ describe('S-CAR flat-5 integration', () => {
       images: ['img.jpg'],
       features: ['feat'],
       displayOrder: 0,
-    } as any);
-    const after = getPublicData(db).cars;
+    });
+    const after = (await getPublicData(h.db)).cars;
     const grouped = CAR_CATEGORIES.map((cat) => ({
       category: cat,
       cars: after.filter((c) => c.category === cat),
@@ -57,9 +55,8 @@ describe('S-CAR flat-5 integration', () => {
     }
   });
 
-  it('no 6th group appears after create', () => {
-    const db = freshDb();
-    createCar(db, {
+  it('no 6th group appears after create', async () => {
+    await createCar(h.db, {
       nameAr: 'اخرى',
       category: 'suv',
       categoryAr: CATEGORY_LABELS.suv,
@@ -67,8 +64,8 @@ describe('S-CAR flat-5 integration', () => {
       images: [],
       features: [],
       displayOrder: 0,
-    } as any);
-    const { cars } = getPublicData(db);
+    });
+    const { cars } = await getPublicData(h.db);
     const uniqueCats = [...new Set(cars.map((c) => c.category))].sort();
     expect(uniqueCats.sort()).toEqual([...CAR_CATEGORIES].sort());
   });

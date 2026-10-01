@@ -4,13 +4,32 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 
-const currentDir = dirname(fileURLToPath(import.meta.url));
-// server/db/connection.ts -> project root is two levels up.
-const PROJECT_ROOT = resolve(currentDir, '..', '..');
-
 let dbInstance: Database.Database | null = null;
+let projectRoot: string | null = null;
 
 /**
+ * Resolves the project root from this module's own URL.
+ *
+ * Deliberately lazy: `import.meta.url` is `undefined` inside workerd, so
+ * evaluating it at module scope throws while `server/worker.ts` is still
+ * initializing and takes the whole Worker down. Only the file-backed branch of
+ * `getDb` needs it; the in-memory branch (tests, `MEMORY=1`) returns first.
+ */
+function getProjectRoot(): string {
+  if (projectRoot === null) {
+    // server/db/connection.ts -> project root is two levels up.
+    projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  }
+  return projectRoot;
+}
+
+/**
+ * @deprecated Node-only better-sqlite3 singleton for the Express/tsx server
+ * and scripts. Do NOT use in the Worker — use `getDb(c.env)` from
+ * `./d1.ts` (request-scoped `env.DB: D1Database`, Task 5 accessor;
+ * Task 7 threads `c.env.DB` through call sites) instead. Kept until
+ * Tasks 4/6 stop importing it.
+ *
  * Returns the singleton better-sqlite3 database handle.
  *
  * - In tests (NODE_ENV === 'test') or when MEMORY=1, an in-memory database is
@@ -30,7 +49,7 @@ export function getDb(): Database.Database {
   } else {
     const dbPath = process.env.DB_PATH
       ? resolve(process.env.DB_PATH)
-      : resolve(PROJECT_ROOT, 'data', 'app.db');
+      : resolve(getProjectRoot(), 'data', 'app.db');
     const dir = dirname(dbPath);
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });

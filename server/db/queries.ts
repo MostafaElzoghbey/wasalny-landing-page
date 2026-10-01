@@ -1,13 +1,17 @@
 // server/db/queries.ts
-// Typed read/write query layer for the Wasalny data-access API.
+// Typed read/write query layer for the Wasalny data-access API, backed by D1.
 //
-// Every function takes the better-sqlite3 `Database` handle as its first
-// argument (no Hono, no globals) so it can be reused by both the public API
-// and the admin API. All SQL uses parameterized prepared statements; JSON
-// columns are parsed on read and stringified on write at the boundary.
+// Every function takes a D1 `D1Database` handle as its first argument (no
+// Hono, no globals) so it can be reused by both the public API and the admin
+// API. Every function is async because D1 statements are promises, and
+// `db.batch()` is used for atomic multi-statement writes where needed.
+// All SQL uses parameterized prepared statements; JSON columns are parsed on
+// read and stringified on write at the boundary.
 
-import type Database from 'better-sqlite3';
-import { randomUUID } from 'node:crypto';
+import type {
+  D1Database,
+  D1PreparedStatement,
+} from '@cloudflare/workers-types';
 import type {
   Car,
   Service,
@@ -39,6 +43,19 @@ import type {
   LocationPatch,
 } from '../types.js';
 
+/** D1 accepts at most 100 bound parameters per statement. */
+const MAX_BOUND_PARAMS = 100;
+
+const PRICING_KEY_WHATSAPP = 'whatsappNumber';
+
+/** Tables whose rows carry a manual `display_order`. */
+type DisplayOrderTable =
+  | 'cars'
+  | 'faqs'
+  | 'route_data'
+  | 'locations'
+  | 'route_groups';
+
 // ---------------------------------------------------------------------------
 // Boundary helpers
 // ---------------------------------------------------------------------------
@@ -48,11 +65,8 @@ function parseJson<T>(value: string): T {
   return JSON.parse(value) as T;
 }
 
-/** Read the whole `content` table into a key -> parsed-value map. */
-function readContentMap(db: Database.Database): Map<string, unknown> {
-  const rows = db
-    .prepare('SELECT key, value FROM content')
-    .all() as Array<{ key: string; value: string }>;
+/** Turn `content` rows into a key -> parsed-value map. */
+function readContentMap(rows: readonly ContentRow[]): Map<string, unknown> {
   const map = new Map<string, unknown>();
   for (const row of rows) {
     map.set(row.key, parseJson<unknown>(row.value));
@@ -70,9 +84,37 @@ function getContent<T>(
   return raw === undefined ? fallback : (raw as T);
 }
 
+/** Split a list so every resulting `IN (...)` query stays under the D1 limit. */
+function chunked<T>(
+  items: readonly T[],
+  size: number = MAX_BOUND_PARAMS,
+): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/** `COALESCE(MAX(display_order), 0) + 1` for a manually ordered table. */
+async function nextDisplayOrder(
+  db: D1Database,
+  table: DisplayOrderTable,
+): Promise<number> {
+  const row = await db
+    .prepare(`SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM ${table}`)
+    .first<{ next: number }>();
+  return row?.next ?? 1;
+}
+
 // ---------------------------------------------------------------------------
 // Raw row shapes (snake_case columns as stored in SQLite)
 // ---------------------------------------------------------------------------
+
+interface ContentRow {
+  key: string;
+  value: string;
+}
 
 interface CarRow {
   id: string;
@@ -130,9 +172,14 @@ interface RouteGroupRow {
 }
 
 interface RoutePriceRow {
+  route_group_id: string;
   vehicle_category: VehicleCategory;
   one_way: number;
   round_trip: number;
+}
+
+interface PricingConfigRow {
+  value: string;
 }
 
 interface VehiclePricingRow {
@@ -202,22 +249,23 @@ export function deriveRoutes(entries: RouteData[]): Route[] {
 /**
  * Returns the full public payload consumed by the landing page.
  * Shapes mirror the original `src/data/*` exports exactly.
+ *
+ * The four reads run as one `db.batch()` so the payload is assembled from a
+ * single round trip to D1.
  */
-export function getPublicData(db: Database.Database): PublicData {
-  const content = readContentMap(db);
+export async function getPublicData(db: D1Database): Promise<PublicData> {
+  const [contentResult, carResult, faqResult, routeDataResult] = await db.batch(
+    [
+      db.prepare('SELECT key, value FROM content'),
+      db.prepare('SELECT * FROM cars ORDER BY display_order ASC, id ASC'),
+      db.prepare('SELECT * FROM faqs ORDER BY display_order ASC, id ASC'),
+      db.prepare('SELECT * FROM route_data ORDER BY display_order ASC, id ASC'),
+    ],
+  );
 
-  const carRows = db
-    .prepare('SELECT * FROM cars ORDER BY display_order ASC, id ASC')
-    .all() as CarRow[];
-  const faqRows = db
-    .prepare('SELECT * FROM faqs ORDER BY display_order ASC, id ASC')
-    .all() as FaqRow[];
-  const routeDataRows = db
-    .prepare('SELECT * FROM route_data ORDER BY display_order ASC, id ASC')
-    .all() as RouteDataRow[];
-
+  const content = readContentMap(contentResult.results as ContentRow[]);
   const routeData: Record<string, RouteData> = {};
-  for (const row of routeDataRows) {
+  for (const row of routeDataResult.results as RouteDataRow[]) {
     routeData[row.id] = mapRouteDataRow(row);
   }
 
@@ -233,7 +281,7 @@ export function getPublicData(db: Database.Database): PublicData {
       address: '',
       facebook: '',
     }),
-    cars: carRows.map(mapCarRow),
+    cars: (carResult.results as CarRow[]).map(mapCarRow),
     carCategories: getContent<CarCategory[]>(content, 'carCategories', []),
     carImages: getContent<Record<string, string[]>>(
       content,
@@ -242,7 +290,10 @@ export function getPublicData(db: Database.Database): PublicData {
     ),
     mockupImages: getContent<string[]>(content, 'mockupImages', []),
     logoImage: getContent<string>(content, 'logoImage', ''),
-    faqs: faqRows.map((r) => ({ question: r.question, answer: r.answer })),
+    faqs: (faqResult.results as FaqRow[]).map((r) => ({
+      question: r.question,
+      answer: r.answer,
+    })),
     routeData,
   };
 }
@@ -251,36 +302,62 @@ export function getPublicData(db: Database.Database): PublicData {
 // Public read: getPricingData
 // ---------------------------------------------------------------------------
 
-function readRoutePricing(
-  db: Database.Database,
-  routeGroupId: string,
-): RouteGroup['pricing'] {
-  const rows = db
-    .prepare(
-      'SELECT vehicle_category, one_way, round_trip FROM route_pricing WHERE route_group_id = ?',
-    )
-    .all(routeGroupId) as RoutePriceRow[];
-
-  const pricing: RouteGroup['pricing'] = {
+/** All-zero pricing skeleton, so absent rows read as free rather than missing. */
+function emptyPricing(): RouteGroup['pricing'] {
+  return {
     sedan: { oneWay: 0, roundTrip: 0 },
     suv: { oneWay: 0, roundTrip: 0 },
     family_cruiser: { oneWay: 0, roundTrip: 0 },
     minibus: { oneWay: 0, roundTrip: 0 },
   };
-
-  for (const row of rows) {
-    pricing[row.vehicle_category] = {
-      oneWay: row.one_way,
-      roundTrip: row.round_trip,
-    };
-  }
-  return pricing;
 }
 
-function readRouteGroups(db: Database.Database): RouteGroup[] {
-  const rows = db
-    .prepare('SELECT * FROM route_groups ORDER BY display_order ASC, id ASC')
-    .all() as RouteGroupRow[];
+/**
+ * Read every requested route group's pricing in a single query per chunk of
+ * ids (D1 caps bound parameters at 100 per statement), instead of one query
+ * per route group.
+ */
+async function readRoutePricing(
+  db: D1Database,
+  routeGroupIds: readonly string[],
+): Promise<Map<string, RouteGroup['pricing']>> {
+  const byGroup = new Map<string, RouteGroup['pricing']>();
+  for (const id of routeGroupIds) {
+    byGroup.set(id, emptyPricing());
+  }
+
+  for (const chunk of chunked(routeGroupIds)) {
+    const { results } = await db
+      .prepare(
+        `SELECT route_group_id, vehicle_category, one_way, round_trip
+         FROM route_pricing
+         WHERE route_group_id IN (${chunk.map(() => '?').join(', ')})`,
+      )
+      .bind(...chunk)
+      .all<RoutePriceRow>();
+    for (const row of results) {
+      const pricing = byGroup.get(row.route_group_id);
+      if (pricing !== undefined) {
+        pricing[row.vehicle_category] = {
+          oneWay: row.one_way,
+          roundTrip: row.round_trip,
+        };
+      }
+    }
+  }
+
+  return byGroup;
+}
+
+/** Map already-loaded `route_groups` rows, resolving their pricing in one pass. */
+async function readRouteGroups(
+  db: D1Database,
+  rows: readonly RouteGroupRow[],
+): Promise<RouteGroup[]> {
+  const pricingByGroup = await readRoutePricing(
+    db,
+    rows.map((row) => row.id),
+  );
   return rows.map((row) => ({
     id: row.id,
     type: row.type,
@@ -288,15 +365,13 @@ function readRouteGroups(db: Database.Database): RouteGroup[] {
     bidirectional: row.type === 'travel',
     fromLocations: parseJson<string[]>(row.from_locations),
     toLocations: parseJson<string[]>(row.to_locations),
-    pricing: readRoutePricing(db, row.id),
+    pricing: pricingByGroup.get(row.id) ?? emptyPricing(),
     displayOrder: row.display_order,
   }));
 }
 
-function readPricingConfig(db: Database.Database): PricingConfig {
-  const row = db
-    .prepare('SELECT value FROM pricing_config WHERE key = ?')
-    .get('whatsappNumber') as { value: string } | undefined;
+/** Read a pricing config row, or undefined when the key is absent. */
+function readPricingConfig(row: PricingConfigRow | null): PricingConfig {
   return {
     whatsappNumber: row?.value ?? '',
   };
@@ -305,32 +380,53 @@ function readPricingConfig(db: Database.Database): PricingConfig {
 /**
  * Returns the full pricing payload consumed by the pricing calculator.
  * Shapes mirror the original `src/data/pricing.ts` exports exactly.
+ *
+ * The location / vehicle / group / config reads run as one `db.batch()`; the
+ * route pricing follows in a second query because it is keyed by the group ids
+ * that batch returns.
  */
-export function getPricingData(db: Database.Database): PricingData {
-  const locationRows = db
-    .prepare('SELECT * FROM locations ORDER BY display_order ASC, id ASC')
-    .all() as LocationRow[];
-  const vehicleRows = db
-    .prepare('SELECT * FROM vehicle_pricing')
-    .all() as VehiclePricingRow[];
+export async function getPricingData(
+  db: D1Database,
+): Promise<PricingData> {
+  const [locationResult, vehicleResult, groupResult, configResult] =
+    await db.batch([
+      db.prepare('SELECT * FROM locations ORDER BY display_order ASC, id ASC'),
+      db.prepare('SELECT * FROM vehicle_pricing'),
+      db.prepare('SELECT * FROM route_groups ORDER BY display_order ASC, id ASC'),
+      db.prepare('SELECT value FROM pricing_config WHERE key = ?').bind(
+        PRICING_KEY_WHATSAPP,
+      ),
+    ]);
 
   return {
-    locations: locationRows.map((r) => ({
+    locations: (locationResult.results as LocationRow[]).map((r) => ({
       id: r.id,
       name: r.name,
       nameAr: r.nameAr,
       type: r.type,
       displayOrder: r.display_order,
     })),
-    routeGroups: readRouteGroups(db),
-    vehiclePricing: vehicleRows.map((r) => ({
+    routeGroups: await readRouteGroups(db, groupResult.results as RouteGroupRow[]),
+    vehiclePricing: (vehicleResult.results as VehiclePricingRow[]).map((r) => ({
       category: r.category,
       categoryAr: r.categoryAr,
       maxPassengers: r.max_passengers,
       minPassengers: r.min_passengers,
     })),
-    pricingConfig: readPricingConfig(db),
+    pricingConfig: readPricingConfig(
+      (configResult.results[0] as PricingConfigRow | undefined) ?? null,
+    ),
   };
+}
+
+/** Read the whole `content` table as a key -> parsed-value record. */
+export async function getContentEntries(
+  db: D1Database,
+): Promise<Record<string, unknown>> {
+  const { results } = await db
+    .prepare('SELECT key, value FROM content')
+    .all<ContentRow>();
+  return Object.fromEntries(readContentMap(results).entries());
 }
 
 // ---------------------------------------------------------------------------
@@ -338,38 +434,39 @@ export function getPricingData(db: Database.Database): PricingData {
 // ---------------------------------------------------------------------------
 
 /** Insert a car. Uses `input.id` if provided, otherwise generates one. */
-export function createCar(db: Database.Database, input: CarInput): Car {
-  const id = input.id ?? `car-${randomUUID()}`;
-  const displayOrder =
-    input.displayOrder ?? (
-      db
-        .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM cars')
-        .get() as { next: number }
-    ).next;
-  db.prepare(
-    `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(
-    id,
-    input.nameAr,
-    input.category,
-    input.categoryAr,
-    input.description,
-    input.seoDescription ?? null,
-    JSON.stringify(input.images),
-    JSON.stringify(input.imageAlts ?? []),
-    JSON.stringify(input.features),
-    displayOrder,
-  );
+export async function createCar(
+  db: D1Database,
+  input: CarInput,
+): Promise<Car> {
+  const id = input.id ?? `car-${crypto.randomUUID()}`;
+  const displayOrder = input.displayOrder ?? (await nextDisplayOrder(db, 'cars'));
+  await db
+    .prepare(
+      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      input.nameAr,
+      input.category,
+      input.categoryAr,
+      input.description,
+      input.seoDescription ?? null,
+      JSON.stringify(input.images),
+      JSON.stringify(input.imageAlts ?? []),
+      JSON.stringify(input.features),
+      displayOrder,
+    )
+    .run();
   return { ...input, id, displayOrder };
 }
 
 /** Partially update a car by id. Only provided fields are written. */
-export function updateCar(
-  db: Database.Database,
+export async function updateCar(
+  db: D1Database,
   id: string,
   patch: CarPatch,
-): void {
+): Promise<void> {
   const fields: Array<[string, unknown]> = [];
   if (patch.nameAr !== undefined) fields.push(['nameAr', patch.nameAr]);
   if (patch.category !== undefined) fields.push(['category', patch.category]);
@@ -393,12 +490,12 @@ export function updateCar(
   const setClause = fields.map(([col]) => `${col} = ?`).join(', ');
   const values = fields.map(([, val]) => val);
   values.push(id);
-  db.prepare(`UPDATE cars SET ${setClause} WHERE id = ?`).run(...values);
+  await db.prepare(`UPDATE cars SET ${setClause} WHERE id = ?`).bind(...values).run();
 }
 
 /** Delete a car by id. */
-export function deleteCar(db: Database.Database, id: string): void {
-  db.prepare('DELETE FROM cars WHERE id = ?').run(id);
+export async function deleteCar(db: D1Database, id: string): Promise<void> {
+  await db.prepare('DELETE FROM cars WHERE id = ?').bind(id).run();
 }
 
 // ---------------------------------------------------------------------------
@@ -406,19 +503,21 @@ export function deleteCar(db: Database.Database, id: string): void {
 // ---------------------------------------------------------------------------
 
 /** Insert a FAQ. Generates an id. */
-export function createFaq(db: Database.Database, input: FaqInput): FaqRecord {
-  const id = `faq-${randomUUID()}`;
+export async function createFaq(
+  db: D1Database,
+  input: FaqInput,
+): Promise<FaqRecord> {
+  const id = `faq-${crypto.randomUUID()}`;
   const displayOrder =
     input.displayOrder != null && input.displayOrder !== 0
       ? input.displayOrder
-      : (
-          db
-            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM faqs')
-            .get() as { next: number }
-        ).next;
-  db.prepare(
-    'INSERT INTO faqs (id, question, answer, display_order) VALUES (?, ?, ?, ?)',
-  ).run(id, input.question, input.answer, displayOrder);
+      : await nextDisplayOrder(db, 'faqs');
+  await db
+    .prepare(
+      'INSERT INTO faqs (id, question, answer, display_order) VALUES (?, ?, ?, ?)',
+    )
+    .bind(id, input.question, input.answer, displayOrder)
+    .run();
   return {
     id,
     question: input.question,
@@ -428,11 +527,11 @@ export function createFaq(db: Database.Database, input: FaqInput): FaqRecord {
 }
 
 /** Partially update a FAQ by id. */
-export function updateFaq(
-  db: Database.Database,
+export async function updateFaq(
+  db: D1Database,
   id: string,
   patch: FaqPatch,
-): void {
+): Promise<void> {
   const fields: Array<[string, unknown]> = [];
   if (patch.question !== undefined) fields.push(['question', patch.question]);
   if (patch.answer !== undefined) fields.push(['answer', patch.answer]);
@@ -443,21 +542,23 @@ export function updateFaq(
   const setClause = fields.map(([col]) => `${col} = ?`).join(', ');
   const values = fields.map(([, val]) => val);
   values.push(id);
-  db.prepare(`UPDATE faqs SET ${setClause} WHERE id = ?`).run(...values);
+  await db.prepare(`UPDATE faqs SET ${setClause} WHERE id = ?`).bind(...values).run();
 }
 
 /** Delete a FAQ by id. */
-export function deleteFaq(db: Database.Database, id: string): void {
-  db.prepare('DELETE FROM faqs WHERE id = ?').run(id);
+export async function deleteFaq(db: D1Database, id: string): Promise<void> {
+  await db.prepare('DELETE FROM faqs WHERE id = ?').bind(id).run();
 }
 
 /** Read all FAQs including their `id`, so the admin UI can target specific
  *  rows for update/delete. Mirrors the `FaqRecord` shape. */
-export function getFaqs(db: Database.Database): FaqRecord[] {
-  const rows = db
-    .prepare('SELECT id, question, answer, display_order FROM faqs ORDER BY display_order ASC, id ASC')
-    .all() as FaqRow[];
-  return rows.map((r) => ({
+export async function getFaqs(db: D1Database): Promise<FaqRecord[]> {
+  const { results } = await db
+    .prepare(
+      'SELECT id, question, answer, display_order FROM faqs ORDER BY display_order ASC, id ASC',
+    )
+    .all<FaqRow>();
+  return results.map((r) => ({
     id: r.id,
     question: r.question,
     answer: r.answer,
@@ -470,48 +571,47 @@ export function getFaqs(db: Database.Database): FaqRecord[] {
 // ---------------------------------------------------------------------------
 
 /** Insert a route_data row. `id` is optional; when omitted one is generated. */
-export function createRouteData(
-  db: Database.Database,
+export async function createRouteData(
+  db: D1Database,
   id: string | undefined,
   input: RouteDataInput,
-): RouteData {
-  const resolvedId = id ?? `route-${randomUUID()}`;
+): Promise<RouteData> {
+  const resolvedId = id ?? `route-${crypto.randomUUID()}`;
   const displayOrder =
     input.displayOrder != null && input.displayOrder !== 0
       ? input.displayOrder
-      : (
-          db
-            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_data')
-            .get() as { next: number }
-        ).next;
-  db.prepare(
-    `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).run(
-    resolvedId,
-    input.title,
-    input.description,
-    input.metaTitle,
-    input.metaDescription,
-    input.heroImage,
-    input.priceStart,
-    input.distance,
-    input.duration,
-    JSON.stringify(input.features),
-    JSON.stringify(input.faqs),
-    displayOrder,
-    input.fromLabel,
-    input.toLabel,
-  );
+      : await nextDisplayOrder(db, 'route_data');
+  await db
+    .prepare(
+      `INSERT INTO route_data (id, title, description, metaTitle, metaDescription, heroImage, priceStart, distance, duration, features, faqs, display_order, fromLabel, toLabel)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      resolvedId,
+      input.title,
+      input.description,
+      input.metaTitle,
+      input.metaDescription,
+      input.heroImage,
+      input.priceStart,
+      input.distance,
+      input.duration,
+      JSON.stringify(input.features),
+      JSON.stringify(input.faqs),
+      displayOrder,
+      input.fromLabel,
+      input.toLabel,
+    )
+    .run();
   return { id: resolvedId, ...input, displayOrder };
 }
 
 /** Partially update a route_data row by id. */
-export function updateRouteData(
-  db: Database.Database,
+export async function updateRouteData(
+  db: D1Database,
   id: string,
   patch: RouteDataPatch,
-): void {
+): Promise<void> {
   const fields: Array<[string, unknown]> = [];
   if (patch.fromLabel !== undefined) fields.push(['fromLabel', patch.fromLabel]);
   if (patch.toLabel !== undefined) fields.push(['toLabel', patch.toLabel]);
@@ -536,12 +636,18 @@ export function updateRouteData(
   const setClause = fields.map(([col]) => `${col} = ?`).join(', ');
   const values = fields.map(([, val]) => val);
   values.push(id);
-  db.prepare(`UPDATE route_data SET ${setClause} WHERE id = ?`).run(...values);
+  await db
+    .prepare(`UPDATE route_data SET ${setClause} WHERE id = ?`)
+    .bind(...values)
+    .run();
 }
 
 /** Delete a route_data row by id. */
-export function deleteRouteData(db: Database.Database, id: string): void {
-  db.prepare('DELETE FROM route_data WHERE id = ?').run(id);
+export async function deleteRouteData(
+  db: D1Database,
+  id: string,
+): Promise<void> {
+  await db.prepare('DELETE FROM route_data WHERE id = ?').bind(id).run();
 }
 
 // ---------------------------------------------------------------------------
@@ -549,22 +655,27 @@ export function deleteRouteData(db: Database.Database, id: string): void {
 // ---------------------------------------------------------------------------
 
 /** Store a content value as JSON. */
-export function updateContentValue(
-  db: Database.Database,
+export async function updateContentValue(
+  db: D1Database,
   key: string,
   value: unknown,
-): void {
-  db.prepare(
-    'INSERT OR REPLACE INTO content (key, value) VALUES (?, ?)',
-  ).run(key, JSON.stringify(value));
+): Promise<void> {
+  await db
+    .prepare('INSERT OR REPLACE INTO content (key, value) VALUES (?, ?)')
+    .bind(key, JSON.stringify(value))
+    .run();
 }
 
 /** Read a content value (parsed), or undefined if the key is absent. */
-export function getContentValue(db: Database.Database, key: string): unknown {
-  const row = db
+export async function getContentValue(
+  db: D1Database,
+  key: string,
+): Promise<unknown> {
+  const row = await db
     .prepare('SELECT value FROM content WHERE key = ?')
-    .get(key) as { value: string } | undefined;
-  return row === undefined ? undefined : parseJson<unknown>(row.value);
+    .bind(key)
+    .first<{ value: string }>();
+  return row === null ? undefined : parseJson<unknown>(row.value);
 }
 
 // ---------------------------------------------------------------------------
@@ -572,31 +683,30 @@ export function getContentValue(db: Database.Database, key: string): unknown {
 // ---------------------------------------------------------------------------
 
 /** Insert or replace a location. `id` is optional; when omitted one is generated. */
-export function upsertLocation(
-  db: Database.Database,
+export async function upsertLocation(
+  db: D1Database,
   loc: Omit<Location, 'id' | 'type'> & { id?: string; type?: Location['type'] },
-): void {
-  const id = loc.id ?? `loc-${randomUUID()}`;
+): Promise<void> {
+  const id = loc.id ?? `loc-${crypto.randomUUID()}`;
   const type = loc.type ?? 'travel';
   const displayOrder =
     loc.displayOrder != null && loc.displayOrder !== 0
       ? loc.displayOrder
-      : (
-          db
-            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM locations')
-            .get() as { next: number }
-        ).next;
-  db.prepare(
-    'INSERT OR REPLACE INTO locations (id, name, nameAr, type, display_order) VALUES (?, ?, ?, ?, ?)',
-  ).run(id, loc.name, loc.nameAr, type, displayOrder);
+      : await nextDisplayOrder(db, 'locations');
+  await db
+    .prepare(
+      'INSERT OR REPLACE INTO locations (id, name, nameAr, type, display_order) VALUES (?, ?, ?, ?, ?)',
+    )
+    .bind(id, loc.name, loc.nameAr, type, displayOrder)
+    .run();
 }
 
 /** Partially update a location by id. Only provided fields are written. */
-export function updateLocation(
-  db: Database.Database,
+export async function updateLocation(
+  db: D1Database,
   id: string,
   patch: LocationPatch,
-): void {
+): Promise<void> {
   const fields: Array<[string, unknown]> = [];
   if (patch.name !== undefined) fields.push(['name', patch.name]);
   if (patch.nameAr !== undefined) fields.push(['nameAr', patch.nameAr]);
@@ -609,12 +719,15 @@ export function updateLocation(
   const setClause = fields.map(([col]) => `${col} = ?`).join(', ');
   const values = fields.map(([, val]) => val);
   values.push(id);
-  db.prepare(`UPDATE locations SET ${setClause} WHERE id = ?`).run(...values);
+  await db
+    .prepare(`UPDATE locations SET ${setClause} WHERE id = ?`)
+    .bind(...values)
+    .run();
 }
 
 /** Delete a location by id. */
-export function deleteLocation(db: Database.Database, id: string): void {
-  db.prepare('DELETE FROM locations WHERE id = ?').run(id);
+export async function deleteLocation(db: D1Database, id: string): Promise<void> {
+  await db.prepare('DELETE FROM locations WHERE id = ?').bind(id).run();
 }
 
 // ---------------------------------------------------------------------------
@@ -622,38 +735,57 @@ export function deleteLocation(db: Database.Database, id: string): void {
 // ---------------------------------------------------------------------------
 
 /** Delete a route group and its dependent route pricing rows (FK-safe). */
-export function deleteRouteGroup(db: Database.Database, id: string): void {
-  db.prepare('DELETE FROM route_pricing WHERE route_group_id = ?').run(id);
-  db.prepare('DELETE FROM route_groups WHERE id = ?').run(id);
+export async function deleteRouteGroup(
+  db: D1Database,
+  id: string,
+): Promise<void> {
+  await db
+    .batch([
+      db.prepare('DELETE FROM route_pricing WHERE route_group_id = ?').bind(id),
+      db.prepare('DELETE FROM route_groups WHERE id = ?').bind(id),
+    ]);
 }
 
-/** Insert or replace a route group row. `id` is optional; when omitted one is generated. Returns the resolved id. */
-export function upsertRouteGroup(
-  db: Database.Database,
+/**
+ * Resolve the id and `display_order` a route group upsert will write, and build
+ * its `INSERT OR REPLACE` statement. Shared by `upsertRouteGroup` (single run)
+ * and `upsertRouteGroupWithPricing` (batched with the pricing rows) so the
+ * generated id is identical on both paths.
+ */
+async function buildRouteGroupUpsert(
+  db: D1Database,
   rg: Omit<RouteGroup, 'id'> & { id?: string },
-): string {
-  const id = rg.id ?? `rg-${randomUUID()}`;
+): Promise<{ id: string; statement: D1PreparedStatement }> {
+  const id = rg.id ?? `rg-${crypto.randomUUID()}`;
   const bidirectional = rg.type === 'travel';
   const displayOrder =
     rg.displayOrder != null && rg.displayOrder !== 0
       ? rg.displayOrder
-      : (
-          db
-            .prepare('SELECT COALESCE(MAX(display_order), 0) + 1 AS next FROM route_groups')
-            .get() as { next: number }
-        ).next;
-  db.prepare(
-    `INSERT OR REPLACE INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations, display_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-  ).run(
-    id,
-    rg.type,
-    rg.nameAr,
-    bidirectional ? 1 : 0,
-    JSON.stringify(rg.fromLocations),
-    JSON.stringify(rg.toLocations),
-    displayOrder,
-  );
+      : await nextDisplayOrder(db, 'route_groups');
+  const statement = db
+    .prepare(
+      `INSERT OR REPLACE INTO route_groups (id, type, nameAr, bidirectional, from_locations, to_locations, display_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      rg.type,
+      rg.nameAr,
+      bidirectional ? 1 : 0,
+      JSON.stringify(rg.fromLocations),
+      JSON.stringify(rg.toLocations),
+      displayOrder,
+    );
+  return { id, statement };
+}
+
+/** Insert or replace a route group row. `id` is optional; when omitted one is generated. Returns the resolved id. */
+export async function upsertRouteGroup(
+  db: D1Database,
+  rg: Omit<RouteGroup, 'id'> & { id?: string },
+): Promise<string> {
+  const { id, statement } = await buildRouteGroupUpsert(db, rg);
+  await statement.run();
   return id;
 }
 
@@ -684,25 +816,25 @@ export function isValidPricing(
 
 /**
  * Atomically upsert a route group and all four of its route_pricing rows in a
- * single transaction. If any statement throws, the whole transaction rolls
- * back so the group and its pricing stay consistent.
+ * single `db.batch()`. If any statement fails, D1 rolls the whole batch back
+ * so the group and its pricing stay consistent.
  */
-export function upsertRouteGroupWithPricing(
-  db: Database.Database,
+export async function upsertRouteGroupWithPricing(
+  db: D1Database,
   rg: Omit<RouteGroup, 'id'> & { id?: string },
-): void {
-  const run = db.transaction(() => {
-    const id = upsertRouteGroup(db, rg);
-    const upsertPrice = db.prepare(
-      `INSERT OR REPLACE INTO route_pricing (route_group_id, vehicle_category, one_way, round_trip)
-       VALUES (?, ?, ?, ?)`,
-    );
-    for (const category of VEHICLE_CATEGORIES) {
+): Promise<void> {
+  const { id, statement } = await buildRouteGroupUpsert(db, rg);
+  const upsertPrice = db.prepare(
+    `INSERT OR REPLACE INTO route_pricing (route_group_id, vehicle_category, one_way, round_trip)
+     VALUES (?, ?, ?, ?)`,
+  );
+  await db.batch([
+    statement,
+    ...VEHICLE_CATEGORIES.map((category) => {
       const entry = rg.pricing[category];
-      upsertPrice.run(id, category, entry.oneWay, entry.roundTrip);
-    }
-  });
-  run();
+      return upsertPrice.bind(id, category, entry.oneWay, entry.roundTrip);
+    }),
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -710,14 +842,15 @@ export function upsertRouteGroupWithPricing(
 // ---------------------------------------------------------------------------
 
 /** Set a single pricing config key/value pair. */
-export function setPricingConfig(
-  db: Database.Database,
+export async function setPricingConfig(
+  db: D1Database,
   key: string,
   value: string,
-): void {
-  db.prepare(
-    'INSERT OR REPLACE INTO pricing_config (key, value) VALUES (?, ?)',
-  ).run(key, value);
+): Promise<void> {
+  await db
+    .prepare('INSERT OR REPLACE INTO pricing_config (key, value) VALUES (?, ?)')
+    .bind(key, value)
+    .run();
 }
 
 // ---------------------------------------------------------------------------
@@ -725,15 +858,21 @@ export function setPricingConfig(
 // ---------------------------------------------------------------------------
 
 /**
- * Atomically reorder rows of a table by `display_order`. `orderedIds` must be
- * a permutation of the table's existing ids (no duplicates, no unknowns).
- * Runs inside a single transaction; any failure rolls back the whole update.
+ * Reorder rows of a table by `display_order`. `orderedIds` must be a
+ * permutation of the table's existing ids (no duplicates, no unknowns).
+ *
+ * Ids are verified to exist *before* any write so an unknown id rejects the
+ * whole reorder, preserving the rollback the old `db.transaction()` gave us: a
+ * no-op `UPDATE` reports zero changes without failing its batch statement, so
+ * detecting a missing row from the batch results alone would still commit
+ * every earlier row. The `meta.changes` assertion afterwards is the
+ * authoritative check, covering a row deleted between the two round trips.
  */
-export function reorderEntities(
-  db: Database.Database,
-  table: 'cars' | 'faqs' | 'route_data' | 'locations' | 'route_groups',
+export async function reorderEntities(
+  db: D1Database,
+  table: DisplayOrderTable,
   orderedIds: string[],
-): void {
+): Promise<void> {
   if (orderedIds.length === 0) return;
 
   const unique = new Set(orderedIds);
@@ -741,18 +880,36 @@ export function reorderEntities(
     throw new Error('reorderEntities: duplicate ids in orderedIds');
   }
 
-  const run = db.transaction(() => {
-    const update = db.prepare(
-      `UPDATE ${table} SET display_order = ? WHERE id = ?`,
-    );
-    for (let i = 0; i < orderedIds.length; i++) {
-      const result = update.run(i, orderedIds[i]);
-      if (result.changes === 0) {
-        throw new Error(
-          `reorderEntities: id "${orderedIds[i]}" does not exist in ${table}`,
-        );
-      }
+  const found = new Set<string>();
+  for (const chunk of chunked(orderedIds)) {
+    const { results } = await db
+      .prepare(
+        `SELECT id FROM ${table} WHERE id IN (${chunk.map(() => '?').join(', ')})`,
+      )
+      .bind(...chunk)
+      .all<{ id: string }>();
+    for (const row of results) {
+      found.add(row.id);
     }
-  });
-  run();
+  }
+  const missing = orderedIds.find((id) => !found.has(id));
+  if (missing !== undefined) {
+    throw new Error(
+      `reorderEntities: id "${missing}" does not exist in ${table}`,
+    );
+  }
+
+  const update = db.prepare(
+    `UPDATE ${table} SET display_order = ? WHERE id = ?`,
+  );
+  const results = await db.batch(
+    orderedIds.map((id, index) => update.bind(index, id)),
+  );
+  for (const [index, result] of results.entries()) {
+    if (result.meta.changes === 0) {
+      throw new Error(
+        `reorderEntities: id "${orderedIds[index]}" does not exist in ${table}`,
+      );
+    }
+  }
 }

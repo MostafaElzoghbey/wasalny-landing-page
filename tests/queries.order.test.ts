@@ -1,9 +1,5 @@
-process.env.NODE_ENV = 'test';
-
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
-import type Database from 'better-sqlite3';
-import { getDb } from '../server/db/connection.js';
-import { migrate } from '../server/db/migrate.js';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import { createHarness, type D1Harness } from './helpers/d1.js';
 import {
   createCar,
   getPublicData,
@@ -11,53 +7,54 @@ import {
 } from '../server/db/queries.js';
 
 describe('queries ordering', () => {
-  let db: Database.Database;
+  let h: D1Harness;
 
-  beforeAll(() => {
-    process.env.NODE_ENV = 'test';
-    db = getDb();
-    migrate(db);
+  beforeAll(async () => {
+    h = await createHarness();
+    await h.applyMigrations();
   });
 
-  beforeEach(() => {
-    for (const table of [
-      'cars',
-      'faqs',
-      'route_data',
-      'content',
-      'pricing_config',
-      'locations',
-      'route_groups',
-      'route_pricing',
-      'vehicle_pricing',
-    ]) {
-      db.prepare(`DELETE FROM ${table}`).run();
-    }
+  afterAll(async () => {
+    await h.dispose();
   });
 
-  function insertCar(id: string, displayOrder: number) {
-    db.prepare(
-      `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
+  beforeEach(async () => {
+    await h.resetTables();
+  });
+
+  async function insertCar(id: string, displayOrder: number) {
+    await h.db
+      .prepare(
+        `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).run(
-      id,
-      `سيارة ${id}`,
-      'sedan',
-      'سيدان',
-      'desc',
-      null,
-      '[]',
-      '[]',
-      '[]',
-      displayOrder,
-    );
+      )
+      .bind(
+        id,
+        `سيارة ${id}`,
+        'sedan',
+        'سيدان',
+        'desc',
+        null,
+        '[]',
+        '[]',
+        '[]',
+        displayOrder,
+      )
+      .run();
   }
 
-  it('createCar auto-assigns displayOrder = max + 1', () => {
-    insertCar('car-1', 1);
-    insertCar('car-2', 2);
+  async function orderedCars(): Promise<Array<{ id: string; display_order: number }>> {
+    const { results } = await h.db
+      .prepare('SELECT id, display_order FROM cars ORDER BY display_order ASC')
+      .all<{ id: string; display_order: number }>();
+    return results;
+  }
 
-    const created = createCar(db, {
+  it('createCar auto-assigns displayOrder = max + 1', async () => {
+    await insertCar('car-1', 1);
+    await insertCar('car-2', 2);
+
+    const created = await createCar(h.db, {
       nameAr: 'سيدان',
       category: 'sedan',
       categoryAr: 'سيدان',
@@ -69,11 +66,11 @@ describe('queries ordering', () => {
     expect(created.displayOrder).toBe(3);
   });
 
-  it('createCar preserves explicit displayOrder 0', () => {
-    insertCar('car-1', 1);
-    insertCar('car-2', 2);
+  it('createCar preserves explicit displayOrder 0', async () => {
+    await insertCar('car-1', 1);
+    await insertCar('car-2', 2);
 
-    const created = createCar(db, {
+    const created = await createCar(h.db, {
       nameAr: 'sidan',
       category: 'sedan',
       categoryAr: 'sidan',
@@ -86,57 +83,51 @@ describe('queries ordering', () => {
     expect(created.displayOrder).toBe(0);
   });
 
-  it('reorderEntities atomically rewrites display_order in the given order', () => {
-    insertCar('car-a', 1);
-    insertCar('car-b', 2);
-    insertCar('car-c', 3);
+  it('reorderEntities atomically rewrites display_order in the given order', async () => {
+    await insertCar('car-a', 1);
+    await insertCar('car-b', 2);
+    await insertCar('car-c', 3);
 
-    reorderEntities(db, 'cars', ['car-c', 'car-a', 'car-b']);
+    await reorderEntities(h.db, 'cars', ['car-c', 'car-a', 'car-b']);
 
-    const rows = db
-      .prepare('SELECT id, display_order FROM cars ORDER BY display_order ASC')
-      .all() as Array<{ id: string; display_order: number }>;
+    const rows = await orderedCars();
     expect(rows.map((r) => r.id)).toEqual(['car-c', 'car-a', 'car-b']);
     expect(rows.map((r) => r.display_order)).toEqual([0, 1, 2]);
   });
 
-  it('getPublicData returns cars sorted by display_order then id', () => {
-    insertCar('car-z', 3);
-    insertCar('car-a', 1);
-    insertCar('car-m', 2);
+  it('getPublicData returns cars sorted by display_order then id', async () => {
+    await insertCar('car-z', 3);
+    await insertCar('car-a', 1);
+    await insertCar('car-m', 2);
 
-    const data = getPublicData(db);
+    const data = await getPublicData(h.db);
     expect(data.cars.map((c) => c.id)).toEqual(['car-a', 'car-m', 'car-z']);
   });
 
-  it('reorderEntities throws and rolls back on an unknown id', () => {
-    insertCar('car-a', 1);
-    insertCar('car-b', 2);
+  it('reorderEntities throws and rolls back on an unknown id', async () => {
+    await insertCar('car-a', 1);
+    await insertCar('car-b', 2);
 
-    expect(() => reorderEntities(db, 'cars', ['car-a', 'nope'])).toThrow(
+    await expect(reorderEntities(h.db, 'cars', ['car-a', 'nope'])).rejects.toThrow(
       /does not exist/,
     );
 
     // The transaction must have rolled back — display_order unchanged.
-    const rows = db
-      .prepare('SELECT id, display_order FROM cars ORDER BY display_order ASC')
-      .all() as Array<{ id: string; display_order: number }>;
+    const rows = await orderedCars();
     expect(rows.map((r) => r.id)).toEqual(['car-a', 'car-b']);
     expect(rows.map((r) => r.display_order)).toEqual([1, 2]);
   });
 
-  it('reorderEntities throws and rolls back on duplicate ids', () => {
-    insertCar('car-a', 1);
-    insertCar('car-b', 2);
+  it('reorderEntities throws and rolls back on duplicate ids', async () => {
+    await insertCar('car-a', 1);
+    await insertCar('car-b', 2);
 
-    expect(() => reorderEntities(db, 'cars', ['car-a', 'car-a', 'car-b'])).toThrow(
-      /duplicate/,
-    );
+    await expect(
+      reorderEntities(h.db, 'cars', ['car-a', 'car-a', 'car-b']),
+    ).rejects.toThrow(/duplicate/);
 
     // The transaction must have rolled back — display_order unchanged.
-    const rows = db
-      .prepare('SELECT id, display_order FROM cars ORDER BY display_order ASC')
-      .all() as Array<{ id: string; display_order: number }>;
+    const rows = await orderedCars();
     expect(rows.map((r) => r.id)).toEqual(['car-a', 'car-b']);
     expect(rows.map((r) => r.display_order)).toEqual([1, 2]);
   });
