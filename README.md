@@ -2,7 +2,7 @@
 
 A passenger transport landing page for Wasalny (وصلني), a service based in Damietta, Egypt. The site is Arabic-first and right-to-left (RTL). It is built as a Vite + React 19 frontend backed by a Hono/Node + SQLite API, all in this single repository.
 
-The public site is a content-driven marketing page (cars, routes, pricing, FAQs, locations). Content is managed through an admin dashboard and persisted in SQLite, which is the live source of truth. The static `src/data/*` modules are only used as a first-paint fallback before the live data loads.
+The public site is a content-driven marketing page (cars, routes, pricing, FAQs, locations). Content is managed through an admin dashboard and persisted in SQLite, which is the live source of truth. The static `src/data/*` modules are only used as a first-paint fallback before the live data loads from the SQLite.
 
 ## Prerequisites
 
