@@ -1,18 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { mockupImages } from '@/data/cars';
+import { useData } from '@/context/DataProvider';
+import { mockupImages as fallbackMockupImages } from '@/data/cars';
 import gsap, { useGSAP } from '@/lib/gsap';
-
-// High-density content: Use ALL images in both rows
-// Row 2 is reversed for variety
-const row1Items = [...mockupImages];
-const row2Items = [...mockupImages].reverse();
-
-// Triple buffer: Original | Duplicate | Triplicate
-// Moving from 0% to -33.33% will be perfectly seamless
-const row1Loop = [...row1Items, ...row1Items, ...row1Items];
-const row2Loop = [...row2Items, ...row2Items, ...row2Items];
 
 interface LightboxProps {
   images: string[];
@@ -80,15 +71,32 @@ function Lightbox({ images, currentIndex, onClose, onPrev, onNext }: LightboxPro
 export function AppShowcaseSection() {
   const [lightbox, setLightbox] = useState<{ index: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { mockupImages: liveImages } = useData();
+  // Use live marquee images when available; fall back to the static bundle on
+  // first paint / API failure so the default 17 images render byte-identical.
+  const images = useMemo(
+    () => (liveImages.length > 0 ? liveImages : fallbackMockupImages),
+    [liveImages],
+  );
+
+  // High-density content: Use ALL images in both rows
+  // Row 2 is reversed for variety
+  const row1Items = useMemo(() => [...images], [images]);
+  const row2Items = useMemo(() => [...images].reverse(), [images]);
+
+  // Triple buffer: Original | Duplicate | Triplicate
+  // Moving from 0% to -33.33% will be perfectly seamless
+  const row1Loop = useMemo(() => [...row1Items, ...row1Items, ...row1Items], [row1Items]);
+  const row2Loop = useMemo(() => [...row2Items, ...row2Items, ...row2Items], [row2Items]);
 
   const openLightbox = useCallback((src: string) => {
-    const idx = mockupImages.indexOf(src);
+    const idx = images.indexOf(src);
     if (idx !== -1) setLightbox({ index: idx });
-  }, []);
+  }, [images]);
 
   const closeLightbox = useCallback(() => setLightbox(null), []);
-  const nextImage = useCallback(() => setLightbox(p => p ? { index: (p.index + 1) % mockupImages.length } : null), []);
-  const prevImage = useCallback(() => setLightbox(p => p ? { index: (p.index - 1 + mockupImages.length) % mockupImages.length } : null), []);
+  const nextImage = useCallback(() => setLightbox(p => p ? { index: (p.index + 1) % images.length } : null), [images]);
+  const prevImage = useCallback(() => setLightbox(p => p ? { index: (p.index - 1 + images.length) % images.length } : null), [images]);
 
   useGSAP(() => {
     if (!containerRef.current) return;
@@ -153,7 +161,7 @@ export function AppShowcaseSection() {
 
       {lightbox && (
         <Lightbox
-          images={mockupImages}
+          images={images}
           currentIndex={lightbox.index}
           onClose={closeLightbox}
           onPrev={prevImage}

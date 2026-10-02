@@ -10,6 +10,7 @@ import { LocationAdmin } from './LocationAdmin';
 import { RouteGroupAdmin } from './RouteGroupAdmin';
 import { PricingConfigAdmin } from './PricingConfigAdmin';
 import { ContentAdmin } from './ContentAdmin';
+import { IdentityAdmin } from './IdentityAdmin';
 
 type SectionKey =
   | 'cars'
@@ -18,7 +19,8 @@ type SectionKey =
   | 'routeData'
   | 'pricingConfig'
   | 'faqs'
-  | 'content';
+  | 'content'
+  | 'identity';
 
 interface NavItem {
   key: SectionKey;
@@ -28,6 +30,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'cars', label: 'السيارات' },
+  { key: 'identity', label: 'هوية وصلني' },
   { key: 'locations', label: 'المواقع' },
   { key: 'routeGroups', label: 'مجموعات المسارات' },
   { key: 'routeData', label: 'بيانات المسارات' },
@@ -193,6 +196,7 @@ export function AdminApp() {
         {active === 'pricingConfig' && <PricingConfigAdmin />}
         {active === 'faqs' && <FaqAdmin />}
         {active === 'content' && <ContentAdmin />}
+        {active === 'identity' && <IdentityAdmin />}
       </main>
     </div>
   );
