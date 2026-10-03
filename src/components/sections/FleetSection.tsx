@@ -113,14 +113,13 @@ const Lightbox = ({ selectedImage, images, imageAlts, currentIndex, onClose, onN
         <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
       </button>
 
-      <div className="flex-1 flex items-center justify-center p-2 md:p-4 pb-0 max-w-7xl w-full" onClick={(e) => e.stopPropagation()}>
-        <OptimizedImage
+      <div className="flex-1 flex items-center justify-center min-h-0 p-2 md:p-4 pb-0 max-w-7xl w-full" onClick={(e) => e.stopPropagation()}>
+        <img
           ref={imageRef}
           src={selectedImage}
           alt={imageAlts?.[currentIndex] || "Full view"}
-          className="max-w-[95vw] max-h-[80vh] md:max-h-[85vh] object-contain rounded-lg shadow-2xl"
-          imgClassName="object-contain"
-          priority
+          draggable={false}
+          className="max-w-[95vw] max-h-[68vh] md:max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
         />
       </div>
 

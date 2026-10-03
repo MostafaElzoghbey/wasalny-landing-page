@@ -128,6 +128,29 @@ describe('FleetSection empty states', () => {
     expect(container.textContent).not.toMatch(/صور •/);
   });
 
+  it('lightbox fits the whole photo: main image is object-contain with viewport caps, never clipped', () => {
+    mockedUseData.mockReturnValue({ cars: [sedanCar], carCategories } as never);
+    const { container } = render(<FleetSection />);
+    fireEvent.click(screen.getAllByText('1/2')[0]);
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    const imgs = Array.from(dialog!.querySelectorAll('img'));
+    const main = imgs.find((img) => img.className.includes('object-contain'));
+    expect(main).toBeDefined();
+    expect(main!.className).toMatch(/max-h-\[\d+vh\]/);
+    expect(main!.className).not.toMatch(/object-cover/);
+    let node = main!.parentElement;
+    let clipped = false;
+    while (node && node !== dialog) {
+      if (node.classList.contains('overflow-hidden')) {
+        clipped = true;
+        break;
+      }
+      node = node.parentElement;
+    }
+    expect(clipped).toBe(false);
+  });
+
   it('formatCapacity pluralizes Arabic correctly', () => {
     expect(formatCapacity(1)).toBe('شخص واحد');
     expect(formatCapacity(2)).toBe('شخصان');
