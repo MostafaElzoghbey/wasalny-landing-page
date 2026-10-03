@@ -1,73 +1,138 @@
-# React + TypeScript + Vite
+# Wasalny (وصلني) Landing Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A passenger transport landing page for Wasalny (وصلني), a service based in Damietta, Egypt. The site is Arabic-first and right-to-left (RTL). It is built as a Vite + React 19 frontend backed by a Hono/Node + SQLite API, all in this single repository.
 
-Currently, two official plugins are available:
+The public site is a content-driven marketing page (cars, routes, pricing, FAQs, locations). Content is managed through an admin dashboard and persisted in SQLite, which is the live source of truth. The static `src/data/*` modules are only used as a first-paint fallback before the live data loads from the SQLite.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Prerequisites
 
-## React Compiler
+- **Node.js** with a working native build toolchain (the project uses `better-sqlite3`, which compiles a native addon on install).
+- **npm** (ships with Node).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Install
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This installs both the frontend dependencies and the server dependencies, and builds the native `better-sqlite3` addon.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Development
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Run both the Vite dev server and the Hono API together:
+
+```bash
+npm run dev:all
 ```
+
+- Vite serves the frontend on its own port (printed in the terminal, typically `http://localhost:5173`).
+- The Hono API runs on `:8787`.
+- Vite proxies `/api` requests to `http://localhost:8787`, so the frontend talks to the API as if it were same-origin.
+
+Open the Vite URL in your browser. The app initializes from the static `src/data/*` modules for first paint, then fetches `/api/data` and `/api/pricing` and overwrites them with the live database content.
+
+You can also run the two processes separately:
+
+```bash
+npm run dev      # Vite dev server only
+npm run server   # Hono API on :8787 (tsx watch)
+```
+
+## Production build
+
+```bash
+npm run build
+```
+
+This runs `npm run pwa:assets`, type-checks with `tsc -b`, and builds the frontend into `dist/`.
+
+## Run in production
+
+```bash
+npm run start
+```
+
+This sets `NODE_ENV=production` and runs `tsx server/index.ts`. On boot the server:
+
+1. Runs database migrations automatically and idempotently (creating `data/app.db` if needed).
+2. Serves the JSON API under `/api/*`.
+3. Serves the built frontend from `dist/` for all non-API routes.
+
+The server listens on the port given by the `PORT` environment variable, or `8787` by default. It requires a Node host with write access to the `data/` directory (where `data/app.db` lives).
+
+## Database
+
+- The database is a SQLite file at `data/app.db`. It is gitignored and created automatically on first boot.
+- Migrations run automatically at server start and are safe to run repeatedly.
+- Seed the database once (or to reset content) with:
+
+  ```bash
+  npm run db:seed
+  ```
+
+  This populates the DB from the static `src/data/*` modules. It is idempotent: re-running it does not create duplicate rows.
+
+## Admin
+
+Create an admin account from the command line:
+
+```bash
+npm run admin:create <email> <password>
+```
+
+This creates the admin or updates the password if the email already exists.
+
+Then open `/admin` in the browser, log in, and manage content through the dashboard UI:
+
+- Cars — grouped by category (5 collapsible sections, `CarCategoryGroup.tsx`), ordered by `displayOrder`, drag handle or up/down via `ReorderControls.tsx`, chips for features (`ChipInput.tsx`), image dropzone single/multiple (`ImageDropzone.tsx`), automatic id via `generateId('car')` with server fallback
+- FAQs — ordered, `POST /reorder { ids }`
+- Route Data — ordered, `POST /reorder { ids }`
+- Locations — ordered, `POST /reorder { ids }`
+- Route Groups — ordered, `POST /reorder { ids }`
+- Pricing Config — singleton
+- Content — singleton
+
+Changes persist to SQLite and appear immediately on the public site. Admin authentication uses a cookie session (no JWT). The dashboard talks to `/api/admin/*`.
+
+Admin Pattern Wave 8: ids are automatic (`src/utils/id.ts`, `server/db/queries.ts:327`), chips commit on Enter / `،` / paste (`src/components/ui/ChipInput.tsx:103-121`), images via `ImageDropzone` (`src/components/ui/ImageDropzone.tsx:21`), ordering via `display_order` (`server/db/migrations/0002_add_display_order.sql:12`) and `POST /reorder { ids }` (`server/db/queries.ts:714`, `src/data/api.ts:255`), cars grouped per category with `CarCategoryGroup.tsx:39` and `CarAdmin.tsx:61`.
+
+## API endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/data` | Public content (cars, FAQs, route data, locations, etc.) |
+| `GET` | `/api/pricing` | Public pricing configuration |
+| `POST` | `/api/admin/login` | Admin login (sets session cookie) |
+| `POST` | `/api/admin/logout` | Admin logout |
+| `GET` | `/api/admin/me` | Current admin session info |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/cars` | Admin CRUD for cars |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/faqs` | Admin CRUD for FAQs |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/route-data` | Admin CRUD for route data |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/content` | Admin CRUD for content |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/locations` | Admin CRUD for locations |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/route-groups` | Admin CRUD for route groups |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/route-pricing` | Admin CRUD for route pricing |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/vehicle-pricing` | Admin CRUD for vehicle pricing |
+| `GET` / `POST` / `PUT` / `DELETE` | `/api/admin/pricing-config` | Admin CRUD for pricing config |
+| `POST` | `/api/admin/cars/reorder` | Reorder cars (`{ ids }` → `display_order = index`) |
+| `POST` | `/api/admin/faqs/reorder` | Reorder FAQs |
+| `POST` | `/api/admin/route-data/reorder` | Reorder route data |
+| `POST` | `/api/admin/locations/reorder` | Reorder locations |
+| `POST` | `/api/admin/route-groups/reorder` | Reorder route groups |
+
+## Environment variables
+
+  - `VITE_BASE_URL` / `BASE_URL`: API base URL for the frontend. **Defaults to same-origin (relative `/api`), so it works with no configuration in development (Vite proxy) and in production (single Hono server).** Set it only when the API is hosted on a different origin than the frontend (e.g. a separate Node host).
+- `PORT`: port for the production server (defaults to `8787`).
+- `NODE_ENV`: set to `production` by `npm run start`.
+
+## Tests
+
+```bash
+npm test          # Vitest unit/integration tests
+npm run test:e2e  # Playwright end-to-end tests
+```
+
+## Source of truth
+
+The live source of truth for all site content is the SQLite database. The static `src/data/*` TypeScript modules exist only as an initial fallback so the page can render on first paint before the API responds. On mount, `useData()` from `DataProvider` (`src/context/DataProvider.tsx`) fetches `/api/data` and `/api/pricing` and overwrites the static values with the live database content.

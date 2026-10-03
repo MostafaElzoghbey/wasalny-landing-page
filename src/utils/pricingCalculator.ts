@@ -1,11 +1,13 @@
 // src/utils/pricingCalculator.ts
-import {
-  type VehicleCategory,
-  locations,
-  findRouteGroup,
-  getVehiclePricing,
-  pricingConfig,
-} from '@/data/pricing';
+import type {
+  VehicleCategory,
+  RouteType,
+  Location,
+  RouteGroup,
+  VehiclePricing,
+} from '@/types/pricing';
+import type { PricingData } from '@/data/api';
+import { CURRENCY_AR } from '@/data/pricing';
 
 export interface TripDetails {
   fromLocation: string;
@@ -35,10 +37,107 @@ export interface PriceCalculationResult {
   warnings: string[];
 }
 
+// ============================================
+// DATA-DRIVEN HELPERS (accept pricing arrays as params)
+// ============================================
+
+/**
+ * Find matching route group for from/to locations
+ */
+export function findRouteGroup(
+  routeGroups: RouteGroup[],
+  fromId: string,
+  toId: string,
+): RouteGroup | undefined {
+  return routeGroups.find((group) => {
+    const forwardMatch =
+      group.fromLocations.includes(fromId) && group.toLocations.includes(toId);
+    const reverseMatch =
+      group.bidirectional &&
+      group.fromLocations.includes(toId) &&
+      group.toLocations.includes(fromId);
+    return forwardMatch || reverseMatch;
+  });
+}
+
+/**
+ * Get vehicle pricing by category
+ */
+export function getVehiclePricing(
+  vehiclePricing: VehiclePricing[],
+  category: VehicleCategory,
+): VehiclePricing | undefined {
+  return vehiclePricing.find((vp) => vp.category === category);
+}
+
+/**
+ * Get available "from" locations based on route type
+ * Derived from routeGroups so newly created groups appear immediately.
+ */
+export function getFromLocations(
+  locations: Location[],
+  routeGroups: RouteGroup[],
+  routeType: RouteType,
+): Location[] {
+  const fromIds = new Set<string>();
+  for (const g of routeGroups) {
+    if (g.type !== routeType) continue;
+    for (const id of g.fromLocations) fromIds.add(id);
+    if (g.bidirectional) {
+      for (const id of g.toLocations) fromIds.add(id);
+    }
+  }
+  if (fromIds.size === 0) {
+    if (routeType === 'internal') {
+      return locations.filter((loc) =>
+        ['damietta', 'new-damietta', 'ras-elbar', 'faraskour', 'ezbet-elborg'].includes(loc.id),
+      );
+    }
+    return locations;
+  }
+  return locations.filter((loc) => fromIds.has(loc.id));
+}
+
+/**
+ * Get available "to" locations based on route type and selected "from"
+ */
+export function getToLocations(
+  locations: Location[],
+  routeGroups: RouteGroup[],
+  routeType: RouteType,
+  fromId: string,
+): Location[] {
+  const possibleToIds = new Set<string>();
+  routeGroups
+    .filter((group) => group.type === routeType)
+    .forEach((group) => {
+      if (group.fromLocations.includes(fromId)) {
+        group.toLocations.forEach((id) => possibleToIds.add(id));
+      }
+      if (group.bidirectional && group.toLocations.includes(fromId)) {
+        group.fromLocations.forEach((id) => possibleToIds.add(id));
+      }
+    });
+  return locations.filter((loc) => possibleToIds.has(loc.id));
+}
+
+/**
+ * Detect route type based on selected locations
+ */
+export function detectRouteType(
+  routeGroups: RouteGroup[],
+  fromId: string,
+  toId: string,
+): RouteType | null {
+  const group = findRouteGroup(routeGroups, fromId, toId);
+  return group ? group.type : null;
+}
+
 /**
  * Main pricing calculation function - Simplified for fixed pricing
  */
-export function calculatePrice(tripDetails: TripDetails): PriceCalculationResult {
+export function calculatePrice(tripDetails: TripDetails, pricing: PricingData): PriceCalculationResult {
+  const { locations, routeGroups, vehiclePricing } = pricing;
   const warnings: string[] = [];
   const {
     fromLocation,
@@ -51,13 +150,13 @@ export function calculatePrice(tripDetails: TripDetails): PriceCalculationResult
   } = tripDetails;
 
   // Find matching route group
-  const routeGroup = findRouteGroup(fromLocation, toLocation);
+  const routeGroup = findRouteGroup(routeGroups, fromLocation, toLocation);
   if (!routeGroup) {
     throw new Error('لا يوجد مسار متاح بين هذه المواقع');
   }
 
   // Get vehicle pricing info
-  const vehiclePricingInfo = getVehiclePricing(vehicleCategory);
+  const vehiclePricingInfo = getVehiclePricing(vehiclePricing, vehicleCategory);
   if (!vehiclePricingInfo) {
     throw new Error('نوع السيارة غير متوفر');
   }
@@ -65,7 +164,7 @@ export function calculatePrice(tripDetails: TripDetails): PriceCalculationResult
   // Validate passenger count
   if (passengerCount > vehiclePricingInfo.maxPassengers) {
     warnings.push(
-      `عدد الركاب يتجاوز السعة القصوى للسيارة (${vehiclePricingInfo.maxPassengers})`
+      `عدد الركاب يتجاوز السعة القصوى للسيارة (${vehiclePricingInfo.maxPassengers})`,
     );
   }
 
@@ -91,8 +190,8 @@ export function calculatePrice(tripDetails: TripDetails): PriceCalculationResult
   };
 
   // Get actual location names for the specific route
-  const fromLocationObj = locations.find(loc => loc.id === fromLocation);
-  const toLocationObj = locations.find(loc => loc.id === toLocation);
+  const fromLocationObj = locations.find((loc) => loc.id === fromLocation);
+  const toLocationObj = locations.find((loc) => loc.id === toLocation);
   const actualRouteNameAr = `${fromLocationObj?.nameAr || fromLocation} - ${toLocationObj?.nameAr || toLocation}`;
 
   const details = {
@@ -111,22 +210,22 @@ export function calculatePrice(tripDetails: TripDetails): PriceCalculationResult
 }
 
 export function formatPrice(price: number): string {
-  return `${Math.round(price)} ${pricingConfig.currencyAr}`;
+  return `${Math.round(price)} ${CURRENCY_AR}`;
 }
 
 export function generateWhatsAppMessage(
   result: PriceCalculationResult,
-  customerName?: string
+  customerName?: string,
 ): string {
   const { details } = result;
-  
+
   let message = 'السلام عليكم\n\n';
   message += 'أريد حجز رحلة مع وصلني\n\n';
-  
+
   if (customerName) {
     message += `الاسم: ${customerName}\n`;
   }
-  
+
   message += `المسار: ${details.routeNameAr}\n`;
   message += `نوع السيارة: ${details.vehicleCategoryAr}\n`;
   message += `عدد الركاب: ${details.passengerCount}\n`;
@@ -142,9 +241,6 @@ export function generateWhatsAppMessage(
   })}\n`;
 
   message += '\nيرجى تأكيد الحجز';
-  
+
   return encodeURIComponent(message);
 }
-
-// Re-export utility functions from pricing data
-export { findRouteGroup, getFromLocations, getToLocations, detectRouteType } from '@/data/pricing';

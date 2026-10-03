@@ -1,11 +1,12 @@
 import type { Car } from '@/types';
-import { faqs } from '@/data/faqs';
+import { useData } from '@/context/DataProvider';
 
 interface JsonLdProps {
     cars: Car[];
 }
 
 export function JsonLd({ cars }: JsonLdProps) {
+    const { faqs } = useData();
     const structuredData = {
         "@context": "https://schema.org",
         "@graph": [

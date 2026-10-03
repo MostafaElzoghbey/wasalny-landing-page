@@ -2,10 +2,11 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Users, Star, ChevronLeft, ChevronRight, X, Maximize2, ArrowRight, Gauge, Briefcase, Car, Truck, Bus, UsersRound, Heart, Play, Pause } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
-import { cars, carCategories } from '@/data/cars';
+import { useData } from '@/context/DataProvider';
 import { cn } from '@/lib/utils';
 import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
+import { CATEGORY_CAPACITY, formatCapacity } from '@/utils/fleetCapacity';
 
 type CarCategory = 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
 
@@ -112,14 +113,13 @@ const Lightbox = ({ selectedImage, images, imageAlts, currentIndex, onClose, onN
         <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
       </button>
 
-      <div className="flex-1 flex items-center justify-center p-2 md:p-4 pb-0 max-w-7xl w-full" onClick={(e) => e.stopPropagation()}>
-        <OptimizedImage
+      <div className="flex-1 flex items-center justify-center min-h-0 p-2 md:p-4 pb-0 max-w-7xl w-full" onClick={(e) => e.stopPropagation()}>
+        <img
           ref={imageRef}
           src={selectedImage}
           alt={imageAlts?.[currentIndex] || "Full view"}
-          className="max-w-[95vw] max-h-[80vh] md:max-h-[85vh] object-contain rounded-lg shadow-2xl"
-          imgClassName="object-contain"
-          priority
+          draggable={false}
+          className="max-w-[95vw] max-h-[68vh] md:max-h-[70vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
         />
       </div>
 
@@ -232,6 +232,7 @@ export function CarouselCard(props: CarouselCardProps) {
 };
 
 export function FleetSection() {
+  const { cars, carCategories } = useData();
   const [activeCategory, setActiveCategory] = useState<CarCategory>('sedan');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -249,18 +250,35 @@ export function FleetSection() {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const activeCar = useMemo(() => {
-    return cars.find(car => car.category === activeCategory) || cars[0];
-  }, [activeCategory]);
+  const categoryCars = useMemo(() => {
+    const group = cars
+      .filter(car => car.category === activeCategory)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+    return group.length > 0 ? group : cars.slice(0, 1);
+  }, [cars, activeCategory]);
 
-  const images = activeCar.images;
-  const imageAlts = activeCar.imageAlts;
+  const images = useMemo(() => categoryCars.flatMap(car => car.images), [categoryCars]);
+  const imageAlts = useMemo(
+    () => categoryCars.flatMap(car => car.imageAlts ?? car.images.map(() => '')),
+    [categoryCars],
+  );
+  const features = useMemo(
+    () => [...new Set(categoryCars.flatMap(car => car.features))],
+    [categoryCars],
+  );
+  const activeCategoryName =
+    carCategories.find(cat => cat.id === activeCategory)?.nameAr
+    ?? categoryCars[0]?.categoryAr
+    ?? '';
+  const activeDescription = categoryCars[0]?.description ?? '';
+  const activeCategoryAr = categoryCars[0]?.categoryAr ?? '';
   const currentColors = categoryColors[activeCategory];
 
 
 
   // Preload images
   useEffect(() => {
+    if (images.length === 0) return;
     const preloadImages = () => {
       for (let i = 1; i <= 2; i++) {
         const nextIdx = (currentImageIndex + i) % images.length;
@@ -283,11 +301,11 @@ export function FleetSection() {
   }, [isHovering, lightboxOpen, isPaused, images.length]);
 
   const nextImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    setCurrentImageIndex((prev) => (images.length === 0 ? prev : (prev + 1) % images.length));
   }, [images.length]);
 
   const prevImage = useCallback(() => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentImageIndex((prev) => (images.length === 0 ? prev : (prev - 1 + images.length) % images.length));
   }, [images.length]);
 
   useEffect(() => {
@@ -456,6 +474,15 @@ export function FleetSection() {
           </div>
         </div>
 
+        {!categoryCars.length ? (
+          <div data-testid="fleet-empty" className="mx-auto max-w-xl p-8 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm text-center flex flex-col items-center gap-4">
+            <span className="w-14 h-14 rounded-full bg-primary-500/10 flex items-center justify-center">
+              <Car className="w-7 h-7 text-primary-500" />
+            </span>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">لا توجد سيارات متاحة حالياً</p>
+            <p className="text-gray-600 dark:text-gray-400">يرجى المحاولة لاحقاً أو التواصل معنا للحجز والاستفسار</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center min-h-[500px]">
           <div ref={infoRef} className="lg:col-span-4 flex flex-col gap-8 order-2 lg:order-1">
             <div className="info-anim space-y-2">
@@ -463,20 +490,20 @@ export function FleetSection() {
                 <Star className="w-4 h-4 fill-current" />
                 <span>أداء متميز وراحة فائقة</span>
               </div>
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight">{activeCar.nameAr}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">{activeCar.description}</p>
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white leading-tight">{activeCategoryName}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-lg">{activeDescription}</p>
             </div>
 
             <div className="info-anim grid grid-cols-2 gap-4">
               <div ref={card1Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Users ref={icon1Ref} className="w-8 h-8 text-primary-500 mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">سعة الركاب</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.passengers} أشخاص</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCapacity(CATEGORY_CAPACITY[activeCategory])}</p>
               </div>
               <div ref={card2Ref} className="p-4 rounded-2xl bg-[hsl(var(--card))] border border-[hsl(var(--border))] shadow-sm transition-shadow group cursor-pointer">
                 <Briefcase ref={icon2Ref} className="w-8 h-8 text-accent-500 mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">الفئة</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCar.categoryAr}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{activeCategoryAr}</p>
               </div>
             </div>
 
@@ -486,7 +513,7 @@ export function FleetSection() {
                 المميزات الرئيسية
               </h3>
               <ul className="grid grid-cols-1 gap-3">
-                {activeCar.features.map((feature, i) => (
+                {features.map((feature, i) => (
                   <li key={i} className="flex items-center gap-3 text-[hsl(var(--foreground))] bg-[hsl(var(--card))] p-3 rounded-xl border border-[hsl(var(--border))] shadow-sm transition-all duration-200">
                     <div className="w-2 h-2 rounded-full bg-primary-500" />
                     {feature}
@@ -513,7 +540,16 @@ export function FleetSection() {
 
           <div ref={carouselRef} className="lg:col-span-8 h-[350px] sm:h-[400px] md:h-[500px] relative perspective-1000 group order-1 lg:order-2 mb-8" onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
             <div className="relative w-full h-full flex items-center justify-center max-w-2xl mx-auto">
-              {Array.from({ length: Math.min(images.length, 3) }).map((_, i) => {
+              {images.length === 0 ? (
+                <div data-testid="fleet-no-images" className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/20 dark:border-white/10 bg-[hsl(var(--card))] flex flex-col items-center justify-center gap-4 p-8 text-center">
+                  <span className="w-14 h-14 rounded-full bg-primary-500/10 flex items-center justify-center">
+                    <Car className="w-7 h-7 text-primary-500" />
+                  </span>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">لا توجد صور متاحة لهذه السيارة</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">تواصل معنا لعرض صور السيارة على واتساب</p>
+                </div>
+              ) : (
+              Array.from({ length: Math.min(images.length, 3) }).map((_, i) => {
                 const idx = (currentImageIndex + i) % images.length;
                 const img = images[idx];
                 const offset = i;
@@ -531,7 +567,7 @@ export function FleetSection() {
                     onMouseLeave={() => setIsHovering(false)}
                   />
                 );
-              })}
+              }))}
             </div>
 
             <div
@@ -544,9 +580,9 @@ export function FleetSection() {
               </button>
               <div className="flex items-center gap-2 md:gap-4 min-w-[80px] md:min-w-[120px]">
                 <div className="relative w-16 md:w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div className="absolute top-0 right-0 h-full bg-gradient-to-l from-primary-500 to-primary-600 transition-all duration-300" style={{ width: `${((currentImageIndex + 1) / images.length) * 100}%` }} />
+                  <div className="absolute top-0 right-0 h-full bg-gradient-to-l from-primary-500 to-primary-600 transition-all duration-300" style={{ width: images.length > 0 ? `${((currentImageIndex + 1) / images.length) * 100}%` : '0%' }} />
                 </div>
-                <span className="text-xs md:text-sm font-mono text-gray-500 dark:text-gray-400 whitespace-nowrap">{currentImageIndex + 1}/{images.length}</span>
+                <span className="text-xs md:text-sm font-mono text-gray-500 dark:text-gray-400 whitespace-nowrap">{images.length === 0 ? '0/0' : `${currentImageIndex + 1}/${images.length}`}</span>
               </div>
               <button onClick={prevImage} className="p-2 md:p-3 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-800 dark:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" aria-label="الصورة السابقة">
                 <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
@@ -558,6 +594,7 @@ export function FleetSection() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       <Lightbox

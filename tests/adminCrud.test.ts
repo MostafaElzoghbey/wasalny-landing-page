@@ -1,0 +1,908 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import { createHarness, type D1Harness } from './helpers/d1.js';
+import { hashPassword } from '../server/auth/passwords.js';
+import { createCar } from '../server/db/queries.js';
+import { adminCrud } from '../server/routes/adminCrud.js';
+import { publicApi } from '../server/routes/public.js';
+
+const SESSION_ID = 'test-session';
+const ADMIN_ID = 'admin-test';
+const ADMIN_EMAIL = 'admin@example.com';
+const COOKIE = `session=${SESSION_ID}`;
+
+describe('adminCrud', () => {
+  let h: D1Harness;
+
+  beforeAll(async () => {
+    h = await createHarness();
+    await h.applyMigrations();
+  });
+
+  afterAll(async () => {
+    await h.dispose();
+  });
+
+  beforeEach(async () => {
+    // The harness database is per-file; reset every table for isolation.
+    await h.resetTables();
+
+    // Seed a valid admin + session so requireAdmin passes with the cookie.
+    const hash = await hashPassword('secret123');
+    await h.db
+      .prepare(
+        'INSERT INTO admins (id, email, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?)',
+      )
+      .bind(ADMIN_ID, ADMIN_EMAIL, hash, hash.split('$')[2], new Date().toISOString())
+      .run();
+    await h.db
+      .prepare('INSERT INTO sessions (id, admin_id, expires_at) VALUES (?, ?, ?)')
+      .bind(SESSION_ID, ADMIN_ID, new Date(Date.now() + 86400000).toISOString())
+      .run();
+  });
+
+  describe('auth protection', () => {
+    it('GET /cars without a session cookie returns 401', async () => {
+      const res = await adminCrud.request('/cars', {}, h.env);
+      expect(res.status).toBe(401);
+    });
+
+    it('POST /cars without a session cookie returns 401', async () => {
+      const res = await adminCrud.request('/cars', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ nameAr: 'x', category: 'sedan' }),
+      }, h.env);
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('cars CRUD', () => {
+    it('GET /cars with a valid session returns the cars array', async () => {
+      await createCar(h.db, {
+        nameAr: 'سيارة',
+        category: 'sedan',
+        categoryAr: 'سيدان',
+        description: 'desc',
+        images: ['a.jpg'],
+        features: ['x'],
+      });
+
+      const res = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Array<{ id: string; nameAr: string }>;
+      expect(Array.isArray(body)).toBe(true);
+      expect(body.some((c) => c.nameAr === 'سيارة')).toBe(true);
+    });
+
+    it('full write round-trip: POST -> GET -> PUT -> DELETE', async () => {
+      const created = await adminCrud.request('/cars', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          nameAr: 'جديد',
+          category: 'suv',
+          categoryAr: 'إس يو في',
+          description: 'desc',
+          images: ['b.jpg'],
+          features: ['y'],
+        }),
+      }, h.env);
+      expect(created.status).toBe(200);
+      const createdBody = (await created.json()) as { id: string };
+      const id = createdBody.id;
+      expect(typeof id).toBe('string');
+
+      const list = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      const listBody = (await list.json()) as Array<{ id: string; nameAr: string }>;
+      expect(listBody.some((c) => c.id === id && c.nameAr === 'جديد')).toBe(true);
+
+      const updated = await adminCrud.request(`/cars/${id}`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ nameAr: 'جديد جداً' }),
+      }, h.env);
+      expect(updated.status).toBe(200);
+
+      const list2 = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      const listBody2 = (await list2.json()) as Array<{ id: string; nameAr: string }>;
+      expect(listBody2.some((c) => c.id === id && c.nameAr === 'جديد جداً')).toBe(true);
+
+      const deleted = await adminCrud.request(`/cars/${id}`, {
+        method: 'DELETE',
+        headers: { cookie: COOKIE },
+      }, h.env);
+      expect(deleted.status).toBe(200);
+
+      const list3 = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      const listBody3 = (await list3.json()) as Array<{ id: string }>;
+      expect(listBody3.some((c) => c.id === id)).toBe(false);
+    });
+
+    it('POST /cars with missing required field returns 400', async () => {
+      const res = await adminCrud.request('/cars', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ nameAr: 'No Category' }),
+      }, h.env);
+      expect(res.status).toBe(400);
+    });
+
+    it('PUT with the full UI payload (legacy static images) returns 200 and persists', async () => {
+      const created = await adminCrud.request('/cars', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'sedan-legacy',
+          nameAr: 'سيدان',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/a.jpeg', '/assets/b.jpeg'],
+          imageAlts: ['a', 'b'],
+          features: ['x'],
+        }),
+      }, h.env);
+      expect(created.status).toBe(200);
+
+      const updated = await adminCrud.request('/cars/sedan-legacy', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          nameAr: 'سيدان محدثة',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/a.jpeg', '/assets/b.jpeg'],
+          imageAlts: ['a', 'b'],
+          features: ['x'],
+          displayOrder: 0,
+        }),
+      }, h.env);
+      expect(updated.status).toBe(200);
+
+      const list = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string; nameAr: string; images: string[] }>;
+      const car = body.find((c) => c.id === 'sedan-legacy');
+      expect(car?.nameAr).toBe('سيدان محدثة');
+      expect(car?.images).toEqual(['/assets/a.jpeg', '/assets/b.jpeg']);
+    });
+
+    it('PUT that splices one legacy image out (row delete) returns 200', async () => {
+      const created = await adminCrud.request('/cars', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'sedan-rowdel',
+          nameAr: 'سيدان',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/a.jpeg', '/assets/b.jpeg'],
+          imageAlts: ['a', 'b'],
+          features: ['x'],
+        }),
+      }, h.env);
+      expect(created.status).toBe(200);
+
+      const updated = await adminCrud.request('/cars/sedan-rowdel', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          nameAr: 'سيدان',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/b.jpeg'],
+          imageAlts: ['b'],
+          features: ['x'],
+        }),
+      }, h.env);
+      expect(updated.status).toBe(200);
+
+      const list = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string; images: string[] }>;
+      expect(body.find((c) => c.id === 'sedan-rowdel')?.images).toEqual(['/assets/b.jpeg']);
+    });
+  });
+
+  describe('faqs CRUD', () => {
+    it('POST /faqs then GET /faqs reflects the new faq', async () => {
+      const res = await adminCrud.request('/faqs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ question: 'Q?', answer: 'A.' }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/faqs', { headers: { cookie: COOKIE }  }, h.env);
+      expect(list.status).toBe(200);
+      const body = (await list.json()) as Array<{ question: string; answer: string }>;
+      expect(body.some((f) => f.question === 'Q?' && f.answer === 'A.')).toBe(true);
+    });
+  });
+
+  describe('route-data CRUD', () => {
+    it('POST /route-data then GET /route-data reflects the new route', async () => {
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-1',
+          fromLabel: 'دمياط',
+          toLabel: 'القاهرة',
+          title: 'Route',
+          description: 'desc',
+          metaTitle: 'm',
+          metaDescription: 'md',
+          heroImage: 'h.jpg',
+          priceStart: '100',
+          distance: '10km',
+          duration: '20m',
+          features: ['f'],
+          faqs: [],
+        }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/route-data', { headers: { cookie: COOKIE }  }, h.env);
+      expect(list.status).toBe(200);
+      const body = (await list.json()) as Array<{ id: string; title: string }>;
+      expect(body.some((r) => r.id === 'route-1' && r.title === 'Route')).toBe(true);
+    });
+
+    it('POST /route-data without id returns 400', async () => {
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ title: 'No Id' }),
+      }, h.env);
+      expect(res.status).toBe(400);
+    });
+
+    it('round-trips metaTitle/metaDescription/heroImage/priceStart/fromLabel/toLabel through POST -> GET', async () => {
+      // Given: a route created with unmistakable sentinel values for the four
+      // fields the row mapper used to drop (snake_case read bug) plus the two
+      // new label columns.
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-sentinel',
+          fromLabel: 'من',
+          toLabel: 'إلى',
+          title: 'رحلة الاختبار',
+          description: 'وصف الرحلة',
+          metaTitle: 'سيلن ميتا',
+          metaDescription: 'وصف ميتا للاختبار',
+          heroImage: 'data:image/png;base64,AAAA',
+          priceStart: '1999',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: ['مكيف'],
+          faqs: [],
+        }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // When: the route is read back through the admin list endpoint.
+      const list = await adminCrud.request('/route-data', { headers: { cookie: COOKIE }  }, h.env);
+      expect(list.status).toBe(200);
+      const body = (await list.json()) as Array<Record<string, unknown>>;
+      const route = body.find((r) => r.id === 'route-sentinel');
+
+      // Then: every recovered field survives byte-identical — not merely present.
+      expect(route).toBeDefined();
+      expect(route?.metaTitle).toBe('سيلن ميتا');
+      expect(route?.metaDescription).toBe('وصف ميتا للاختبار');
+      expect(route?.heroImage).toBe('data:image/png;base64,AAAA');
+      expect(route?.priceStart).toBe('1999');
+      expect(route?.fromLabel).toBe('من');
+      expect(route?.toLabel).toBe('إلى');
+    });
+
+    it('POST /route-data without fromLabel returns 400 with fromLabel is required', async () => {
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-no-from',
+          toLabel: 'القاهرة',
+          title: 'رحلة',
+          description: 'وصف',
+          metaTitle: 'ميتا',
+          metaDescription: 'وصف ميتا',
+          heroImage: 'h.jpg',
+          priceStart: '100',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: [],
+          faqs: [],
+        }),
+      }, h.env);
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('fromLabel is required');
+    });
+
+    it('POST /route-data without toLabel returns 400 with toLabel is required', async () => {
+      const res = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-no-to',
+          fromLabel: 'دمياط',
+          title: 'رحلة',
+          description: 'وصف',
+          metaTitle: 'ميتا',
+          metaDescription: 'وصف ميتا',
+          heroImage: 'h.jpg',
+          priceStart: '100',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: [],
+          faqs: [],
+        }),
+      }, h.env);
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('toLabel is required');
+    });
+
+    it('PUT /route-data/:id with whitespace-only fromLabel returns 400 with fromLabel must not be empty', async () => {
+      // Given: an existing route so the PUT targets a real row.
+      const created = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-put-valid',
+          fromLabel: 'دمياط',
+          toLabel: 'القاهرة',
+          title: 'رحلة',
+          description: 'وصف',
+          metaTitle: 'ميتا',
+          metaDescription: 'وصف ميتا',
+          heroImage: 'h.jpg',
+          priceStart: '100',
+          distance: '10 كم',
+          duration: 'ساعة',
+          features: [],
+          faqs: [],
+        }),
+      }, h.env);
+      expect(created.status).toBe(200);
+
+      // When: a PUT tries to blank out fromLabel with whitespace.
+      const res = await adminCrud.request('/route-data/route-put-valid', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ fromLabel: '   ' }),
+      }, h.env);
+
+      // Then: the server rejects it and the stored label is untouched.
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('fromLabel must not be empty');
+      const list = await adminCrud.request('/route-data', { headers: { cookie: COOKIE }  }, h.env);
+      const listBody = (await list.json()) as Array<{ id: string; fromLabel: string }>;
+      const route = listBody.find((r) => r.id === 'route-put-valid');
+      expect(route?.fromLabel).toBe('دمياط');
+    });
+
+    it('PUT /route-data/:id with only title preserves metaTitle/metaDescription/heroImage/priceStart/faqs', async () => {
+      // Given: a route carrying non-empty recovered fields and a non-empty faqs array.
+      const faqs = [
+        { question: 'هل الخدمة متاحة يومياً؟', answer: 'نعم، يومياً من السادسة صباحاً' },
+      ];
+      const created = await adminCrud.request('/route-data', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'route-partial',
+          fromLabel: 'دمياط',
+          toLabel: 'القاهرة',
+          title: 'العنوان الأصلي',
+          description: 'وصف أصلي',
+          metaTitle: 'ميتا أصلي',
+          metaDescription: 'وصف ميتا أصلي',
+          heroImage: 'data:image/jpeg;base64,QUJD',
+          priceStart: '250',
+          distance: '200 كم',
+          duration: '3 ساعات',
+          features: ['مكيف'],
+          faqs,
+        }),
+      }, h.env);
+      expect(created.status).toBe(200);
+
+      // When: a partial PUT mentions only title.
+      const updated = await adminCrud.request('/route-data/route-partial', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ title: 'العنوان المحدث' }),
+      }, h.env);
+      expect(updated.status).toBe(200);
+
+      // Then: title changed while every unmentioned column stays byte-identical.
+      const list = await adminCrud.request('/route-data', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<Record<string, unknown>>;
+      const route = body.find((r) => r.id === 'route-partial');
+      expect(route).toBeDefined();
+      expect(route?.title).toBe('العنوان المحدث');
+      expect(route?.metaTitle).toBe('ميتا أصلي');
+      expect(route?.metaDescription).toBe('وصف ميتا أصلي');
+      expect(route?.heroImage).toBe('data:image/jpeg;base64,QUJD');
+      expect(route?.priceStart).toBe('250');
+      expect(route?.faqs).toEqual(faqs);
+    });
+  });
+
+  describe('content', () => {
+    it('PATCH /content then GET /content/:key reflects the change', async () => {
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'logoImage', value: 'logo.png' }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const get = await adminCrud.request('/content/logoImage', { headers: { cookie: COOKIE }  }, h.env);
+      expect(get.status).toBe(200);
+      const body = (await get.json()) as { value: unknown };
+      expect(body.value).toBe('logo.png');
+    });
+
+    it('PATCH /content mockupImages with two data URLs stores 2 photo rows and path array', async () => {
+      // Given: two small data-URL uploads for the identity marquee.
+      const uploads = ['data:image/png;base64,AAAA', 'data:image/jpeg;base64,BBBB'];
+      const before = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+
+      // When: the admin saves them through PATCH /content.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: uploads }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: exactly 2 photo rows were added for this owner, and the content
+      // cell holds two /api/photos/<id> paths — not data URLs.
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect((count?.n ?? 0) - (before?.n ?? 0)).toBe(2);
+
+      const get = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      expect(get.status).toBe(200);
+      const body = (await get.json()) as { value: unknown };
+      expect(Array.isArray(body.value)).toBe(true);
+      const paths = body.value as string[];
+      expect(paths).toHaveLength(2);
+      for (const path of paths) {
+        expect(path.startsWith('/api/photos/')).toBe(true);
+        expect(path.startsWith('data:')).toBe(false);
+      }
+    });
+
+    it('PATCH /content mockupImages with stored paths reorders with zero new photo rows', async () => {
+      // Given: two uploads already saved, with their stored paths read back.
+      const uploads = ['data:image/png;base64,AAAA', 'data:image/jpeg;base64,BBBB'];
+      const first = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: uploads }),
+      }, h.env);
+      expect(first.status).toBe(200);
+      const stored = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      const storedBody = (await stored.json()) as { value: string[] };
+      const reordered = [...storedBody.value].reverse();
+      const saved = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+
+      // When: the admin re-saves the same photos in a new order.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: reordered }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: no new rows were created and the stored order matches.
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect(count?.n).toBe(saved?.n);
+
+      const get = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await get.json()) as { value: unknown };
+      expect(body.value).toEqual(reordered);
+    });
+
+    it('PATCH /content mockupImages with an over-2MB data URL returns 400 with the Arabic message', async () => {
+      // Given: a data URL whose UTF-8 byte length exceeds the D1 cell cap.
+      const oversized = `data:image/png;base64,${'A'.repeat(2_000_001)}`;
+      const before = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+
+      // When: the admin tries to save it.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: [oversized] }),
+      }, h.env);
+
+      // Then: the save is rejected with the shared Arabic message and no row.
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('الصورة كبيرة جدًا بعد الضغط — جرّب صورة أصغر');
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect(count?.n).toBe(before?.n);
+    });
+
+    it('PATCH /content contactInfo still stores the value generically (non-photo regression)', async () => {
+      // Given: a plain contactInfo object, unrelated to photos.
+      const info = { phone: '01001234567', whatsapp: '+201001234567' };
+      const before = await h.db
+        .prepare('SELECT COUNT(*) AS n FROM photos')
+        .first<{ n: number }>();
+
+      // When: the admin saves it through PATCH /content.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'contactInfo', value: info }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: the value round-trips verbatim and no photo row was created.
+      const get = await adminCrud.request('/content/contactInfo', { headers: { cookie: COOKIE }  }, h.env);
+      expect(get.status).toBe(200);
+      const body = (await get.json()) as { value: unknown };
+      expect(body.value).toEqual(info);
+      const count = await h.db
+        .prepare('SELECT COUNT(*) AS n FROM photos')
+        .first<{ n: number }>();
+      expect(count?.n).toBe(before?.n);
+    });
+
+    it('PATCH /content mockupImages with a legacy /assets path stores it verbatim with zero photo rows', async () => {
+      // Given: the pre-existing static marquee image path.
+      const legacy = ['/assets/images/mockups/identity-a.jpeg'];
+
+      // When: the admin saves it through PATCH /content.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: legacy }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: the path is stored verbatim and this owner holds no photo rows
+      // (a legacy-only save prunes the owner's rows, so the count is
+      // absolute, not relative).
+      const get = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await get.json()) as { value: unknown };
+      expect(body.value).toEqual(legacy);
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect(count?.n).toBe(0);
+    });
+  });
+
+  describe('locations / route-groups / pricing', () => {
+    it('POST /locations then GET /locations reflects it', async () => {
+      const res = await adminCrud.request('/locations', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ id: 'loc-1', name: 'Cairo', nameAr: 'القاهرة', type: 'travel' }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/locations', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string }>;
+      expect(body.some((l) => l.id === 'loc-1')).toBe(true);
+    });
+
+    it('POST /locations without type defaults to travel with a generated id', async () => {
+      const res = await adminCrud.request('/locations', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ name: 'القاهرة الجديدة', nameAr: 'القاهرة الجديدة' }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/locations', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string; name: string; nameAr: string; type: string }>;
+      const loc = body.find((l) => l.nameAr === 'القاهرة الجديدة');
+      expect(loc?.type).toBe('travel');
+      expect(typeof loc?.id).toBe('string');
+      expect(loc?.id.length).toBeGreaterThan(0);
+    });
+
+    it('POST /route-groups then GET /route-groups reflects it', async () => {
+      const res = await adminCrud.request('/route-groups', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'rg-1',
+          type: 'travel',
+          nameAr: 'خط',
+          bidirectional: true,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+        }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/route-groups', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string }>;
+      expect(body.some((r) => r.id === 'rg-1')).toBe(true);
+    });
+
+    it('POST /route-groups with pricing persists pricing (create writes pricing)', async () => {
+      const res = await adminCrud.request('/route-groups', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'rg-1',
+          type: 'travel',
+          nameAr: 'خط',
+          bidirectional: true,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+          pricing: {
+            sedan: { oneWay: 100, roundTrip: 180 },
+            suv: { oneWay: 120, roundTrip: 200 },
+            family_cruiser: { oneWay: 150, roundTrip: 250 },
+            minibus: { oneWay: 200, roundTrip: 320 },
+          },
+        }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/route-groups', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{
+        id: string;
+        pricing: { sedan: { oneWay: number; roundTrip: number } };
+      }>;
+      const group = body.find((r) => r.id === 'rg-1');
+      expect(group?.pricing.sedan.oneWay).toBe(100);
+      expect(group?.pricing.sedan.roundTrip).toBe(180);
+    });
+  });
+
+  describe('locations PUT', () => {
+    async function createLocation(id: string): Promise<void> {
+      const res = await adminCrud.request('/locations', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ id, name: 'Cairo', nameAr: 'القاهرة', type: 'travel' }),
+      }, h.env);
+      expect(res.status).toBe(200);
+    }
+
+    it('S1: PUT /locations/:id with new name persists and GET shows it', async () => {
+      await createLocation('loc-put-1');
+
+      const res = await adminCrud.request('/locations/loc-put-1', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ name: 'New' }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/locations', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string; name: string }>;
+      const loc = body.find((l) => l.id === 'loc-put-1');
+      expect(loc?.name).toBe('New');
+    });
+
+    it('S2: PUT with invalid type returns 400 and DB unchanged', async () => {
+      await createLocation('loc-put-2');
+
+      const res = await adminCrud.request('/locations/loc-put-2', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ type: 'invalid' }),
+      }, h.env);
+      expect(res.status).toBe(400);
+      const errBody = (await res.json()) as { error: string };
+      expect(typeof errBody.error).toBe('string');
+
+      // DB unchanged: name still original.
+      const list = await adminCrud.request('/locations', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string; name: string }>;
+      const loc = body.find((l) => l.id === 'loc-put-2');
+      expect(loc?.name).toBe('Cairo');
+    });
+
+    it('S3: PUT /locations/:id without a session cookie returns 401', async () => {
+      const res = await adminCrud.request('/locations/loc-put-3', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: 'New' }),
+      }, h.env);
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('route-group-put', () => {
+    const FULL_PRICING = {
+      sedan: { oneWay: 100, roundTrip: 180 },
+      suv: { oneWay: 120, roundTrip: 200 },
+      family_cruiser: { oneWay: 150, roundTrip: 250 },
+      minibus: { oneWay: 200, roundTrip: 320 },
+    };
+
+    async function createGroup(id: string): Promise<void> {
+      const res = await adminCrud.request('/route-groups', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id,
+          type: 'travel',
+          nameAr: 'خط',
+          bidirectional: true,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+          pricing: FULL_PRICING,
+        }),
+      }, h.env);
+      expect(res.status).toBe(200);
+    }
+
+    it('S1: PUT /route-groups/:id with new pricing persists and GET shows it', async () => {
+      await createGroup('rg-put-1');
+
+      const newPricing = {
+        sedan: { oneWay: 111, roundTrip: 222 },
+        suv: { oneWay: 333, roundTrip: 444 },
+        family_cruiser: { oneWay: 555, roundTrip: 666 },
+        minibus: { oneWay: 777, roundTrip: 888 },
+      };
+      const res = await adminCrud.request('/route-groups/rg-put-1', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'rg-put-1',
+          type: 'travel',
+          nameAr: 'خط محدث',
+          bidirectional: false,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+          pricing: newPricing,
+        }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const list = await adminCrud.request('/route-groups', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{
+        id: string;
+        nameAr: string;
+        bidirectional: boolean;
+        pricing: {
+          sedan: { oneWay: number; roundTrip: number };
+          suv: { oneWay: number; roundTrip: number };
+          family_cruiser: { oneWay: number; roundTrip: number };
+          minibus: { oneWay: number; roundTrip: number };
+        };
+      }>;
+      const group = body.find((r) => r.id === 'rg-put-1');
+      expect(group?.nameAr).toBe('خط محدث');
+      expect(group?.bidirectional).toBe(true);
+      expect(group?.pricing).toEqual(newPricing);
+    });
+
+    it('S2: PUT with negative price returns 400 and DB unchanged (rollback)', async () => {
+      await createGroup('rg-put-2');
+
+      const res = await adminCrud.request('/route-groups/rg-put-2', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'rg-put-2',
+          type: 'travel',
+          nameAr: 'خط',
+          bidirectional: true,
+          fromLocations: ['loc-1'],
+          toLocations: ['loc-2'],
+          pricing: {
+            ...FULL_PRICING,
+            sedan: { oneWay: -5, roundTrip: 180 },
+          },
+        }),
+      }, h.env);
+      expect(res.status).toBe(400);
+      const errBody = (await res.json()) as { error: string };
+      expect(typeof errBody.error).toBe('string');
+
+      // DB unchanged: nameAr still original, pricing still original.
+      const list = await adminCrud.request('/route-groups', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{
+        id: string;
+        nameAr: string;
+        pricing: { sedan: { oneWay: number; roundTrip: number } };
+      }>;
+      const group = body.find((r) => r.id === 'rg-put-2');
+      expect(group?.nameAr).toBe('خط');
+      expect(group?.pricing.sedan.oneWay).toBe(100);
+    });
+
+    it('S3: DELETE /route-groups/:id cascades pricing (0 rows remain)', async () => {
+      await createGroup('rg-put-3');
+
+      const res = await adminCrud.request('/route-groups/rg-put-3', {
+        method: 'DELETE',
+        headers: { cookie: COOKIE },
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      const count = await h.db
+        .prepare('SELECT COUNT(*) AS n FROM route_pricing WHERE route_group_id = ?')
+        .bind('rg-put-3')
+        .first<{ n: number }>();
+      expect(count?.n).toBe(0);
+
+      const groupCount = await h.db
+        .prepare('SELECT COUNT(*) AS n FROM route_groups WHERE id = ?')
+        .bind('rg-put-3')
+        .first<{ n: number }>();
+      expect(groupCount?.n).toBe(0);
+    });
+  });
+
+  describe('pricing-config-admin', () => {
+    it('S1: POST {whatsappNumber} returns 200 and GET /pricing returns normalized', async () => {
+      const post = await adminCrud.request('/pricing-config', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'whatsappNumber', value: '+20 100-123 4567 ' }),
+      }, h.env);
+      expect(post.status).toBe(200);
+
+      const get = await publicApi.request('/pricing', {}, h.env);
+      expect(get.status).toBe(200);
+      const data = (await get.json()) as { pricingConfig: { whatsappNumber: string } };
+      expect(data.pricingConfig.whatsappNumber).toBe('+201001234567');
+    });
+
+    it('S2: POST {whatsappNumber, value:"abc"} returns 400 and DB unchanged', async () => {
+      const res = await adminCrud.request('/pricing-config', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'whatsappNumber', value: 'abc' }),
+      }, h.env);
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('invalid whatsappNumber');
+      const row = await h.db
+        .prepare('SELECT value FROM pricing_config WHERE key = ?')
+        .bind('whatsappNumber')
+        .first<{ value: string }>();
+      expect(row).toBeNull();
+    });
+
+    it('S3: legacy keys (currency, currencyAr, contactEmail) all return 400 and DB unchanged', async () => {
+      for (const key of ['currency', 'currencyAr', 'contactEmail']) {
+        const res = await adminCrud.request('/pricing-config', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', cookie: COOKIE },
+          body: JSON.stringify({ key, value: 'test' }),
+      }, h.env);
+        expect(res.status).toBe(400);
+        const body = (await res.json()) as { error: string };
+        expect(body.error).toBe('unsupported pricing key');
+      }
+      const count = await h.db
+        .prepare('SELECT COUNT(*) AS n FROM pricing_config')
+        .first<{ n: number }>();
+      expect(count?.n).toBe(0);
+    });
+  });
+});

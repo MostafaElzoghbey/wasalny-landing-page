@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "wasalny",
+  "compatibility_date": "2026-09-30",
+  "main": "server/worker.ts",
+  // D1 database for the Wasalny API (production: wasalny-db, created 2026-06-28).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wasalny-db",
+      "database_id": "1af008e9-0eaf-4540-9cf2-1993ee4375d1",
+      // Migrations live next to the Node runner (server/db/migrations), not in
+      // the wrangler default ./migrations. Same files, same order, two runners:
+      // migrate.ts (better-sqlite3) reads schema_migrations, wrangler reads
+      // d1_migrations. See server/db/migrations/LEDGER.md for the mapping.
+      "migrations_dir": "server/db/migrations"
+    }
+  ],
+  // Static assets + SPA fallback are served by Cloudflare's asset server, which
+  // is what lets server/app.ts stay API-only (no node:fs static handler).
+  //   directory          -> where `npm run build` emits. Set EXPLICITLY because
+  //                         vite.config.ts does not use @cloudflare/vite-plugin:
+  //                         the plugin is installed but unwired and `npm run
+  //                         build` is a plain `vite build` into ./dist. Without
+  //                         this key, plain `npx wrangler dev` errors out with
+  //                         "missing the required `directory` property".
+  //   not_found_handling -> unmatched non-/api paths return index.html, which is
+  //                         what makes deep links like /routes/cairo work.
+  //   run_worker_first   -> /api/* bypasses the asset server and hits
+  //                         server/worker.ts, so unknown API paths get the JSON
+  //                         404 instead of HTML.
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  }
+}
