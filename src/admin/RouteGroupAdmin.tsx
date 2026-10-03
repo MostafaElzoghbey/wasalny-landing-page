@@ -245,15 +245,6 @@ export function RouteGroupAdmin() {
                         />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
                         <span className="hidden shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))] min-[420px]:inline">{loc.id}</span>
-                        <span
-                          className={
-                            loc.type === 'travel'
-                              ? 'shrink-0 rounded-full bg-primary-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
-                              : 'shrink-0 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
-                          }
-                        >
-                          {loc.type === 'travel' ? 'سفر' : 'داخلي'}
-                        </span>
                       </label>
                     ));
                   })()}
@@ -305,15 +296,6 @@ export function RouteGroupAdmin() {
                         />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
                         <span className="hidden shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))] min-[420px]:inline">{loc.id}</span>
-                        <span
-                          className={
-                            loc.type === 'travel'
-                              ? 'shrink-0 rounded-full bg-primary-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
-                              : 'shrink-0 rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white'
-                          }
-                        >
-                          {loc.type === 'travel' ? 'سفر' : 'داخلي'}
-                        </span>
                       </label>
                     ));
                   })()}

@@ -137,7 +137,7 @@ export function RouteGroupCard({
             </span>
           </div>
           <p className="mt-1 truncate text-xs text-[hsl(var(--muted-foreground))]">
-            {fromSummary || group.fromLocations.join(', ')} → {toSummary || group.toLocations.join(', ')}
+            {fromSummary || group.fromLocations.join(', ')} ← {toSummary || group.toLocations.join(', ')}
             <span className="mx-2 text-[hsl(var(--border))]">|</span>
             <span className="font-medium text-[hsl(var(--foreground))]">ابتداءً من {formatPrice(minPrice(group.pricing))}</span>
             <span className="mx-1 text-[hsl(var(--muted-foreground))]">·</span>
