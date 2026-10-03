@@ -35,3 +35,6 @@ processed_results.txt
 
 # Wrangler local state (local D1 database files, dev logs)
 .wrangler/
+
+# Omo agent files
+.omo/
