@@ -153,14 +153,14 @@ function AppContent() {
   const isAdmin = pathname.startsWith('/admin');
   const [isLoading, setIsLoading] = useState(true);
 
+  // The admin deliberately opts out of Lenis: its wheel/touch interception kills native
+  // momentum, tap-to-top and iOS URL-bar collapse, and fights the drawer's focus trap.
+  // The omission is intentional — do not wrap this branch. See DESIGN.md §4.4.
   if (isAdmin) {
     return (
       <ThemeProvider>
         <PWAInstallProvider>
-          <SmoothScrollProvider>
-            <ScrollToTop />
-            <AdminApp />
-          </SmoothScrollProvider>
+          <AdminApp />
         </PWAInstallProvider>
       </ThemeProvider>
     );
