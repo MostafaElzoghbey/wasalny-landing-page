@@ -29,7 +29,7 @@ export function Field({
   autoComplete,
 }: FieldProps) {
   const inputClass =
-    'w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none';
+    'w-full min-h-[44px] rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-base text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none sm:text-sm';
   return (
     <label className="mb-3 block">
       <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">
@@ -78,7 +78,7 @@ export function ErrorText({ message }: { message: string }) {
 
 export function Panel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section dir="rtl" className="card p-5">
+    <section dir="rtl" className="card p-4 sm:p-5">
       <h3 className="mb-4 text-lg font-semibold text-[hsl(var(--foreground))]">{title}</h3>
       {children}
     </section>
@@ -102,7 +102,21 @@ export function DangerButton({ children, className, ...rest }: PrimaryButtonProp
     <button
       {...rest}
       className={cn(
-        'rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 active:scale-95 disabled:opacity-50',
+        'min-h-[44px] rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 active:scale-95 disabled:opacity-50',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function GhostButton({ children, className, ...rest }: PrimaryButtonProps) {
+  return (
+    <button
+      {...rest}
+      className={cn(
+        'min-h-[44px] rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
     >
