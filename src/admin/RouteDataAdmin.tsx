@@ -175,7 +175,7 @@ export function RouteDataAdmin() {
       ) : (
         <ul ref={listRef} className="space-y-2">
           {items.map((r, idx) => (
-            <li key={r.id} dir="rtl" data-reorder-item={r.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
+            <li key={r.id} dir="rtl" data-reorder-item={r.id} className="reorder-item flex items-stretch gap-2 text-start" style={{ transitionDelay: `${idx * 15}ms` }}>
               <ReorderControls
                 id={r.id}
                 index={idx}

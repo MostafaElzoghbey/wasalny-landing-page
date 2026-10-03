@@ -109,7 +109,7 @@ export function FaqAdmin() {
       ) : (
         <ul ref={listRef} className="space-y-2">
           {faqs.map((f, idx) => (
-            <li key={f.id} dir="rtl" data-reorder-item={f.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
+            <li key={f.id} dir="rtl" data-reorder-item={f.id} className="reorder-item flex items-stretch gap-2 text-start" style={{ transitionDelay: `${idx * 15}ms` }}>
               <ReorderControls
                 id={f.id}
                 index={idx}

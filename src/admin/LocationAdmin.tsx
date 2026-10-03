@@ -137,7 +137,7 @@ export function LocationAdmin() {
       ) : (
         <ul ref={listRef} className="space-y-3">
           {items.map((l, idx) => (
-            <li key={l.id} dir="rtl" data-reorder-item={l.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
+            <li key={l.id} dir="rtl" data-reorder-item={l.id} className="reorder-item flex items-stretch gap-2 text-start" style={{ transitionDelay: `${idx * 15}ms` }}>
               <ReorderControls
                 id={l.id}
                 index={idx}

@@ -121,7 +121,7 @@ export function RouteGroupCard({
         type="button"
         data-testid={`route-group-expand-${group.id}`}
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-right transition-colors hover:bg-[hsl(var(--muted))/0.5]"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-start transition-colors hover:bg-[hsl(var(--muted))/0.5]"
       >
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

@@ -90,7 +90,7 @@ export function CarCard({ group, onUpdated, onDeleted }: CarCardProps) {
       )}
 
       {!editing ? (
-        <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-right">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-start">
           <span data-testid={`car-order-${group.id}`} className="shrink-0 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 font-mono text-xs font-semibold text-[hsl(var(--muted-foreground))]">{group.displayOrder}</span>
           {group.images.length > 0 ? (
             <img

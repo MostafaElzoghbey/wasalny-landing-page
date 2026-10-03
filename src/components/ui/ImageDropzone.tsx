@@ -130,7 +130,7 @@ export function ImageDropzone({ mode, value, onChange, testId = "image-dropzone"
   }
 
   return (
-    <div dir="rtl" data-testid={testId} className="w-full text-right">
+    <div dir="rtl" data-testid={testId} className="w-full text-start">
       {label ? <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">{label}</span> : null}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}

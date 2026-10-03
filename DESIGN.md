@@ -553,3 +553,16 @@ Explicit, itemised, with rationale. None of these block the refactor.
 7. `src/admin/CarAdmin.flat.test.tsx` stays `describe.skip`. It asserts a
    retired flat-list DOM contract that the current grouped UI intentionally
    does not satisfy; un-skipping it is a separate test-maintenance task.
+8. **Absolute overlay offsets in `ImageDropzone.tsx`** — the per-image remove
+   button and the preview drag handle still use physical `left-1` / `right-1`
+   instead of `start-1` / `end-1`. They render consistently and nothing
+   overflows, but they are not mirrored for RTL. Converting them *moves* the
+   controls, which is a visual-design decision rather than a responsiveness
+   fix, so it is recorded here instead of changed blind.
+9. `src/components/ui/CustomSelect.tsx` still uses `text-right`, `pl-10` and
+   `pr-10`. Grep confirms no admin section imports it, so it is landing-only and
+   outside the admin contract.
+10. `RouteGroupAdmin.tsx` and `RouteGroupCard.tsx` exceed the 250 pure-LOC
+   ceiling (roughly 380 and 327). Both were already over before the responsive
+   work and the changes did not grow them, so extraction stays a separate task.
+   `CarImageRow.tsx` sits at 251, also pre-existing.

@@ -38,7 +38,7 @@ export function ReorderControls({
       onKeyDown={onKeyDown}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className="flex shrink-0 flex-col items-center gap-1 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-1.5 py-2 text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2"
+      className="flex shrink-0 flex-col items-center gap-1 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-1.5 py-2 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2"
     >
       <span
         draggable={!disabled}

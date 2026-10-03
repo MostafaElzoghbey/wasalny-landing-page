@@ -176,7 +176,7 @@ export function RouteGroupAdmin() {
         <button
           type="button"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]"
+          className="flex w-full items-center justify-between px-4 py-3 text-start hover:bg-[hsl(var(--muted))/0.4]"
         >
           <span className="text-sm font-semibold text-[hsl(var(--foreground))]">مجموعة مسار جديدة</span>
           <span className="text-xs text-[hsl(var(--muted-foreground))]">{createOpen ? 'إخفاء' : 'عرض'}</span>
@@ -346,7 +346,7 @@ export function RouteGroupAdmin() {
       ) : (
         <ul ref={listRef} className="space-y-3">
           {items.map((g, idx) => (
-            <li key={g.id} dir="rtl" data-reorder-item={g.id} className="reorder-item flex items-stretch gap-2 text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
+            <li key={g.id} dir="rtl" data-reorder-item={g.id} className="reorder-item flex items-stretch gap-2 text-start" style={{ transitionDelay: `${idx * 15}ms` }}>
               <ReorderControls
                 id={g.id}
                 index={idx}

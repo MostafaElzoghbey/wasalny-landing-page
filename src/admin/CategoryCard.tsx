@@ -25,7 +25,7 @@ export function CategoryCard({ category, count, cars, onSelect, testId }: Catego
       data-flip-id={`category-${category}`}
       onClick={() => onSelect(category)}
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-0 text-right transition-all duration-200 hover:shadow-md hover:ring-2 hover:ring-primary-500/20 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 flex flex-col',
+        'group relative overflow-hidden rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-0 text-start transition-all duration-200 hover:shadow-md hover:ring-2 hover:ring-primary-500/20 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 flex flex-col',
         colors.ring,
       )}
     >

@@ -36,7 +36,7 @@ function CategoryCarList({ categoryCars, onUpdated, onDeleted }: CategoryCarList
           .slice(0, idx)
           .reduce((total, group) => total + group.rows.length, 0);
         return (
-        <li key={car.id} dir="rtl" data-reorder-item={car.id} data-testid={`car-row-${car.id}`} className="reorder-item text-right" style={{ transitionDelay: `${idx * 15}ms` }}>
+        <li key={car.id} dir="rtl" data-reorder-item={car.id} data-testid={`car-row-${car.id}`} className="reorder-item text-start" style={{ transitionDelay: `${idx * 15}ms` }}>
           <div className="min-w-0 flex-1 space-y-2">
             <ul className="space-y-1.5">
               {rows.map((row, rowIdx) => {
