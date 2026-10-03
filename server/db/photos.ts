@@ -353,6 +353,13 @@ export async function replacePhotosForOwner(
       ownerIds.filter((id) => !kept.has(id)),
     ),
   );
+  // D1 rejects an empty batch (real `db.batch([])` throws, surfacing as a 500
+  // from the car/content admin routes), while a legacy-only save — every input
+  // a static `/assets/...` path or an already-pruned id, and the owner holding
+  // no photo rows — legitimately produces zero statements. Skip the round trip
+  // and return the verbatim paths. (The better-sqlite3 test shim tolerates an
+  // empty batch, which is why the existing suite never caught this.)
+  if (statements.length === 0) return paths;
   await db.batch(statements);
   return paths;
 }

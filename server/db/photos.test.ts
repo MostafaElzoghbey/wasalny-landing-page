@@ -4,7 +4,7 @@
 // so `db.batch()` atomicity and the bound-parameter `NOT IN` chunking are
 // exercised for real rather than mocked.
 
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterAll } from 'vitest';
 import { createHarness, type D1Harness } from '../../tests/helpers/d1.js';
 import {
   deletePhotosForOwner,
@@ -171,6 +171,22 @@ describe('photos', () => {
 
       expect(paths).toEqual([photoPath('photo-does-not-exist')]);
       expect(await countPhotos(h.db)).toBe(0);
+    });
+
+    it('a legacy-only save issues no batch so real D1 never sees an empty one', async () => {
+      const spy = vi.spyOn(h.db, 'batch');
+      try {
+        const paths = await replacePhotosForOwner(h.db, 'car', 'car-legacy', [
+          { source: LEGACY, alt: 'legacy' },
+          { source: photoPath('photo-does-not-exist'), alt: 'stale' },
+        ]);
+
+        expect(paths).toEqual([LEGACY, photoPath('photo-does-not-exist')]);
+        expect(await countPhotos(h.db)).toBe(0);
+        expect(spy).not.toHaveBeenCalled();
+      } finally {
+        spy.mockRestore();
+      }
     });
 
     it('drops the rows of images the caller removed', async () => {

@@ -126,6 +126,83 @@ describe('adminCrud', () => {
       }, h.env);
       expect(res.status).toBe(400);
     });
+
+    it('PUT with the full UI payload (legacy static images) returns 200 and persists', async () => {
+      const created = await adminCrud.request('/cars', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'sedan-legacy',
+          nameAr: 'سيدان',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/a.jpeg', '/assets/b.jpeg'],
+          imageAlts: ['a', 'b'],
+          features: ['x'],
+        }),
+      }, h.env);
+      expect(created.status).toBe(200);
+
+      const updated = await adminCrud.request('/cars/sedan-legacy', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          nameAr: 'سيدان محدثة',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/a.jpeg', '/assets/b.jpeg'],
+          imageAlts: ['a', 'b'],
+          features: ['x'],
+          displayOrder: 0,
+        }),
+      }, h.env);
+      expect(updated.status).toBe(200);
+
+      const list = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string; nameAr: string; images: string[] }>;
+      const car = body.find((c) => c.id === 'sedan-legacy');
+      expect(car?.nameAr).toBe('سيدان محدثة');
+      expect(car?.images).toEqual(['/assets/a.jpeg', '/assets/b.jpeg']);
+    });
+
+    it('PUT that splices one legacy image out (row delete) returns 200', async () => {
+      const created = await adminCrud.request('/cars', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          id: 'sedan-rowdel',
+          nameAr: 'سيدان',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/a.jpeg', '/assets/b.jpeg'],
+          imageAlts: ['a', 'b'],
+          features: ['x'],
+        }),
+      }, h.env);
+      expect(created.status).toBe(200);
+
+      const updated = await adminCrud.request('/cars/sedan-rowdel', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({
+          nameAr: 'سيدان',
+          category: 'sedan',
+          categoryAr: 'سيدان',
+          description: 'desc',
+          images: ['/assets/b.jpeg'],
+          imageAlts: ['b'],
+          features: ['x'],
+        }),
+      }, h.env);
+      expect(updated.status).toBe(200);
+
+      const list = await adminCrud.request('/cars', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await list.json()) as Array<{ id: string; images: string[] }>;
+      expect(body.find((c) => c.id === 'sedan-rowdel')?.images).toEqual(['/assets/b.jpeg']);
+    });
   });
 
   describe('faqs CRUD', () => {
