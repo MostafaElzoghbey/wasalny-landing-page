@@ -54,3 +54,60 @@ fillRect: (): void => {},
 afterEach(() => {
   cleanup();
 });
+
+// Guarded DOM no-ops for the admin off-canvas drawer. `focus-trap-react` may
+// call `scrollIntoView` internally, and drag paths touch `DragEvent` /
+// `DataTransfer`. Each stub installs only when the environment lacks the API,
+// so real implementations are never shadowed.
+if (typeof window !== 'undefined') {
+  if (
+    typeof Element !== 'undefined' &&
+    typeof Element.prototype.scrollIntoView !== 'function'
+  ) {
+    Element.prototype.scrollIntoView = (): void => {};
+  }
+
+  if (typeof globalThis.ResizeObserver === 'undefined') {
+    globalThis.ResizeObserver = class {
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+    } as unknown as typeof globalThis.ResizeObserver;
+  }
+
+  if (typeof globalThis.IntersectionObserver === 'undefined') {
+    globalThis.IntersectionObserver = class {
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+    } as unknown as typeof globalThis.IntersectionObserver;
+  }
+
+  if (typeof globalThis.DataTransfer === 'undefined') {
+    globalThis.DataTransfer = class {
+      dropEffect: string = 'none';
+      effectAllowed: string = 'none';
+      files: File[] = [];
+      private store: Record<string, string> = {};
+      setData(format: string, data: string): void {
+        this.store[format] = data;
+      }
+      getData(format: string): string {
+        return this.store[format] ?? '';
+      }
+      clearData(): void {
+        this.store = {};
+      }
+    } as unknown as typeof globalThis.DataTransfer;
+  }
+
+  if (typeof globalThis.DragEvent === 'undefined') {
+    globalThis.DragEvent = class extends Event {
+      readonly dataTransfer: DataTransfer | null;
+      constructor(type: string, init?: DragEventInit) {
+        super(type, init);
+        this.dataTransfer = init?.dataTransfer ?? null;
+      }
+    } as unknown as typeof globalThis.DragEvent;
+  }
+}
