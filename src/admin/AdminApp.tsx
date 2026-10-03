@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { Menu, X } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import { fetchAdminMe, adminLogin, adminLogout } from '@/data/api';
 import { Field, ErrorText, PrimaryButton } from './ui';
@@ -11,8 +13,10 @@ import { RouteGroupAdmin } from './RouteGroupAdmin';
 import { PricingConfigAdmin } from './PricingConfigAdmin';
 import { ContentAdmin } from './ContentAdmin';
 import { IdentityAdmin } from './IdentityAdmin';
+import { AdminNav } from './AdminNav';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
-type SectionKey =
+export type SectionKey =
   | 'cars'
   | 'locations'
   | 'routeGroups'
@@ -22,7 +26,7 @@ type SectionKey =
   | 'content'
   | 'identity';
 
-interface NavItem {
+export interface NavItem {
   key: SectionKey;
   label: string;
   testid?: string;
@@ -67,10 +71,28 @@ export function AdminApp() {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [active, setActive] = useState<SectionKey>(() => readStoredSection() ?? 'cars');
+  const [navOpen, setNavOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
 
   function selectSection(key: SectionKey): void {
     setActive(key);
     storeSection(key);
+  }
+
+  function closeNav(): void {
+    setNavOpen(false);
+    menuButtonRef.current?.focus();
+  }
+
+  function handleSelect(key: SectionKey): void {
+    selectSection(key);
+    closeNav();
+  }
+
+  function handleToggle(): void {
+    if (navOpen) closeNav();
+    else setNavOpen(true);
   }
 
   useEffect(() => {
@@ -89,6 +111,26 @@ export function AdminApp() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [navOpen]);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    function handleKeyDown(e: KeyboardEvent): void {
+      if (e.key === 'Escape') {
+        setNavOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navOpen]);
 
   async function handleLogin(e: FormEvent) {
     e.preventDefault();
@@ -116,7 +158,7 @@ export function AdminApp() {
 
   if (!checked) {
     return (
-      <div className="flex min-h-screen items-center justify-center" dir="rtl">
+      <div className="flex min-h-[100dvh] items-center justify-center" dir="rtl">
         <p className="text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       </div>
     );
@@ -125,7 +167,7 @@ export function AdminApp() {
   if (email === null) {
     return (
       <div
-        className="flex min-h-screen items-center justify-center bg-[hsl(var(--background))] p-4"
+        className="flex min-h-[100dvh] items-center justify-center bg-[hsl(var(--background))] p-4"
         dir="rtl"
       >
         <form onSubmit={handleLogin} className="card w-full max-w-sm p-6">
@@ -157,38 +199,43 @@ export function AdminApp() {
 
   return (
     <div
-      className="flex min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"
+      className="flex min-h-[100dvh] flex-col bg-[hsl(var(--background))] text-[hsl(var(--foreground))] lg:h-[100dvh] lg:flex-row lg:overflow-hidden"
       dir="rtl"
     >
-      <aside className="w-60 shrink-0 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4">
-        <h2 className="mb-4 text-lg font-bold">لوحة تحكم وصلني</h2>
-        <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.key}
-              data-testid={item.testid ?? `admin-nav-${item.key}`}
-              onClick={() => selectSection(item.key)}
-              className={cn(
-                'rounded-lg px-3 py-2 text-right text-sm font-medium transition',
-                active === item.key
-                  ? 'bg-primary-600 text-white'
-                  : 'hover:bg-[hsl(var(--muted))]',
-              )}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+      <header className="sticky top-0 z-40 flex min-h-14 items-center justify-between gap-2 border-b border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:hidden">
+        <h2 className="text-lg font-bold">لوحة تحكم وصلني</h2>
         <button
-          data-testid="admin-logout"
-          onClick={handleLogout}
-          className="mt-4 w-full rounded-lg border border-[hsl(var(--border))] px-3 py-2 text-sm font-medium hover:bg-[hsl(var(--muted))]"
+          ref={menuButtonRef}
+          type="button"
+          data-testid="admin-menu-button"
+          aria-expanded={navOpen}
+          aria-controls="admin-drawer"
+          aria-label={navOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+          onClick={handleToggle}
+          className="flex min-h-[44px] min-w-[44px] touch-manipulation items-center justify-center rounded-lg hover:bg-[hsl(var(--muted))]"
         >
-          تسجيل الخروج
+          {navOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <p className="mt-4 text-xs text-[hsl(var(--muted-foreground))]">مسجّل الدخول باسم {email}</p>
-      </aside>
-      <main className="flex-1 overflow-y-auto p-6">
+      </header>
+      <div
+        data-testid="admin-drawer-backdrop"
+        aria-hidden="true"
+        onClick={closeNav}
+        className={cn(
+          'fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 motion-reduce:transition-none lg:hidden',
+          navOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
+        )}
+      />
+      <AdminNav
+        active={active}
+        items={NAV_ITEMS}
+        open={navOpen}
+        isDesktop={isDesktop}
+        email={email}
+        onSelect={handleSelect}
+        onLogout={handleLogout}
+      />
+      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:min-h-0 lg:overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
         {active === 'cars' && <CarAdmin />}
         {active === 'locations' && <LocationAdmin />}
         {active === 'routeGroups' && <RouteGroupAdmin />}
