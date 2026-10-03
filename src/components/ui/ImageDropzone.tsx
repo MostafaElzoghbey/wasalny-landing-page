@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { compressImage } from '@/utils/imageCompress';
+
 interface ImageDropzoneProps {
   mode: "single" | "multiple";
   value: string | string[];
@@ -9,7 +11,10 @@ interface ImageDropzoneProps {
   previewPrefix?: string;
 }
 
-export const MAX_FILE_BYTES = 5 * 1024 * 1024;
+// Input cap, deliberately far above D1's 2 MB row limit: `compressImage` shrinks
+// every accepted file to a 1600px JPEG first. Do not "fix" this down to 2 MB.
+export const MAX_FILE_MB = 20;
+export const MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024;
 export const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"] as const;
 
 const ALLOWED_MIME_SET: ReadonlySet<string> = new Set(ALLOWED_MIME);
@@ -17,7 +22,7 @@ const ALLOWED_MIME_SET: ReadonlySet<string> = new Set(ALLOWED_MIME);
 const EXT_RE = /\.(jpg|jpeg|png|webp|svg)(\?.*)?$/i;
 
 function validateFile(file: File): string | null {
-  if (file.size > MAX_FILE_BYTES) return "حجم الصورة يتجاوز 5MB";
+  if (file.size > MAX_FILE_BYTES) return `حجم الصورة يتجاوز ${MAX_FILE_MB}MB`;
   if (ALLOWED_MIME_SET.has(file.type)) return null;
   if (file.type === "" && EXT_RE.test(file.name)) return null;
   return "صيغة الصورة غير مدعومة (jpg, png, webp, svg)";
@@ -50,46 +55,55 @@ export function ImageDropzone({ mode, value, onChange, testId = "image-dropzone"
   );
 
   const handleFiles = useCallback(
-    (files: FileList | null) => {
-      if (!files || files.length === 0) return;
-      const readAsDataUrl = (file: File): Promise<string> =>
-        new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error("فشل قراءة الملف"));
-          reader.readAsDataURL(file);
-        });
-      if (mode === "single") {
-        const f = files[0];
-        const err = validateFile(f);
-        if (err) { setError(err); return; }
-        readAsDataUrl(f)
-          .then((url) => {
+    async (files: FileList | null): Promise<void> => {
+      try {
+        if (!files || files.length === 0) return;
+        if (mode === "single") {
+          const f = files[0];
+          const err = validateFile(f);
+          if (err) { setError(err); return; }
+          try {
+            const url = await compressImage(f);
             setError(null);
             emit([url]);
-          })
-          .catch(() => setError("فشل قراءة الملف"));
-        return;
-      }
-      const candidates = Array.from(files);
-      const valid: File[] = [];
-      let firstErr: string | null = null;
-      for (const f of candidates) {
-        const err = validateFile(f);
-        if (err) { if (!firstErr) firstErr = err; continue; }
-        valid.push(f);
-      }
-      if (valid.length === 0) {
-        if (firstErr) setError(firstErr);
-        return;
-      }
-      Promise.all(valid.map(readAsDataUrl))
-        .then((urls) => {
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "فشل قراءة الملف");
+          }
+          return;
+        }
+        const candidates = Array.from(files);
+        const valid: File[] = [];
+        let firstErr: string | null = null;
+        for (const f of candidates) {
+          const err = validateFile(f);
+          if (err) { if (!firstErr) firstErr = err; continue; }
+          valid.push(f);
+        }
+        if (valid.length === 0) {
           if (firstErr) setError(firstErr);
-          else setError(null);
-          emit([...normalized, ...urls]);
-        })
-        .catch(() => setError("فشل قراءة الملف"));
+          return;
+        }
+        // Sequential on purpose: compressImage fully decodes each bitmap, so
+        // Promise.all over a multi-photo drop holds every bitmap + canvas live
+        // at once and OOM-kills phone tabs.
+        const ok: string[] = [];
+        for (const f of valid) {
+          try {
+            ok.push(await compressImage(f));
+          } catch (e) {
+            if (!firstErr) firstErr = e instanceof Error ? e.message : "فشل قراءة الملف";
+          }
+        }
+        if (ok.length === 0) {
+          if (firstErr) setError(firstErr);
+          return;
+        }
+        if (firstErr) setError(firstErr);
+        else setError(null);
+        emit([...normalized, ...ok]);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "فشل قراءة الملف");
+      }
     },
     [emit, mode, normalized],
   );
@@ -98,7 +112,7 @@ export function ImageDropzone({ mode, value, onChange, testId = "image-dropzone"
     e.preventDefault();
     setDragOver(false);
     const files = e.dataTransfer.files;
-    if (files.length > 0) handleFiles(files);
+    if (files.length > 0) void handleFiles(files);
   }
 
   function reorder(from: number, to: number) {
@@ -128,7 +142,7 @@ export function ImageDropzone({ mode, value, onChange, testId = "image-dropzone"
       >
         <p className="text-sm text-[hsl(var(--muted-foreground))]">اسحب الصور أو اضغط للاختيار</p>
         {mode === "single" ? <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">صورة واحدة</p> : null}
-        <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" multiple={mode === "multiple"} className="hidden" data-testid={`${testId}-file-input`} onChange={(e) => { handleFiles(e.target.files); if (inputRef.current) inputRef.current.value = ""; }} onClick={(e) => e.stopPropagation()} />
+        <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" multiple={mode === "multiple"} className="hidden" data-testid={`${testId}-file-input`} onChange={(e) => { void handleFiles(e.target.files); if (inputRef.current) inputRef.current.value = ""; }} onClick={(e) => e.stopPropagation()} />
       </div>
 
       {error ? <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40" role="alert">{error}</p> : null}

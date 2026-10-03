@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { ImageDropzone } from './ImageDropzone';
+import { ImageDropzone, MAX_FILE_BYTES, MAX_FILE_MB } from './ImageDropzone';
 
 beforeEach(() => {
   vi.stubGlobal('URL', {
@@ -24,22 +24,31 @@ function bigFile(name: string, type: string, bytes: number): File {
 }
 
 describe('ImageDropzone hardening matrix (RED first)', () => {
-  it('rejects oversized 12MB png in single mode with Arabic error (bug: accepted)', async () => {
+  it('rejects a file over the cap in single mode with Arabic error naming the cap', async () => {
     const onChange = vi.fn();
     render(<ImageDropzone mode="single" value="" onChange={onChange} testId="dropzone" />);
     const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = bigFile('big.png', 'image/png', 12 * 1024 * 1024);
+    const file = bigFile('big.png', 'image/png', MAX_FILE_BYTES + 1);
     fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(screen.getByRole('alert').textContent).toContain(`${MAX_FILE_MB}MB`);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('rejects a file over the cap via drag-drop in multiple mode', async () => {
+    const { onChange } = setup();
+    const dropzone = screen.getByText('اسحب الصور أو اضغط للاختيار');
+    fireEvent.drop(dropzone, { dataTransfer: { files: [bigFile('big.png', 'image/png', MAX_FILE_BYTES + 1)] } });
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('rejects oversized 12MB png via drag-drop in multiple mode (bug: accepted)', async () => {
+  it('accepts a file just under the cap', async () => {
     const { onChange } = setup();
     const dropzone = screen.getByText('اسحب الصور أو اضغط للاختيار');
-    fireEvent.drop(dropzone, { dataTransfer: { files: [bigFile('big.png', 'image/png', 12 * 1024 * 1024)] } });
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
-    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.drop(dropzone, { dataTransfer: { files: [bigFile('ok.png', 'image/png', MAX_FILE_BYTES)] } });
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 
   it('rejects wrong-MIME file with Arabic error and keeps valid ones', async () => {

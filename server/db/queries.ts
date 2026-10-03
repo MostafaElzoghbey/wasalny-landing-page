@@ -42,6 +42,8 @@ import type {
   RouteDataPatch,
   LocationPatch,
 } from '../types.js';
+import { replacePhotosForOwner } from './photos.js';
+import type { PhotoInput } from './photos.js';
 
 /** D1 accepts at most 100 bound parameters per statement. */
 const MAX_BOUND_PARAMS = 100;
@@ -433,13 +435,52 @@ export async function getContentEntries(
 // Cars CRUD
 // ---------------------------------------------------------------------------
 
-/** Insert a car. Uses `input.id` if provided, otherwise generates one. */
+/**
+ * Zip the admin's two PARALLEL arrays into `PhotoInput`s. `imageAlts` is
+ * positionally indexed against `images` (the invariant `validateCar` enforces
+ * client-side), so a missing alt becomes `''` for that slot and later pairs
+ * must NOT shift.
+ */
+function toPhotoInputs(
+  images: readonly string[],
+  imageAlts: readonly string[] | undefined,
+): PhotoInput[] {
+  return images.map((source, index) => ({
+    source,
+    alt: imageAlts?.[index] ?? '',
+  }));
+}
+
+/**
+ * Insert a car. Uses `input.id` if provided, otherwise generates one.
+ *
+ * The id is resolved FIRST because `photos.owner_key` is the car's id: the photo
+ * rows cannot be written before the key they hang off is known. The returned
+ * `images` are the PERSISTED paths, so a `data:` upload comes back as
+ * `/api/photos/<id>` — exactly what a later GET will store.
+ *
+ * NOT BATCHED WITH THE PHOTO WRITES, ON PURPOSE. `replacePhotosForOwner` runs
+ * its own `db.batch()`, and the paths it returns are the very value this INSERT
+ * has to bind, so the two cannot share one batch without inverting the
+ * dependency. Residual risk: if this INSERT fails — realistically only a
+ * duplicate `input.id` from the admin's client-side `generateId('car')` — photo
+ * rows for that id already exist. They are not orphans in the dangerous sense
+ * (they belong to a real, pre-existing car id and the next save of that car
+ * reconciles them), and `deleteCar` sweeps the owner's rows on any later
+ * delete.
+ */
 export async function createCar(
   db: D1Database,
   input: CarInput,
 ): Promise<Car> {
   const id = input.id ?? `car-${crypto.randomUUID()}`;
   const displayOrder = input.displayOrder ?? (await nextDisplayOrder(db, 'cars'));
+  const images = await replacePhotosForOwner(
+    db,
+    'car',
+    id,
+    toPhotoInputs(input.images, input.imageAlts),
+  );
   await db
     .prepare(
       `INSERT INTO cars (id, nameAr, category, categoryAr, description, seo_description, images, image_alts, features, display_order)
@@ -452,16 +493,26 @@ export async function createCar(
       input.categoryAr,
       input.description,
       input.seoDescription ?? null,
-      JSON.stringify(input.images),
+      JSON.stringify(images),
       JSON.stringify(input.imageAlts ?? []),
       JSON.stringify(input.features),
       displayOrder,
     )
     .run();
-  return { ...input, id, displayOrder };
+  return { ...input, id, displayOrder, images };
 }
 
-/** Partially update a car by id. Only provided fields are written. */
+/**
+ * Partially update a car by id. Only provided fields are written.
+ *
+ * `images` is resolved through `replacePhotosForOwner` ONLY when the patch
+ * carries it, so a patch that omits `images` cannot reorder, re-encode or prune
+ * a single photo row — the 20-image reorder drag in the admin sends `images`
+ * though, which is precisely the case that must rewrite zero bytes.
+ *
+ * A PUT aimed at an id that does not exist writes photo rows no car points at;
+ * the next `deleteCar` for that id sweeps them, so they cannot accumulate.
+ */
 export async function updateCar(
   db: D1Database,
   id: string,
@@ -476,8 +527,15 @@ export async function updateCar(
     fields.push(['description', patch.description]);
   if (patch.seoDescription !== undefined)
     fields.push(['seo_description', patch.seoDescription]);
-  if (patch.images !== undefined)
-    fields.push(['images', JSON.stringify(patch.images)]);
+  if (patch.images !== undefined) {
+    const images = await replacePhotosForOwner(
+      db,
+      'car',
+      id,
+      toPhotoInputs(patch.images, patch.imageAlts),
+    );
+    fields.push(['images', JSON.stringify(images)]);
+  }
   if (patch.imageAlts !== undefined)
     fields.push(['image_alts', JSON.stringify(patch.imageAlts)]);
   if (patch.features !== undefined)
@@ -493,9 +551,22 @@ export async function updateCar(
   await db.prepare(`UPDATE cars SET ${setClause} WHERE id = ?`).bind(...values).run();
 }
 
-/** Delete a car by id. */
+/**
+ * Delete a car and its photo rows (FK-safe).
+ *
+ * `photos.owner_key` is polymorphic, so it carries NO foreign key back to
+ * `cars` — `0007_photos.sql` deliberately omits one and makes orphan cleanup the
+ * caller's job. Same explicit-batch precedent as `deleteRouteGroup`: both
+ * statements land in one transaction, so a failure cannot delete the car and
+ * leave its bytes behind.
+ */
 export async function deleteCar(db: D1Database, id: string): Promise<void> {
-  await db.prepare('DELETE FROM cars WHERE id = ?').bind(id).run();
+  await db.batch([
+    db
+      .prepare("DELETE FROM photos WHERE owner_type = 'car' AND owner_key = ?")
+      .bind(id),
+    db.prepare('DELETE FROM cars WHERE id = ?').bind(id),
+  ]);
 }
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 # Migration ledger: `schema_migrations` vs `d1_migrations`
 
-The same five SQL files in this directory are applied by two runners against two
+The same seven SQL files in this directory are applied by two runners against two
 different ledgers. This file is the mapping between them.
 
 | | Node (better-sqlite3) | D1 (Workers) |
@@ -40,7 +40,7 @@ and is never written there. It is a harmless vestigial table. Removing it from
 
 **Use this order** (verified end to end):
 
-1. `npx wrangler d1 migrations apply <db> --remote` — applies all five files to an
+1. `npx wrangler d1 migrations apply <db> --remote` — applies all seven files to an
    empty database.
 2. `wrangler d1 export` from the Node DB → strip the schema (keep `INSERT`s) →
    `npx wrangler d1 execute <db> --remote --file dump.sql`.
@@ -72,7 +72,9 @@ npx wrangler d1 execute <db> --remote --command \
    ('0002_add_display_order.sql'),
    ('0003_remove_car_name_passengers.sql'),
    ('0004_backfill_display_order.sql'),
-   ('0005_route_data_labels.sql')"
+   ('0005_route_data_labels.sql'),
+   ('0006_auth_username.sql'),
+   ('0007_photos.sql')"
 
 npx wrangler d1 migrations apply <db> --remote   # -> "No migrations to apply!"
 ```
@@ -118,3 +120,19 @@ DEFAULT ''`. SQLite cannot ALTER column nullability, so `admins` is rebuilt
 (create, copy, drop, rename); ids are copied, not regenerated, so existing
 sessions keep pointing at the same `admins.id` values. Login accepts either a
 username or an email identifier (`server/routes/adminAuth.ts`).
+
+## 0007_photos.sql (per-photo rows)
+
+One row per uploaded photo (`photos`: `id`, `owner_type`, `owner_key`,
+`position`, `alt`, `mime`, `data`, `created_at`, plus `idx_photos_owner` on
+`(owner_type, owner_key, position)`), replacing base64 data-URL arrays packed
+into single TEXT cells. `owner_key` is polymorphic (`cars.id` for
+`owner_type='car'`, a `content` key such as `'mockupImages'` for
+`owner_type='content'`), so no FOREIGN KEY is declared and orphan cleanup is
+the caller's responsibility; `owner_type` (`'car'`/`'content'`) and the ~200KB
+client-side size target are enforced by the application layer, not by CHECK
+constraints. The table is created EMPTY — no data is moved — so this file is a
+no-op re-run even outside the runners (`IF NOT EXISTS` on both statements).
+
+Ledger values: `schema_migrations` stores `0007_photos` (filename minus
+`.sql`); `d1_migrations` stores `0007_photos.sql` (full filename).

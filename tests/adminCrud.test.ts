@@ -373,6 +373,149 @@ describe('adminCrud', () => {
       const body = (await get.json()) as { value: unknown };
       expect(body.value).toBe('logo.png');
     });
+
+    it('PATCH /content mockupImages with two data URLs stores 2 photo rows and path array', async () => {
+      // Given: two small data-URL uploads for the identity marquee.
+      const uploads = ['data:image/png;base64,AAAA', 'data:image/jpeg;base64,BBBB'];
+      const before = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+
+      // When: the admin saves them through PATCH /content.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: uploads }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: exactly 2 photo rows were added for this owner, and the content
+      // cell holds two /api/photos/<id> paths — not data URLs.
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect((count?.n ?? 0) - (before?.n ?? 0)).toBe(2);
+
+      const get = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      expect(get.status).toBe(200);
+      const body = (await get.json()) as { value: unknown };
+      expect(Array.isArray(body.value)).toBe(true);
+      const paths = body.value as string[];
+      expect(paths).toHaveLength(2);
+      for (const path of paths) {
+        expect(path.startsWith('/api/photos/')).toBe(true);
+        expect(path.startsWith('data:')).toBe(false);
+      }
+    });
+
+    it('PATCH /content mockupImages with stored paths reorders with zero new photo rows', async () => {
+      // Given: two uploads already saved, with their stored paths read back.
+      const uploads = ['data:image/png;base64,AAAA', 'data:image/jpeg;base64,BBBB'];
+      const first = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: uploads }),
+      }, h.env);
+      expect(first.status).toBe(200);
+      const stored = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      const storedBody = (await stored.json()) as { value: string[] };
+      const reordered = [...storedBody.value].reverse();
+      const saved = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+
+      // When: the admin re-saves the same photos in a new order.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: reordered }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: no new rows were created and the stored order matches.
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect(count?.n).toBe(saved?.n);
+
+      const get = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await get.json()) as { value: unknown };
+      expect(body.value).toEqual(reordered);
+    });
+
+    it('PATCH /content mockupImages with an over-2MB data URL returns 400 with the Arabic message', async () => {
+      // Given: a data URL whose UTF-8 byte length exceeds the D1 cell cap.
+      const oversized = `data:image/png;base64,${'A'.repeat(2_000_001)}`;
+      const before = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+
+      // When: the admin tries to save it.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: [oversized] }),
+      }, h.env);
+
+      // Then: the save is rejected with the shared Arabic message and no row.
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toBe('الصورة كبيرة جدًا بعد الضغط — جرّب صورة أصغر');
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect(count?.n).toBe(before?.n);
+    });
+
+    it('PATCH /content contactInfo still stores the value generically (non-photo regression)', async () => {
+      // Given: a plain contactInfo object, unrelated to photos.
+      const info = { phone: '01001234567', whatsapp: '+201001234567' };
+      const before = await h.db
+        .prepare('SELECT COUNT(*) AS n FROM photos')
+        .first<{ n: number }>();
+
+      // When: the admin saves it through PATCH /content.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'contactInfo', value: info }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: the value round-trips verbatim and no photo row was created.
+      const get = await adminCrud.request('/content/contactInfo', { headers: { cookie: COOKIE }  }, h.env);
+      expect(get.status).toBe(200);
+      const body = (await get.json()) as { value: unknown };
+      expect(body.value).toEqual(info);
+      const count = await h.db
+        .prepare('SELECT COUNT(*) AS n FROM photos')
+        .first<{ n: number }>();
+      expect(count?.n).toBe(before?.n);
+    });
+
+    it('PATCH /content mockupImages with a legacy /assets path stores it verbatim with zero photo rows', async () => {
+      // Given: the pre-existing static marquee image path.
+      const legacy = ['/assets/images/mockups/identity-a.jpeg'];
+
+      // When: the admin saves it through PATCH /content.
+      const res = await adminCrud.request('/content', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', cookie: COOKIE },
+        body: JSON.stringify({ key: 'mockupImages', value: legacy }),
+      }, h.env);
+      expect(res.status).toBe(200);
+
+      // Then: the path is stored verbatim and this owner holds no photo rows
+      // (a legacy-only save prunes the owner's rows, so the count is
+      // absolute, not relative).
+      const get = await adminCrud.request('/content/mockupImages', { headers: { cookie: COOKIE }  }, h.env);
+      const body = (await get.json()) as { value: unknown };
+      expect(body.value).toEqual(legacy);
+      const count = await h.db
+        .prepare("SELECT COUNT(*) AS n FROM photos WHERE owner_type = 'content' AND owner_key = 'mockupImages'")
+        .first<{ n: number }>();
+      expect(count?.n).toBe(0);
+    });
   });
 
   describe('locations / route-groups / pricing', () => {

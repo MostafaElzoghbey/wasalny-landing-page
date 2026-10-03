@@ -36,6 +36,7 @@ const MIGRATIONS: readonly string[] = [
   '0004_backfill_display_order.sql',
   '0005_route_data_labels.sql',
   '0006_auth_username.sql',
+  '0007_photos.sql',
 ];
 
 /**

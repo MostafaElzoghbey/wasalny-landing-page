@@ -16,7 +16,7 @@
 // `ImageDropzone` primitive, exactly like the cars panel. New images are staged
 // in a multiple-mode dropzone and appended on submit; an expanded row swaps its
 // own image through a single-mode dropzone. ImageDropzone already owns the
-// 5MB / mime guards and emits base64 data URLs.
+// size / mime guards and emits compressed data URLs.
 //
 // Test-id contract asserted below:
 //   identity-card-{i}  identity-expand-{i}  identity-delete-{i}
@@ -30,6 +30,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { adminGetContent, adminUpdateContent } from '@/data/api';
 import { useReorderAnimation } from '@/hooks/useReorderAnimation';
 import { IdentityAdmin } from './IdentityAdmin';
+import { MAX_FILE_BYTES } from '@/components/ui/ImageDropzone';
 
 const { mockCapture, mockRef } = vi.hoisted(() => ({
   mockCapture: vi.fn(),
@@ -265,7 +266,7 @@ describe('IdentityAdmin brand-identity image panel', () => {
     await renderPanel();
 
     fireEvent.change(createFileInput(), {
-      target: { files: [fileOf('oversized.png', 'image/png', 12 * 1024 * 1024)] },
+      target: { files: [fileOf('oversized.png', 'image/png', MAX_FILE_BYTES + 1)] },
     });
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());

@@ -36,6 +36,11 @@ import {
   reorderEntities,
 } from '../db/queries.js';
 import { requireAdmin } from '../middleware/auth.js';
+import {
+  exceedsPhotoRowLimit,
+  PHOTO_TOO_LARGE_MESSAGE,
+  replacePhotosForOwner,
+} from '../db/photos.js';
 import type { CarInput } from '../types.js';
 import type { RouteData, Faq, Location, RouteGroup } from '@/types';
 
@@ -132,6 +137,11 @@ function validateCarInput(
   if (Array.isArray(body.images)) {
     if (!body.images.every((img: unknown) => typeof img === 'string' && img.trim().length > 0)) {
       return { error: 'every image must be a non-empty string' };
+    }
+    // An over-budget data URL is rejected HERE rather than surfacing as a raw
+    // `SQLITE_TOOBIG` from D1, so the admin sees the actionable reason.
+    if (body.images.some((img: string) => exceedsPhotoRowLimit(img))) {
+      return { error: PHOTO_TOO_LARGE_MESSAGE };
     }
   }
 
@@ -313,6 +323,38 @@ adminCrud.patch('/content', requireAdmin, async (c) => {
   const body = await c.req.json<{ key: string; value: unknown }>();
   if (body.key === undefined) {
     return c.json({ error: 'key is required' }, 400);
+  }
+  // Special case: `mockupImages` is the identity-marquee array, and it must
+  // NOT be stored as one giant base64 JSON array in the single `content` row.
+  // D1 caps a string cell at 2,000,000 bytes, which ~8 compressed photos (or
+  // ~53MB for 200 photos) would exceed. Instead each `data:` URL gets its own
+  // `photos` row via `replacePhotosForOwner`, and the `content` row keeps only
+  // the ordered `/api/photos/<id>` PATH array (a few KB no matter how many
+  // photos the admin uploads) — the same index pattern `createCar`/`updateCar`
+  // use for `owner_type = 'car'`. The read path (`getPublicData`) is untouched:
+  // it keeps serving the stored path array verbatim. Legacy `/assets/...`
+  // static paths pass through with no row created, so the existing static
+  // marquee images keep working with no backfill.
+  if (body.key === 'mockupImages') {
+    if (
+      !isStringArray(body.value) ||
+      !body.value.every((entry) => entry.length > 0)
+    ) {
+      return c.json({ error: 'every image must be a non-empty string' }, 400);
+    }
+    // An over-budget data URL is rejected HERE rather than surfacing as a raw
+    // `SQLITE_TOOBIG` from D1, so the admin sees the actionable reason.
+    if (body.value.some((source) => exceedsPhotoRowLimit(source))) {
+      return c.json({ error: PHOTO_TOO_LARGE_MESSAGE }, 400);
+    }
+    const paths = await replacePhotosForOwner(
+      db,
+      'content',
+      'mockupImages',
+      body.value.map((source) => ({ source, alt: '' })),
+    );
+    await updateContentValue(db, body.key, paths);
+    return c.json({ ok: true }, 200);
   }
   await updateContentValue(db, body.key, body.value);
   return c.json({ ok: true }, 200);

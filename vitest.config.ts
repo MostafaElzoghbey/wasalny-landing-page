@@ -19,7 +19,9 @@ export default defineConfig({
     environment: 'node',
     clearMocks: true,
     setupFiles: ['./tests/setup.ts'],
-    include: ['tests/**/*.test.ts', 'src/**/*.test.{ts,tsx}'],
+    // `server/**` co-locates a module's test beside the module it covers
+    // (`server/db/photos.test.ts`), the same convention the `src/**` entry uses.
+    include: ['tests/**/*.test.ts', 'src/**/*.test.{ts,tsx}', 'server/**/*.test.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',

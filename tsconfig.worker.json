@@ -44,5 +44,10 @@
     "src/data/content.ts",
     "src/data/faqs.ts",
     "src/data/routeData.ts"
-  ]
+  ],
+  // Tests are excluded from every tsc project (tsconfig.app.json already drops
+  // `src/**/*.test.ts` and `tests`): a co-located `server/**/*.test.ts` imports
+  // `tests/helpers/d1.ts`, which pulls better-sqlite3 and the D1 shim into this
+  // Workers program where neither belongs.
+  "exclude": ["server/**/*.test.ts"]
 }
