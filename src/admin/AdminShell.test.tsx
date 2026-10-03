@@ -154,7 +154,7 @@ describe('AdminApp mobile shell', () => {
     await renderAdmin();
 
     await waitFor(() =>
-      expect(screen.getByTestId('admin-nav-cars')).toHaveAttribute('aria-current', 'page'),
+      expect(screen.getByTestId('admin-nav-cars')).toHaveAttribute('aria-current', 'true'),
     );
     expect(screen.getByTestId('admin-nav-faqs')).not.toHaveAttribute('aria-current');
   });

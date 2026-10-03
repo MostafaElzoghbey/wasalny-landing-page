@@ -52,7 +52,7 @@ export function AdminNav({
             <button
               key={item.key}
               data-testid={item.testid ?? `admin-nav-${item.key}`}
-              aria-current={active === item.key ? 'page' : undefined}
+              aria-current={active === item.key ? 'true' : undefined}
               onClick={() => onSelect(item.key)}
               className={cn(
                 'min-h-[44px] w-full touch-manipulation rounded-lg px-3 py-2 text-start text-sm font-medium transition',
