@@ -46,7 +46,7 @@ export function AdminNav({
           open ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full max-lg:rtl:translate-x-full',
         )}
       >
-        <h2 className="mb-4 text-lg font-bold">لوحة تحكم وصلني</h2>
+        <p className="mb-4 text-lg font-bold">لوحة تحكم وصلني</p>
         <nav aria-label="أقسام لوحة التحكم" className="flex flex-col gap-1">
           {items.map((item) => (
             <button
