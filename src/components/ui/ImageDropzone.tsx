@@ -138,7 +138,7 @@ export function ImageDropzone({ mode, value, onChange, testId = "image-dropzone"
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition ${dragOver ? "border-primary-500 bg-primary-50 dark:bg-primary-950/20" : "border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-primary-300"}`}
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 text-center transition sm:p-6 ${dragOver ? "border-primary-500 bg-primary-50 dark:bg-primary-950/20" : "border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-primary-300"}`}
       >
         <p className="text-sm text-[hsl(var(--muted-foreground))]">اسحب الصور أو اضغط للاختيار</p>
         {mode === "single" ? <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">صورة واحدة</p> : null}
@@ -148,18 +148,18 @@ export function ImageDropzone({ mode, value, onChange, testId = "image-dropzone"
       {error ? <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40" role="alert">{error}</p> : null}
 
       {normalized.length > 0 ? (
-        <ul className={`mt-3 grid gap-3 ${mode === "single" ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3"}`}>
+        <ul className={`mt-3 grid gap-3 ${mode === "single" ? "grid-cols-1" : "grid-cols-1 min-[380px]:grid-cols-2 sm:grid-cols-3"}`}>
           {normalized.map((src, idx) => (
             <li key={`${src}-${idx}`} data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-preview-${idx}`} draggable={mode === "multiple"} onDragStart={() => setDragIdx(idx)} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (dragIdx !== null) reorder(dragIdx, idx); setDragIdx(null); }} className="group relative overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
               <img src={src} alt="صورة" className="h-28 w-full object-cover" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
               <div className="absolute inset-0 hidden items-center justify-center bg-black/40 group-hover:flex" />
-              <button type="button" data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-remove-${idx}`} onClick={() => removeAt(idx)} className="absolute left-1 top-1 rounded-md bg-red-600 px-2 py-1 text-xs font-semibold text-white">حذف</button>
+              <button type="button" data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-remove-${idx}`} onClick={() => removeAt(idx)} className="absolute left-1 top-1 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-red-600 px-3 py-2.5 text-sm font-semibold text-white">حذف</button>
               {mode === "multiple" ? (
                 <>
-                  <span data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-handle-${idx}`} className="absolute right-1 top-1 cursor-grab rounded bg-black/60 px-1.5 py-1 text-xs text-white">⋮⋮</span>
+                  <span data-testid={`${previewPrefix ? `${previewPrefix}-` : ''}dropzone-handle-${idx}`} className="absolute right-1 top-1 cursor-grab rounded bg-black/60 px-1.5 py-1 text-xs text-white [@media(hover:none)]:hidden">⋮⋮</span>
                   <div className="absolute bottom-1 left-1 flex gap-1">
-                    <button type="button" disabled={idx === 0} onClick={() => reorder(idx, idx - 1)} className="rounded bg-white/90 px-1.5 py-0.5 text-xs disabled:opacity-40">↑</button>
-                    <button type="button" disabled={idx === normalized.length - 1} onClick={() => reorder(idx, idx + 1)} className="rounded bg-white/90 px-1.5 py-0.5 text-xs disabled:opacity-40">↓</button>
+                    <button type="button" disabled={idx === 0} onClick={() => reorder(idx, idx - 1)} className="min-h-[44px] min-w-[44px] rounded bg-white/90 px-3 py-2.5 text-sm disabled:opacity-40">↑</button>
+                    <button type="button" disabled={idx === normalized.length - 1} onClick={() => reorder(idx, idx + 1)} className="min-h-[44px] min-w-[44px] rounded bg-white/90 px-3 py-2.5 text-sm disabled:opacity-40">↓</button>
                   </div>
                 </>
               ) : null}

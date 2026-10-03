@@ -50,7 +50,7 @@ export function OrderedImageList({
         <li
           key={`${src}-${idx}`}
           data-testid={`${testIdPrefix}-edit-${itemId}-${idx}`}
-          className="flex items-center gap-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
+          className="flex min-w-0 flex-wrap items-center gap-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2"
         >
           <img
             src={src}
@@ -63,7 +63,7 @@ export function OrderedImageList({
             onChange={(e) => updateAlt(idx, e.target.value)}
             data-testid={`${testIdPrefix}-alt-${itemId}-${idx}`}
             placeholder="وصف الصورة"
-            className="min-w-0 flex-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-1 text-sm text-[hsl(var(--foreground))]"
+            className="min-h-[44px] min-w-0 flex-1 rounded border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-2 py-2 text-base text-[hsl(var(--foreground))] sm:text-sm"
           />
           <div className="flex shrink-0 gap-1">
             <button
@@ -71,7 +71,7 @@ export function OrderedImageList({
               disabled={idx === 0}
               onClick={() => move(idx, idx - 1)}
               data-testid={`${testIdPrefix}-up-${itemId}-${idx}`}
-              className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs disabled:opacity-40"
+              className="min-h-[44px] min-w-[44px] rounded bg-[hsl(var(--muted))] px-3 py-2.5 text-sm disabled:opacity-40"
             >
               ↑
             </button>
@@ -80,7 +80,7 @@ export function OrderedImageList({
               disabled={idx === value.length - 1}
               onClick={() => move(idx, idx + 1)}
               data-testid={`${testIdPrefix}-down-${itemId}-${idx}`}
-              className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs disabled:opacity-40"
+              className="min-h-[44px] min-w-[44px] rounded bg-[hsl(var(--muted))] px-3 py-2.5 text-sm disabled:opacity-40"
             >
               ↓
             </button>
@@ -88,7 +88,7 @@ export function OrderedImageList({
               type="button"
               onClick={() => remove(idx)}
               data-testid={`${testIdPrefix}-remove-${itemId}-${idx}`}
-              className="rounded bg-red-600 px-1.5 py-0.5 text-xs text-white"
+              className="min-h-[44px] min-w-[44px] rounded bg-red-600 px-3 py-2.5 text-sm text-white"
             >
               ✕
             </button>

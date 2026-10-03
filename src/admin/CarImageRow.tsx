@@ -7,7 +7,7 @@ import { ImageDropzone } from '@/components/ui/ImageDropzone';
 import type { ImageRow } from './carImageRows';
 import { buildRowDeletePayload, buildRowEditPayload, imageRowDisplayName } from './carImageRows';
 import { validateCar } from './carHelpers';
-import { ErrorText, Field, PrimaryButton, DangerButton } from './ui';
+import { ErrorText, Field, PrimaryButton, DangerButton, GhostButton } from './ui';
 
 interface CarImageRowProps {
   car: Car;
@@ -124,11 +124,11 @@ export function CarImageRow({ car, row, rowNumber, categoryLabel, onUpdated, onD
     <li
       dir="rtl"
       data-testid={rowTestId}
-      className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2 text-right"
+      className="overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2 text-end"
     >
       {error && <ErrorText message={error} />}
       {!editing ? (
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span
             data-testid={`car-imagerow-order-${row.carId}-${row.index}`}
             className="shrink-0 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 font-mono text-xs font-semibold text-[hsl(var(--muted-foreground))]"
@@ -141,30 +141,30 @@ export function CarImageRow({ car, row, rowNumber, categoryLabel, onUpdated, onD
               src={row.imageUrl}
               alt={row.alt}
               loading="lazy"
-              className="h-12 w-16 shrink-0 rounded-lg border border-[hsl(var(--border))] object-cover"
+              className="h-12 w-12 shrink-0 rounded-lg border border-[hsl(var(--border))] object-cover sm:w-16"
             />
           ) : (
             <span
               data-testid={`car-imagerow-thumb-placeholder-${row.carId}-${row.index}`}
-              className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))] text-[10px] text-[hsl(var(--muted-foreground))]"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))] text-xs text-[hsl(var(--muted-foreground))] sm:w-16"
             >
               لا صورة
             </span>
           )}
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-[hsl(var(--foreground))]">{name}</span>
-          <span className="shrink-0 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 text-xs font-semibold text-[hsl(var(--muted-foreground))]">
+          <span className="min-w-0 flex-1 basis-full truncate text-sm font-medium text-[hsl(var(--foreground))] sm:basis-auto">{name}</span>
+          <span className="hidden shrink-0 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 text-xs font-semibold text-[hsl(var(--muted-foreground))] sm:inline-block">
             {categoryLabel}
           </span>
-          <button
+          <GhostButton
             type="button"
             data-testid={`car-imagerow-edit-${row.carId}-${row.index}`}
             onClick={enterEdit}
-            className="shrink-0 rounded-xl border border-[hsl(var(--border))] px-3 py-1.5 text-xs font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
+            className="shrink-0"
           >
             تعديل
-          </button>
+          </GhostButton>
           {confirmDelete ? (
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <DangerButton
                 type="button"
                 data-testid={`car-imagerow-delete-confirm-${row.carId}-${row.index}`}
@@ -173,21 +173,20 @@ export function CarImageRow({ car, row, rowNumber, categoryLabel, onUpdated, onD
               >
                 {car.images.length <= 1 ? 'تأكيد حذف السيارة' : 'تأكيد الحذف'}
               </DangerButton>
-              <button
+              <GhostButton
                 type="button"
                 data-testid={`car-imagerow-delete-cancel-${row.carId}-${row.index}`}
                 onClick={cancelDelete}
-                className="rounded-xl border border-[hsl(var(--border))] px-3 py-1.5 text-xs font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
               >
                 إلغاء
-              </button>
+              </GhostButton>
             </div>
           ) : (
             <button
               type="button"
               data-testid={`car-imagerow-delete-${row.carId}-${row.index}`}
               onClick={enterDelete}
-              className="shrink-0 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 active:scale-95"
+              className="min-h-[44px] min-w-[44px] shrink-0 rounded-xl border border-red-200 px-3 py-2.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 active:scale-95"
             >
               حذف
             </button>
@@ -199,7 +198,7 @@ export function CarImageRow({ car, row, rowNumber, categoryLabel, onUpdated, onD
               onClick={onMoveUp}
               disabled={!canMoveUp || !hasPhoto}
               aria-label="تحريك الصورة لأعلى"
-              className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               ↑
             </button>
@@ -209,7 +208,7 @@ export function CarImageRow({ car, row, rowNumber, categoryLabel, onUpdated, onD
               onClick={onMoveDown}
               disabled={!canMoveDown || !hasPhoto}
               aria-label="تحريك الصورة لأسفل"
-              className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               ↓
             </button>
@@ -250,14 +249,13 @@ export function CarImageRow({ car, row, rowNumber, categoryLabel, onUpdated, onD
             >
               {saving ? 'جارٍ الحفظ…' : 'حفظ'}
             </PrimaryButton>
-            <button
+            <GhostButton
               type="button"
               data-testid={`car-imagerow-cancel-${row.carId}-${row.index}`}
               onClick={cancelEdit}
-              className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
             >
               إلغاء
-            </button>
+            </GhostButton>
           </div>
         </div>
       )}

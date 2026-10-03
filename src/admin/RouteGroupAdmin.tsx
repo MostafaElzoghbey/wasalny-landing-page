@@ -191,7 +191,7 @@ export function RouteGroupAdmin() {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as RouteGroup['type'])}
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
+                  className="min-h-[44px] w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-base text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none sm:text-sm"
                 >
                   {TYPES.map((t) => (
                     <option key={t} value={t}>
@@ -202,7 +202,7 @@ export function RouteGroupAdmin() {
               </label>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
+              <div className="min-w-0">
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الانطلاق</span>
                 <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر من المواقع الحالية (أنشئها أولاً في تبويب المواقع)</p>
                 <input
@@ -210,7 +210,7 @@ export function RouteGroupAdmin() {
                   value={fromSearch}
                   onChange={(e) => setFromSearch(e.target.value)}
                   placeholder="بحث..."
-                  className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                  className="mb-2 min-h-[44px] w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-base text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none sm:text-sm"
                 />
                 <div
                   data-testid="route-group-from-picker"
@@ -230,7 +230,7 @@ export function RouteGroupAdmin() {
                     return filtered.map((loc) => (
                       <label
                         key={loc.id}
-                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
+                        className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
                       >
                         <input
                           type="checkbox"
@@ -241,10 +241,10 @@ export function RouteGroupAdmin() {
                               checked ? [...prev, loc.id] : prev.filter((x) => x !== loc.id),
                             );
                           }}
-                          className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
+                          className="h-5 w-5 shrink-0 rounded border-[hsl(var(--border))] accent-primary-600"
                         />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
-                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                        <span className="hidden shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))] min-[420px]:inline">{loc.id}</span>
                         <span
                           className={
                             loc.type === 'travel'
@@ -262,7 +262,7 @@ export function RouteGroupAdmin() {
                   <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{fromLocations.length} محدد</p>
                 )}
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الوصول</span>
                 <p className="mb-2 text-xs text-[hsl(var(--muted-foreground))]">اختر الوجهات المتاحة</p>
                 <input
@@ -270,7 +270,7 @@ export function RouteGroupAdmin() {
                   value={toSearch}
                   onChange={(e) => setToSearch(e.target.value)}
                   placeholder="بحث..."
-                  className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--muted-foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                  className="mb-2 min-h-[44px] w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-base text-[hsl(var(--muted-foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none sm:text-sm"
                 />
                 <div
                   data-testid="route-group-to-picker"
@@ -290,7 +290,7 @@ export function RouteGroupAdmin() {
                     return filtered.map((loc) => (
                       <label
                         key={loc.id}
-                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
+                        className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
                       >
                         <input
                           type="checkbox"
@@ -301,10 +301,10 @@ export function RouteGroupAdmin() {
                               checked ? [...prev, loc.id] : prev.filter((x) => x !== loc.id),
                             );
                           }}
-                          className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
+                          className="h-5 w-5 shrink-0 rounded border-[hsl(var(--border))] accent-primary-600"
                         />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
-                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                        <span className="hidden shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))] min-[420px]:inline">{loc.id}</span>
                         <span
                           className={
                             loc.type === 'travel'
@@ -324,12 +324,12 @@ export function RouteGroupAdmin() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-4">
               {VEHICLE_CATEGORIES.map((category) => (
-                <div key={category} className="rounded-lg border border-[hsl(var(--border))] p-2">
+                <div key={category} className="min-w-0 rounded-lg border border-[hsl(var(--border))] p-2">
                   <p className="mb-1 text-xs font-semibold text-[hsl(var(--muted-foreground))]">{category === 'sedan' ? 'سيدان' : category === 'suv' ? 'دفع رباعي' : category === 'family_cruiser' ? 'عائلي' : 'ميكروباص'}</p>
-                  <Field label="ذهاب فقط" type="number" value={prices[category].oneWay} onChange={(v) => setPrice(category, 'oneWay', v)} />
-                  <Field label="ذهاب وعودة" type="number" value={prices[category].roundTrip} onChange={(v) => setPrice(category, 'roundTrip', v)} />
+                  <Field label="ذهاب فقط" type="number" inputMode="numeric" value={prices[category].oneWay} onChange={(v) => setPrice(category, 'oneWay', v)} />
+                  <Field label="ذهاب وعودة" type="number" inputMode="numeric" value={prices[category].roundTrip} onChange={(v) => setPrice(category, 'roundTrip', v)} />
                 </div>
               ))}
             </div>

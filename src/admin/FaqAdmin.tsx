@@ -96,7 +96,7 @@ export function FaqAdmin() {
     <Panel title="الأسئلة الشائعة">
       {error && <ErrorText message={error} />}
       {reorderError && <ErrorText message={reorderError} />}
-      <form onSubmit={handleCreate} className="mb-6 rounded-lg border border-[hsl(var(--border))] p-4">
+      <form onSubmit={handleCreate} className="mb-6 rounded-lg border border-[hsl(var(--border))] p-3 sm:p-4">
         <Field label="السؤال" testid="faq-question" value={question} onChange={setQuestion} required />
         <Field label="الإجابة" testid="faq-answer" value={answer} onChange={setAnswer} textarea required />
         <PrimaryButton type="submit" data-testid="faq-create-submit">

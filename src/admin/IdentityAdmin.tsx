@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 import { adminGetContent, adminUpdateContent } from '@/data/api';
 import { ImageDropzone } from '@/components/ui/ImageDropzone';
 import { useReorderAnimation } from '@/hooks/useReorderAnimation';
-import { ErrorText, Panel, PrimaryButton } from './ui';
+import { DangerButton, ErrorText, GhostButton, Panel, PrimaryButton } from './ui';
 import { moveItem, removeItemAt, replaceItemAt } from './identityHelpers';
 
 const CONTENT_KEY = 'mockupImages';
@@ -122,16 +121,15 @@ export function IdentityAdmin() {
         data-testid="identity-create"
         dir="rtl"
         onSubmit={handleAdd}
-        className="mb-6 space-y-3 rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-sm"
+        className="mb-6 space-y-3 rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 shadow-sm sm:p-4"
       >
-        <div className="h-1 w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500" />
+        <div className="h-1 w-full max-w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500" />
         <h4 className="font-semibold">إضافة صور الهوية</h4>
         <ImageDropzone
           mode="multiple"
           value={pending}
           onChange={(v) => setPending(Array.isArray(v) ? v : v ? [v] : [])}
-          testId="identity-upload-create"
-          label="الصور"
+          testId="identity-upload-create" label="الصور"
         />
         <PrimaryButton type="submit" data-testid="identity-add" disabled={busy}>
           {busy ? 'جارٍ الحفظ…' : 'إضافة الصور'}
@@ -146,9 +144,9 @@ export function IdentityAdmin() {
               dir="rtl"
               data-reorder-item={String(i)}
               data-testid={`identity-card-${i}`}
-              className="reorder-item rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2 text-right"
+              className="reorder-item rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-start sm:px-3 sm:py-2"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="shrink-0 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 font-mono text-xs font-semibold text-[hsl(var(--muted-foreground))]">
                   {i + 1}
                 </span>
@@ -156,36 +154,36 @@ export function IdentityAdmin() {
                   src={src}
                   alt={`صورة الهوية ${i + 1}`}
                   loading="lazy"
-                  className="h-12 w-16 shrink-0 rounded-lg border border-[hsl(var(--border))] object-cover"
+                  className="h-12 w-12 shrink-0 rounded-lg border border-[hsl(var(--border))] object-cover sm:w-16"
                 />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-[hsl(var(--foreground))]">صورة الهوية {i + 1}</span>
-                <button
+                <GhostButton
                   type="button"
                   data-testid={`identity-expand-${i}`}
                   onClick={() => handleExpand(i)}
-                  className="shrink-0 rounded-xl border border-[hsl(var(--border))] px-3 py-1.5 text-xs font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
+                  className="shrink-0 px-3 py-1.5 text-xs"
                 >
                   {expandedId === i ? 'إغلاق' : 'تعديل'}
-                </button>
+                </GhostButton>
                 {confirmDelete === i ? (
-                  <div className="flex shrink-0 items-center gap-2">
-                    <button
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <DangerButton
                       type="button"
                       data-testid={`identity-delete-confirm-${i}`}
                       onClick={() => void handleDeleteConfirm(i)}
                       disabled={busy}
-                      className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 active:scale-95 disabled:opacity-50"
+                      className="px-3 py-1.5 text-xs"
                     >
                       تأكيد الحذف
-                    </button>
-                    <button
+                    </DangerButton>
+                    <GhostButton
                       type="button"
                       data-testid={`identity-delete-cancel-${i}`}
                       onClick={() => setConfirmDelete(null)}
-                      className="rounded-xl border border-[hsl(var(--border))] px-3 py-1.5 text-xs font-semibold transition hover:bg-[hsl(var(--muted))] active:scale-95"
+                      className="px-3 py-1.5 text-xs"
                     >
                       إلغاء
-                    </button>
+                    </GhostButton>
                   </div>
                 ) : (
                   <button
@@ -195,7 +193,7 @@ export function IdentityAdmin() {
                       setError(null);
                       setConfirmDelete(i);
                     }}
-                    className="shrink-0 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 active:scale-95"
+                    className="shrink-0 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 active:scale-95 min-h-[44px]"
                   >
                     حذف
                   </button>
@@ -207,7 +205,7 @@ export function IdentityAdmin() {
                     onClick={() => void handleMove(i, -1)}
                     disabled={i === 0 || busy}
                     aria-label="تحريك الصورة لأعلى"
-                    className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 min-h-[44px] min-w-[44px]"
                   >
                     ↑
                   </button>
@@ -217,7 +215,7 @@ export function IdentityAdmin() {
                     onClick={() => void handleMove(i, 1)}
                     disabled={i === images.length - 1 || busy}
                     aria-label="تحريك الصورة لأسفل"
-                    className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-xs leading-none transition hover:bg-[hsl(var(--border))] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 min-h-[44px] min-w-[44px]"
                   >
                     ↓
                   </button>
@@ -230,9 +228,7 @@ export function IdentityAdmin() {
                     mode="single"
                     value={draftImage}
                     onChange={(v) => setDraftImage(Array.isArray(v) ? (v[0] ?? '') : v)}
-                    testId={`identity-upload-edit-${i}`}
-                    previewPrefix={`identity-edit-${i}`}
-                    label="الصورة"
+                    testId={`identity-upload-edit-${i}`} previewPrefix={`identity-edit-${i}`} label="الصورة"
                   />
                   <div className="flex flex-wrap gap-2">
                     <PrimaryButton
@@ -240,17 +236,18 @@ export function IdentityAdmin() {
                       data-testid="identity-save"
                       onClick={() => void handleSave(i)}
                       disabled={busy}
+                      className="w-full sm:w-auto"
                     >
                       {busy ? 'جارٍ الحفظ…' : 'حفظ'}
                     </PrimaryButton>
-                    <button
+                    <GhostButton
                       type="button"
                       data-testid="identity-cancel"
                       onClick={handleCancel}
-                      className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold transition hover:bg-[hsl(var(--muted))] active:scale-95"
+                      className="w-full sm:w-auto"
                     >
                       إلغاء
-                    </button>
+                    </GhostButton>
                   </div>
                 </div>
               )}

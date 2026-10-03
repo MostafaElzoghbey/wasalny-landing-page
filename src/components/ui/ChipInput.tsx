@@ -61,7 +61,7 @@ export function ChipInput({
       <div
         data-testid={testId ?? `chip-input-${label}`}
         className={cn(
-          'flex min-h-[42px] flex-wrap items-center gap-2 rounded-lg border bg-[hsl(var(--card))] p-2 text-sm focus-within:border-primary-500 focus-within:outline-none',
+          'flex min-h-[44px] flex-wrap items-center gap-2 rounded-lg border bg-[hsl(var(--card))] p-2 text-sm focus-within:border-primary-500 focus-within:outline-none',
           error
             ? 'border-red-500 focus-within:border-red-500'
             : 'border-[hsl(var(--border))]',
@@ -85,7 +85,7 @@ export function ChipInput({
               data-testid={`chip-remove-${v}`}
               disabled={disabled}
               onClick={() => removeAt(i)}
-              className="ms-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/20 text-xs leading-none transition hover:bg-white/30 disabled:opacity-50"
+              className="ms-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-white/20 text-base leading-none transition hover:bg-white/30 disabled:opacity-50"
             >
               ×
             </button>
@@ -119,7 +119,7 @@ export function ChipInput({
               setDraft('');
             }
           }}
-          className="min-w-[120px] flex-1 bg-transparent p-1 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none disabled:cursor-not-allowed"
+          className="min-w-0 flex-1 bg-transparent p-1 text-base text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none disabled:cursor-not-allowed sm:min-w-[120px] sm:text-sm"
         />
       </div>
       {error && (

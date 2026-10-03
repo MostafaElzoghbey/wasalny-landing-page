@@ -5,7 +5,7 @@ import { adminDeleteCar, adminUpdateCar } from '@/data/api';
 import { ChipInput } from '@/components/ui/ChipInput';
 import { ImageDropzone } from '@/components/ui/ImageDropzone';
 import { OrderedImageList } from '@/components/ui/OrderedImageList';
-import { DangerButton, ErrorText, Field, PrimaryButton } from './ui';
+import { DangerButton, ErrorText, Field, GhostButton, PrimaryButton } from './ui';
 import { CAR_CATEGORIES, CATEGORY_COLORS, CATEGORY_LABELS, cloneCar, syncAlts, validateCar } from './carHelpers';
 
 interface CarCardProps {
@@ -90,7 +90,7 @@ export function CarCard({ group, onUpdated, onDeleted }: CarCardProps) {
       )}
 
       {!editing ? (
-        <div className="flex items-center gap-3 px-4 py-2.5 text-right">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-right">
           <span data-testid={`car-order-${group.id}`} className="shrink-0 rounded-full bg-[hsl(var(--muted))] px-2 py-0.5 font-mono text-xs font-semibold text-[hsl(var(--muted-foreground))]">{group.displayOrder}</span>
           {group.images.length > 0 ? (
             <img
@@ -98,47 +98,47 @@ export function CarCard({ group, onUpdated, onDeleted }: CarCardProps) {
               src={group.images[0]}
               alt=""
               loading="lazy"
-              className="h-12 w-16 shrink-0 rounded-lg border border-[hsl(var(--border))] object-cover"
+              className="h-12 w-12 shrink-0 rounded-lg border border-[hsl(var(--border))] object-cover sm:w-16"
             />
           ) : (
-            <span data-testid={`car-thumb-placeholder-${group.id}`} className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))] text-[10px] text-[hsl(var(--muted-foreground))]">لا صورة</span>
+            <span data-testid={`car-thumb-placeholder-${group.id}`} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))] text-xs text-[hsl(var(--muted-foreground))] sm:w-16">لا صورة</span>
           )}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="truncate font-medium text-[hsl(var(--foreground))]">{group.nameAr}</span>
-              <span className={`rounded-full ${CATEGORY_COLORS[group.category].solid} px-2 py-0.5 text-xs font-semibold text-white`}>{CATEGORY_LABELS[group.category]}</span>
+              <span className={`shrink-0 rounded-full ${CATEGORY_COLORS[group.category].solid} px-2 py-0.5 text-xs font-semibold text-white`}>{CATEGORY_LABELS[group.category]}</span>
             </div>
             <p data-testid={`car-counts-${group.id}`} className="mt-0.5 truncate text-xs text-[hsl(var(--muted-foreground))]">
               {group.images.length} صور • {group.features.length} ميزات • <span className="font-mono">{group.id}</span>
             </p>
           </div>
           {confirmDelete ? (
-            <div className="flex shrink-0 items-center gap-2">
-              <DangerButton type="button" data-testid={`car-delete-confirm-${group.id}`} onClick={handleDelete} disabled={saving}>
+            <div className="flex shrink-0 basis-full flex-wrap items-center gap-2 sm:basis-auto">
+              <DangerButton type="button" data-testid={`car-delete-confirm-${group.id}`} onClick={handleDelete} disabled={saving} className="flex-1 sm:flex-none">
                 تأكيد الحذف
               </DangerButton>
-              <button
+              <GhostButton
                 type="button"
                 data-testid={`car-delete-cancel-${group.id}`}
                 onClick={() => setConfirmDelete(false)}
-                className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
+                className="flex-1 sm:flex-none"
               >
                 إلغاء
-              </button>
+              </GhostButton>
             </div>
           ) : (
-            <div className="flex shrink-0 items-center gap-2">
-              <PrimaryButton type="button" data-testid={`car-edit-${group.id}`} onClick={enterEdit} disabled={saving}>
+            <div className="flex shrink-0 basis-full flex-wrap items-center gap-2 sm:basis-auto">
+              <PrimaryButton type="button" data-testid={`car-edit-${group.id}`} onClick={enterEdit} disabled={saving} className="flex-1 sm:flex-none">
                 تعديل
               </PrimaryButton>
-              <DangerButton type="button" data-testid={`car-delete-${group.id}`} onClick={() => setConfirmDelete(true)} disabled={saving}>
+              <DangerButton type="button" data-testid={`car-delete-${group.id}`} onClick={() => setConfirmDelete(true)} disabled={saving} className="flex-1 sm:flex-none">
                 حذف
               </DangerButton>
             </div>
           )}
         </div>
       ) : (
-        <div className="space-y-3 p-4">
+        <div className="space-y-3 p-3 sm:p-4">
           <p className="font-mono text-xs text-[hsl(var(--muted-foreground))]">المعرّف: {group.id} (غير قابل للتعديل)</p>
           <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
             <Field label="الاسم (عربي)" value={draft.nameAr} onChange={(v) => setDraft((p) => ({ ...p, nameAr: v }))} required />
@@ -150,7 +150,7 @@ export function CarCard({ group, onUpdated, onDeleted }: CarCardProps) {
                   const cat = e.target.value as Car['category'];
                   setDraft((p) => ({ ...p, category: cat, categoryAr: CATEGORY_LABELS[cat] }));
                 }}
-                className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
+                className="w-full min-h-[44px] rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-base text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none sm:text-sm"
               >
                 {CAR_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
@@ -179,14 +179,13 @@ export function CarCard({ group, onUpdated, onDeleted }: CarCardProps) {
             <PrimaryButton type="button" data-testid={`car-save-${group.id}`} onClick={handleSave} disabled={saving}>
               {saving ? 'جارٍ الحفظ…' : 'حفظ'}
             </PrimaryButton>
-            <button
+            <GhostButton
               type="button"
               data-testid={`car-cancel-${group.id}`}
               onClick={cancelEdit}
-              className="rounded-xl border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))] active:scale-95"
             >
               إلغاء
-            </button>
+            </GhostButton>
           </div>
         </div>
       )}

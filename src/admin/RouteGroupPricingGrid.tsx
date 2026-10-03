@@ -8,20 +8,20 @@ interface DisplayProps {
 
 export function PricingDisplay({ pricing }: DisplayProps) {
   return (
-    <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="mb-4 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-4">
       {VEHICLE_CATEGORIES.map((cat) => (
-        <div key={cat} className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3">
+        <div key={cat} className="min-w-0 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 sm:p-3">
           <p className="mb-2 text-xs font-semibold tracking-wide text-[hsl(var(--muted-foreground))]">
             {CATEGORY_LABEL[cat]}
           </p>
           <div className="space-y-1 text-sm">
-            <p data-testid={`route-group-price-${cat}-oneWay`} className="flex justify-between">
-              <span className="text-[hsl(var(--muted-foreground))]">ذهاب فقط</span>
-              <span className="font-medium text-[hsl(var(--foreground))]">{formatPrice(pricing[cat].oneWay)}</span>
+            <p data-testid={`route-group-price-${cat}-oneWay`} className="flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate text-[hsl(var(--muted-foreground))]">ذهاب فقط</span>
+              <span className="shrink-0 font-medium tabular-nums text-[hsl(var(--foreground))]">{formatPrice(pricing[cat].oneWay)}</span>
             </p>
-            <p data-testid={`route-group-price-${cat}-roundTrip`} className="flex justify-between">
-              <span className="text-[hsl(var(--muted-foreground))]">ذهاب وعودة</span>
-              <span className="font-medium text-[hsl(var(--foreground))]">{formatPrice(pricing[cat].roundTrip)}</span>
+            <p data-testid={`route-group-price-${cat}-roundTrip`} className="flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate text-[hsl(var(--muted-foreground))]">ذهاب وعودة</span>
+              <span className="shrink-0 font-medium tabular-nums text-[hsl(var(--foreground))]">{formatPrice(pricing[cat].roundTrip)}</span>
             </p>
           </div>
         </div>
@@ -37,14 +37,15 @@ interface EditProps {
 
 export function PricingEdit({ pricing, onChange }: EditProps) {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="mb-4 grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-4">
       {VEHICLE_CATEGORIES.map((cat) => (
-        <div key={cat} className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
+        <div key={cat} className="min-w-0 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2">
           <p className="mb-1 text-xs font-semibold text-[hsl(var(--muted-foreground))]">{CATEGORY_LABEL[cat]}</p>
           <Field
             label="ذهاب فقط"
             testid={`route-group-price-${cat}-oneWay`}
             type="number"
+            inputMode="numeric"
             value={String(pricing[cat].oneWay)}
             onChange={(v) => onChange(cat, 'oneWay', v)}
           />
@@ -52,6 +53,7 @@ export function PricingEdit({ pricing, onChange }: EditProps) {
             label="ذهاب وعودة"
             testid={`route-group-price-${cat}-roundTrip`}
             type="number"
+            inputMode="numeric"
             value={String(pricing[cat].roundTrip)}
             onChange={(v) => onChange(cat, 'roundTrip', v)}
           />

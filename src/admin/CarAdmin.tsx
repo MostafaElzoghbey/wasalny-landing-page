@@ -143,7 +143,7 @@ export function CarAdmin() {
   return (
     <Panel title="السيارات">
       {error && <ErrorText message={error} />}
-      <div className="mb-4 h-1 w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500" />
+      <div className="mb-4 h-1 w-full max-w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500" />
       {loading ? <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p> : selectedCategory === null ? (
         <>
           <div dir="rtl" data-testid="category-grid" className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-4">
@@ -155,12 +155,12 @@ export function CarAdmin() {
       ) : (
         <div dir="rtl" data-testid={`category-drilldown-${selectedCategory}`} className="space-y-4">
           <button type="button" data-testid="category-back" onClick={handleBackToGrid} className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:bg-[hsl(var(--muted))]" dir="rtl">عودة إلى الفئات</button>
-          <div className="flex items-center gap-2"><span className="rounded-full bg-gradient-to-r from-primary-600 to-primary-500 px-3 py-1 text-sm font-bold text-white">{CATEGORY_LABELS[selectedCategory]}</span><span className="text-xs text-[hsl(var(--muted-foreground))]">{filtered.length} سيارات</span></div>
-          <form data-testid="fleet-create" dir="rtl" onSubmit={handleCreate} className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-sm space-y-3">
-            <div className="h-1 w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500 mb-2" />
+          <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-gradient-to-r from-primary-600 to-primary-500 px-3 py-1 text-sm font-bold text-white">{CATEGORY_LABELS[selectedCategory]}</span><span className="text-xs text-[hsl(var(--muted-foreground))]">{filtered.length} سيارات</span></div>
+          <form data-testid="fleet-create" dir="rtl" onSubmit={handleCreate} className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 shadow-sm space-y-3 sm:p-4">
+            <div className="h-1 w-full max-w-12 rounded-full bg-gradient-to-r from-primary-600 to-primary-500 mb-2" />
             <h4 className="font-semibold">إضافة سيارة — {CATEGORY_LABELS[selectedCategory]}</h4>
             {createError && <ErrorText message={createError} />}
-            <div className="flex items-center gap-2 text-sm"><span className="rounded-full bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white">{CATEGORY_LABELS[selectedCategory]}</span><span className="text-xs text-[hsl(var(--muted-foreground))]">الفئة مقفلة</span></div>
+            <div className="flex flex-wrap items-center gap-2 text-sm"><span className="rounded-full bg-primary-600 px-2.5 py-1 text-xs font-semibold text-white">{CATEGORY_LABELS[selectedCategory]}</span><span className="text-xs text-[hsl(var(--muted-foreground))]">الفئة مقفلة</span></div>
             <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
               <Field label="الاسم (عربي)" value={nameAr} onChange={setNameAr} required />
               <Field label="الوصف" value={description} onChange={setDescription} textarea />

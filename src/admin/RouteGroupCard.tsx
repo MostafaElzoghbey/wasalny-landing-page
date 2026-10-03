@@ -188,7 +188,7 @@ export function RouteGroupCard({
                   تعديل
                 </PrimaryButton>
                 {confirmDelete ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <DangerButton type="button" data-testid={`route-group-delete-confirm-${group.id}`} onClick={handleDelete}>
                       تأكيد الحذف
                     </DangerButton>
@@ -219,7 +219,7 @@ export function RouteGroupCard({
                       const nextType = e.target.value as RouteGroup['type'];
                       setDraft((p) => ({ ...p, type: nextType, bidirectional: nextType === 'travel' }));
                     }}
-                    className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-sm text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none"
+                    className="min-h-[44px] w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-base text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none sm:text-sm"
                   >
                     <option value="travel">سفر</option>
                     <option value="internal">داخلي</option>
@@ -227,14 +227,14 @@ export function RouteGroupCard({
                 </label>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
+                <div className="min-w-0">
                   <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الانطلاق</span>
                   <input
                     type="text"
                     value={fromSearch}
                     onChange={(e) => setFromSearch(e.target.value)}
                     placeholder="بحث..."
-                    className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                    className="mb-2 min-h-[44px] w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-base text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none sm:text-sm"
                   />
                   <div className="max-h-56 overflow-y-auto scroll-smooth rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 overscroll-contain shadow-inner" style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}>
                     {(() => {
@@ -249,7 +249,7 @@ export function RouteGroupCard({
                       return filtered.map((loc) => (
                         <label
                           key={loc.id}
-                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
+                          className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
                         >
                           <input
                             type="checkbox"
@@ -263,23 +263,23 @@ export function RouteGroupCard({
                                   : p.fromLocations.filter((x) => x !== loc.id),
                               }));
                             }}
-                            className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
+                            className="h-5 w-5 shrink-0 rounded border-[hsl(var(--border))] accent-primary-600"
                           />
                           <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
-                          <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                          <span className="hidden shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))] min-[420px]:inline">{loc.id}</span>
                         </label>
                       ));
                     })()}
                   </div>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">مواقع الوصول</span>
                   <input
                     type="text"
                     value={toSearch}
                     onChange={(e) => setToSearch(e.target.value)}
                     placeholder="بحث..."
-                    className="mb-2 w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none"
+                    className="mb-2 min-h-[44px] w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-2 py-1.5 text-base text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:border-primary-500 focus:outline-none sm:text-sm"
                   />
                   <div className="max-h-56 overflow-y-auto scroll-smooth rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 overscroll-contain shadow-inner" style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}>
                     {(() => {
@@ -294,7 +294,7 @@ export function RouteGroupCard({
                       return filtered.map((loc) => (
                         <label
                           key={loc.id}
-                          className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-[hsl(var(--muted))]"
+                          className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-[hsl(var(--muted))]"
                         >
                           <input
                             type="checkbox"
@@ -308,10 +308,10 @@ export function RouteGroupCard({
                                   : p.toLocations.filter((x) => x !== loc.id),
                               }));
                             }}
-                            className="h-4 w-4 rounded border-[hsl(var(--border))] accent-primary-600"
+                            className="h-5 w-5 shrink-0 rounded border-[hsl(var(--border))] accent-primary-600"
                           />
                         <span className="flex-1 truncate text-[hsl(var(--foreground))]">{loc.nameAr}</span>
-                        <span className="shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))]">{loc.id}</span>
+                        <span className="hidden shrink-0 font-mono text-xs text-[hsl(var(--muted-foreground))] min-[420px]:inline">{loc.id}</span>
                       </label>
                     ));
                     })()}

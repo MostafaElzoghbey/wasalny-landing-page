@@ -102,7 +102,7 @@ export function LocationAdmin() {
           type="button"
           data-testid="location-create-toggle"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-[hsl(var(--muted))/0.4]"
+          className="flex w-full items-center justify-between px-3 py-2.5 text-start hover:bg-[hsl(var(--muted))/0.4] sm:px-4 sm:py-3"
         >
           <span className="text-sm font-semibold text-[hsl(var(--foreground))]">موقع جديد</span>
           <span className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export function LocationAdmin() {
           </span>
         </button>
         {createOpen && (
-          <form onSubmit={(e) => void handleCreate(e)} className="space-y-3 border-t border-[hsl(var(--border))] p-4">
+          <form onSubmit={(e) => void handleCreate(e)} className="space-y-3 border-t border-[hsl(var(--border))] p-3 sm:p-4">
             {createError && <ErrorText message={createError} />}
             <Field label="الاسم" value={name} onChange={(v) => setName(filterArabicName(v))} required dir="rtl" />
             <p className="text-xs text-[hsl(var(--muted-foreground))]">الحروف العربية فقط</p>

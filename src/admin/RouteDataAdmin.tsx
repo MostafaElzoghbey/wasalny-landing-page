@@ -142,14 +142,14 @@ export function RouteDataAdmin() {
         <button
           type="button"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-right text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))/0.5]"
+          className="flex w-full items-center justify-between rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-start text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))/0.5] sm:px-4 sm:py-3"
           data-testid="routedata-create-toggle"
         >
           <span>إنشاء بيانات مسار</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={createOpen ? 'rotate-180 transition-transform' : 'transition-transform'}><path d="m6 9 6 6 6-6" /></svg>
         </button>
         {createOpen && (
-          <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-x-4 rounded-lg border border-[hsl(var(--border))] p-4 sm:grid-cols-2">
+          <form onSubmit={handleCreate} className="mt-3 grid grid-cols-1 gap-x-4 gap-y-3 rounded-lg border border-[hsl(var(--border))] p-3 sm:grid-cols-2 sm:p-4">
             <Field label="العنوان" value={title} onChange={setTitle} required />
             <Field label="من" value={fromLabel} onChange={setFromLabel} required />
             <Field label="إلى" value={toLabel} onChange={setToLabel} required />

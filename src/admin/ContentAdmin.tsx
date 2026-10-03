@@ -73,13 +73,13 @@ export function ContentAdmin() {
         <p className="text-sm text-[hsl(var(--muted-foreground))]">جارٍ التحميل…</p>
       ) : (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-          <Field label="الهاتف" value={info.phone} onChange={(v) => update('phone', v)} />
-          <Field label="واتساب" value={info.whatsapp} onChange={(v) => update('whatsapp', v)} />
-          <Field label="البريد الإلكتروني" type="email" value={info.email} onChange={(v) => update('email', v)} />
-          <Field label="فيسبوك" value={info.facebook} onChange={(v) => update('facebook', v)} />
+          <Field label="الهاتف" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" value={info.phone} onChange={(v) => update('phone', v)} />
+          <Field label="واتساب" type="tel" dir="ltr" inputMode="tel" autoComplete="tel" value={info.whatsapp} onChange={(v) => update('whatsapp', v)} />
+          <Field label="البريد الإلكتروني" type="email" dir="ltr" inputMode="email" autoComplete="email" value={info.email} onChange={(v) => update('email', v)} />
+          <Field label="فيسبوك" dir="ltr" inputMode="url" value={info.facebook} onChange={(v) => update('facebook', v)} />
           <Field label="العنوان" value={info.address} onChange={(v) => update('address', v)} />
-          <div className="flex items-end">
-            <PrimaryButton type="submit">حفظ معلومات الاتصال</PrimaryButton>
+          <div className="flex w-full items-end sm:w-auto">
+            <PrimaryButton type="submit" className="w-full sm:w-auto">حفظ معلومات الاتصال</PrimaryButton>
           </div>
         </form>
       )}
