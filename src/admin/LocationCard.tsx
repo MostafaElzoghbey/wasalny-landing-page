@@ -77,7 +77,7 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
   }
 
   return (
-    <li
+    <div
       data-testid={`location-card-${group.id}`}
       className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] transition"
     >
@@ -188,6 +188,6 @@ export function LocationCard({ group, expanded, onToggle, onUpdated, onDeleted }
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }

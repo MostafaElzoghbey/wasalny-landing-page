@@ -63,7 +63,7 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
   }
 
   return (
-    <li
+    <div
       data-testid={`faq-card-${faq.id}`}
       className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] transition"
     >
@@ -191,6 +191,6 @@ export function FaqCard({ faq, expanded, onToggle, onUpdated, onDeleted }: FaqCa
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }

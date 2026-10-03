@@ -102,7 +102,7 @@ export function LocationAdmin() {
           type="button"
           data-testid="location-create-toggle"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-3 py-2.5 text-start hover:bg-[hsl(var(--muted))/0.4] sm:px-4 sm:py-3"
+          className="flex min-h-[44px] w-full items-center justify-between px-3 py-2.5 text-start transition hover:bg-[hsl(var(--muted))/0.4] sm:px-4 sm:py-3"
         >
           <span className="text-sm font-semibold text-[hsl(var(--foreground))]">موقع جديد</span>
           <span className="flex items-center gap-2">

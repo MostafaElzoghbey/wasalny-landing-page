@@ -56,7 +56,7 @@ export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted 
   const summary = [pair, group.priceStart, group.distance, group.duration].filter(Boolean).join(' · ');
 
   return (
-    <li data-testid={`routedata-card-${group.id}`} className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] transition">
+    <div data-testid={`routedata-card-${group.id}`} className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] transition">
       <button type="button" data-testid={`routedata-expand-${group.id}`} onClick={onToggle} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-right transition-colors hover:bg-[hsl(var(--muted))/0.5]">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -137,6 +137,6 @@ export function RouteDataCard({ group, expanded, onToggle, onUpdated, onDeleted 
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }

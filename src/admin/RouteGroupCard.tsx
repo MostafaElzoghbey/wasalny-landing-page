@@ -113,7 +113,7 @@ export function RouteGroupCard({
   }
 
   return (
-    <li
+    <div
       data-testid={`route-group-card-${group.id}`}
       className="overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] transition"
     >
@@ -338,6 +338,6 @@ export function RouteGroupCard({
           )}
         </div>
       )}
-    </li>
+    </div>
   );
 }

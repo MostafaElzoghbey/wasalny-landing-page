@@ -142,7 +142,7 @@ export function RouteDataAdmin() {
         <button
           type="button"
           onClick={() => setCreateOpen((v) => !v)}
-          className="flex w-full items-center justify-between rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-start text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))/0.5] sm:px-4 sm:py-3"
+          className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-3 py-2.5 text-start text-sm font-semibold text-[hsl(var(--foreground))] transition hover:bg-[hsl(var(--muted))/0.5] sm:px-4 sm:py-3"
           data-testid="routedata-create-toggle"
         >
           <span>إنشاء بيانات مسار</span>
