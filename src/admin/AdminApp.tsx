@@ -152,9 +152,16 @@ export function AdminApp() {
   }
 
   async function handleLogout() {
+    closeNav();
     await adminLogout();
     setEmail(null);
   }
+
+  // Leaving the drawer open across a resize into desktop would keep a focus trap
+  // active with no visible trigger, jailing keyboard focus in the sidebar.
+  useEffect(() => {
+    if (isDesktop) setNavOpen(false);
+  }, [isDesktop]);
 
   if (!checked) {
     return (

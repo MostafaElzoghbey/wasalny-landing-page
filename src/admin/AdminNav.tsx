@@ -37,8 +37,13 @@ export function AdminNav({
         inert={hiddenFromAT}
         aria-hidden={hiddenFromAT ? 'true' : undefined}
         className={cn(
-          'fixed inset-y-0 start-0 z-50 flex w-[85vw] max-w-72 flex-col overflow-y-auto border-e border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 transition-transform duration-300 motion-reduce:transition-none lg:static lg:z-auto lg:w-60 lg:translate-x-0 lg:transition-none',
-          open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
+          'fixed inset-y-0 start-0 z-50 flex w-[85vw] max-w-72 flex-col overflow-y-auto border-e border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 transition-transform duration-300 motion-reduce:transition-none lg:static lg:z-auto lg:w-60 lg:transition-none',
+          // Gate the off-canvas offset with max-lg:, never as a base class that lg: has
+          // to undo. Tailwind emits `rtl:` after size variants and `rtl:` compiles
+          // through :where(), so `rtl:translate-x-full` and `lg:translate-x-0` share
+          // specificity (0,1,0) and the rtl rule wins on source order -- which pushed
+          // the whole desktop sidebar 100% off-screen.
+          open ? 'max-lg:translate-x-0' : 'max-lg:-translate-x-full max-lg:rtl:translate-x-full',
         )}
       >
         <h2 className="mb-4 text-lg font-bold">لوحة تحكم وصلني</h2>

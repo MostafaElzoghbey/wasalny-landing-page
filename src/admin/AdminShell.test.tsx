@@ -188,4 +188,18 @@ describe('AdminApp mobile shell', () => {
 
     expect(screen.getByTestId('admin-nav-cars').closest('[aria-hidden="true"]')).toBeNull();
   });
+
+  // jsdom cannot evaluate the cascade, so this asserts the SHAPE of the fix rather
+  // than the rendered result. The real guard is the browser audit, which asserts the
+  // sidebar's bounding box is on screen and that a nav button is hit-testable.
+  it('scopes the off-canvas offset to max-lg so rtl: cannot beat lg:', async () => {
+    await renderAdmin();
+
+    const collapsed = screen.getByTestId('admin-drawer').className;
+    expect(collapsed).toContain('max-lg:-translate-x-full');
+    expect(collapsed).toContain('max-lg:rtl:translate-x-full');
+    expect(collapsed).not.toMatch(/(^|\s)-translate-x-full(\s|$)/);
+    expect(collapsed).not.toMatch(/(^|\s)rtl:translate-x-full(\s|$)/);
+    expect(collapsed).not.toContain('lg:translate-x-0');
+  });
 });

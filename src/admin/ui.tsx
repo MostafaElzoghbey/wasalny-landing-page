@@ -29,7 +29,7 @@ export function Field({
   autoComplete,
 }: FieldProps) {
   const inputClass =
-    'w-full min-h-[44px] rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-base text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none sm:text-sm';
+    'w-full min-h-[44px] rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-2 text-base text-[hsl(var(--foreground))] focus:border-primary-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 sm:text-sm';
   return (
     <label className="mb-3 block">
       <span className="mb-1 block text-sm font-medium text-[hsl(var(--foreground))]">
