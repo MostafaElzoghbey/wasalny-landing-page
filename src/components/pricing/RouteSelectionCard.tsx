@@ -1,5 +1,5 @@
 import { MapPin } from 'lucide-react';
-import { type Location, type RouteType } from '@/data/pricing';
+import type { Location, RouteType } from '@/types/pricing';
 import { CustomSelect } from '../ui/CustomSelect';
 
 interface RouteSelectionProps {

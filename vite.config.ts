@@ -14,6 +14,12 @@ export default defineConfig({
       pwaAssets: {
         disabled: false,
         config: true,
+        // index.html already declares the icon links with their real
+        // /assets/images/new-logo/ paths. The auto-injected head links use
+        // root paths (/favicon.ico, /apple-touch-icon-180x180.png) that do
+        // not exist, and a duplicate theme-color is not wanted either.
+        includeHtmlHeadLinks: false,
+        injectThemeColor: false,
       },
       manifest: {
         name: 'وصلني - خدمة نقل الركاب',
@@ -31,22 +37,22 @@ export default defineConfig({
         id: '/',
         icons: [
           {
-            src: '/assets/images/logo/pwa-64x64.png',
+            src: '/assets/images/new-logo/pwa-64x64.png',
             sizes: '64x64',
             type: 'image/png',
           },
           {
-            src: '/assets/images/logo/pwa-192x192.png',
+            src: '/assets/images/new-logo/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/assets/images/logo/pwa-512x512.png',
+            src: '/assets/images/new-logo/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
           },
           {
-            src: '/assets/images/logo/maskable-icon-512x512.png',
+            src: '/assets/images/new-logo/maskable-icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
@@ -55,6 +61,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
+        globIgnores: ['**/icon-master.png'],
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api/],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: false,
@@ -102,6 +111,11 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8787',
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

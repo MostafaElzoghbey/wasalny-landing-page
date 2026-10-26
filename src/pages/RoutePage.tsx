@@ -4,11 +4,11 @@ import { MapPin, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
-import { routeData } from '@/data/routeData';
-import { contactInfo } from '@/data/content';
+import { useData } from '@/context/DataProvider';
 import { NotFound } from './NotFound';
 
 export function RoutePage() {
+    const { routeData, contactInfo } = useData();
     const { id } = useParams();
     const data = id ? routeData[id] : null;
     const containerRef = useRef<HTMLDivElement>(null);
@@ -32,6 +32,8 @@ export function RoutePage() {
     if (!data) {
         return <NotFound message="عذراً، هذا المسار غير موجود أو تم إزالته." />;
     }
+
+    const heroImage = data.heroImage.trim();
 
     return (
         <>
@@ -114,14 +116,18 @@ export function RoutePage() {
                         {/* Visual/CTA Side */}
                         <div className="lg:sticky lg:top-24 space-y-6 route-content">
                             <div className="relative rounded-3xl overflow-hidden aspect-video shadow-2xl">
-                                <img
-                                    src={data.heroImage}
-                                    alt={data.title}
-                                    className="w-full h-full object-cover"
-                                    width={1280}
-                                    height={720}
-                                    loading="eager"
-                                />
+                                {heroImage ? (
+                                    <img
+                                        src={data.heroImage}
+                                        alt={data.title}
+                                        className="w-full h-full object-cover"
+                                        width={1280}
+                                        height={720}
+                                        loading="eager"
+                                    />
+                                ) : (
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary-600 to-primary-900 dark:from-primary-800 dark:to-primary-950" />
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
                                     <div className="text-white">
                                         <p className="text-sm font-medium opacity-90 mb-1">يبدأ من</p>

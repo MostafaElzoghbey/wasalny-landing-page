@@ -28,6 +28,7 @@ import { IOSInstallBanner } from '@/components/ui/IOSInstallBanner';
 // Pages
 import { RoutePage } from '@/pages/RoutePage';
 import { NotFound } from '@/pages/NotFound';
+import { AdminApp } from '@/admin/AdminApp';
 
 // Data
 import { cars, logoImage } from '@/data/cars';
@@ -148,29 +149,44 @@ function HomePage() {
 }
 
 function AppContent() {
+  const { pathname } = useLocation();
+  const isAdmin = pathname.startsWith('/admin');
   const [isLoading, setIsLoading] = useState(true);
+
+  // The admin deliberately opts out of Lenis: its wheel/touch interception kills native
+  // momentum, tap-to-top and iOS URL-bar collapse, and fights the drawer's focus trap.
+  // The omission is intentional — do not wrap this branch. See DESIGN.md §4.4.
+  if (isAdmin) {
+    return (
+      <ThemeProvider>
+        <PWAInstallProvider>
+          <AdminApp />
+        </PWAInstallProvider>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider>
       <PWAInstallProvider>
-      <JsonLd cars={cars} />
-      {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
-      <SmoothScrollProvider>
-        <ScrollToTop />
-        <div className="min-h-screen">
-          <Header />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/routes/:id" element={<RoutePage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Footer />
-          <FloatingCTA />
-          <PWAInstallBanner logoSrc={logoImage} />
-          <ReloadPrompt />
-          <IOSInstallBanner logoSrc={logoImage} />
-        </div>
-      </SmoothScrollProvider>
+        <JsonLd cars={cars} />
+        {isLoading && <PageLoader onComplete={() => setIsLoading(false)} />}
+        <SmoothScrollProvider>
+          <ScrollToTop />
+          <div className="min-h-screen">
+            <Header />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/routes/:id" element={<RoutePage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Footer />
+            <FloatingCTA />
+            <PWAInstallBanner logoSrc={logoImage} />
+            <ReloadPrompt />
+            <IOSInstallBanner logoSrc={logoImage} />
+          </div>
+        </SmoothScrollProvider>
       </PWAInstallProvider>
     </ThemeProvider>
   );

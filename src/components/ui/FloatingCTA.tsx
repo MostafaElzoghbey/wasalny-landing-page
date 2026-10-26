@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
 import gsap, { ScrollTrigger, useGSAP } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
-import { contactInfo } from '@/data/content';
+import { useData } from '@/context/DataProvider';
 
 export function FloatingCTA() {
+  const { contactInfo } = useData();
   const containerRef = useRef<HTMLDivElement>(null);
   const waButtonRef = useRef<HTMLAnchorElement>(null);
   const fbButtonRef = useRef<HTMLAnchorElement>(null);

@@ -5,8 +5,8 @@ import { Phone, Mail, MapPin, Heart } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
+import { useData } from '@/context/DataProvider';
 import { logoImage } from '@/data/cars';
-import { contactInfo, routes } from '@/data/content';
 import { useBatchReveal } from '@/hooks/useAnimations';
 
 const quickLinks = [
@@ -118,6 +118,7 @@ const FooterNavLink = ({ label, onClick }: FooterNavLinkProps) => {
 };
 
 export function Footer() {
+  const { contactInfo, routes } = useData();
   const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const [columnsRef] = useBatchReveal({ selector: '.footer-column', interval: 0.1 });

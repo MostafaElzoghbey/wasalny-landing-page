@@ -1,4 +1,4 @@
-import type { RouteType } from '@/data/pricing';
+import type { RouteType } from '@/types/pricing';
 
 export interface PricingPreset {
     routeType: RouteType;

@@ -3,6 +3,8 @@ import type { RouteData } from '@/types';
 export const routeData: Record<string, RouteData> = {
     'damietta-cairo': {
         id: 'damietta-cairo',
+        fromLabel: 'دمياط',
+        toLabel: 'القاهرة',
         title: 'سفر من دمياط إلى القاهرة',
         description: 'سافر براحة وأمان من باب منزلك في دمياط إلى أي مكان في القاهرة. سيارات حديثة وسائقين محترفين لضمان أفضل تجربة سفر.',
         metaTitle: 'توصيل من دمياط للقاهرة | حجز سيارة خاصة بأفضل سعر - وصلني',
@@ -21,10 +23,13 @@ export const routeData: Record<string, RouteData> = {
                 question: 'هل الرحلة مباشرة؟',
                 answer: 'نعم، الرحلة خاصة ومباشرة من باب منزلك في دمياط إلى وجهتك في القاهرة دون توقف إلا للراحة إذا طلبت ذلك.'
             }
-        ]
+        ],
+        displayOrder: 0
     },
     'damietta-airport': {
         id: 'damietta-airport',
+        fromLabel: 'دمياط',
+        toLabel: 'مطار القاهرة',
         title: 'توصيل من دمياط لمطار القاهرة',
         description: 'لا تقلق بشأن موعد طائرتك. نضمن لك الوصول إلى مطار القاهرة في الوقت المحدد بكل راحة وهدوء.',
         metaTitle: 'توصيل مطار القاهرة من دمياط | استقبال وتوديع - وصلني',
@@ -43,10 +48,13 @@ export const routeData: Record<string, RouteData> = {
                 question: 'ما هي السيارات المتاحة للمطار؟',
                 answer: 'نوفر سيارات سيدان للعدد القليل، وسيارات عائلية (Mitsubishi Xpander) و ميكروباص (HiAce) للعائلات والحقائب الكثيرة.'
             }
-        ]
+        ],
+        displayOrder: 1
     },
     'cairo-damietta': {
         id: 'cairo-damietta',
+        fromLabel: 'القاهرة',
+        toLabel: 'دمياط',
         title: 'توصيل من القاهرة إلى دمياط',
         description: 'عائد إلى دمياط؟ احجز سيارتك من القاهرة أو المطار واستمتع برحلة عودة مريحة وآمنة.',
         metaTitle: 'توصيل من القاهرة لدمياط | رحلات عودة مريحة - وصلني',
@@ -61,6 +69,7 @@ export const routeData: Record<string, RouteData> = {
                 question: 'كيف يمكنني حجز سيارة من القاهرة؟',
                 answer: 'يمكنك الحجز عبر الهاتف أو الواتساب قبل موعد السفر بوقت كافٍ (يفضل 24 ساعة) لضمان توفر السيارة.'
             }
-        ]
+        ],
+        displayOrder: 2
     }
 };

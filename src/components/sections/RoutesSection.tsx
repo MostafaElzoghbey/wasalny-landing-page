@@ -6,12 +6,13 @@ import gsap from 'gsap';
 import { ScrollTrigger, rtlX } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
 
+import { useData } from '@/context/DataProvider';
+import type { Route } from '@/types';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { routes } from '@/data/content';
 import { useBatchReveal, useDrawPath } from '@/hooks/useAnimations';
 
 interface RouteCardProps {
-  route: typeof routes[0];
+  route: Route;
 }
 
 const RouteCard = ({ route }: RouteCardProps) => {
@@ -76,7 +77,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
             {route.to}
           </span>
         </div>
-        <p className="text-[hsl(var(--muted-foreground))] text-sm mb-2">
+        <p className="text-[hsl(var(--muted-foreground))] text-sm mb-2 line-clamp-2">
           {route.description}
         </p>
         <div className="flex items-center gap-2 text-sm">
@@ -99,6 +100,7 @@ const RouteCard = ({ route }: RouteCardProps) => {
 };
 
 export function RoutesSection() {
+  const { routes } = useData();
   const path1Ref = useRef<SVGPathElement>(null);
   const path2Ref = useRef<SVGPathElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);

@@ -1,15 +1,15 @@
 export interface Car {
   id: string;
-  name: string;
   nameAr: string;
+  /** flat 5 — no subgroups */
   category: 'sedan' | 'suv' | 'family_cruiser' | 'minibus' | 'wedding';
   categoryAr: string;
   description: string;
   seoDescription?: string;
-  passengers: number;
   images: string[];
   imageAlts?: string[];
   features: string[];
+  displayOrder: number;
 }
 
 export interface Service {
@@ -24,6 +24,7 @@ export interface Route {
   from: string;
   to: string;
   duration: string;
+  description?: string;
   price?: string;
 }
 
@@ -46,8 +47,15 @@ export interface Faq {
   answer: string;
 }
 
+export interface FaqWithId extends Faq {
+  id: string;
+  displayOrder: number;
+}
+
 export interface RouteData {
   id: string;
+  fromLabel: string;
+  toLabel: string;
   title: string;
   description: string;
   metaTitle: string;
@@ -58,6 +66,7 @@ export interface RouteData {
   duration: string;
   features: string[];
   faqs: Faq[];
+  displayOrder: number;
 }
 
 export interface BeforeInstallPromptChoice {
@@ -99,3 +108,5 @@ export interface ServiceOption {
   readonly icon: ServiceOptionIcon;
   readonly priceEGP?: number;
 }
+
+export type { RouteType, VehicleCategory, Location, RouteGroup, VehiclePricing } from './pricing';

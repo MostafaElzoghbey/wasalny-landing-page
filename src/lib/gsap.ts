@@ -1,9 +1,10 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Flip } from 'gsap/Flip';
 import { useGSAP } from '@gsap/react';
 
 // Register plugins
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+gsap.registerPlugin(ScrollTrigger, Flip, useGSAP);
 
 // Configure GSAP
 gsap.config({
@@ -94,6 +95,6 @@ export const createBatchAnimation = (
   });
 };
 
-// Export gsap instance and ScrollTrigger
-export { ScrollTrigger, useGSAP };
+// Export gsap instance and plugins
+export { ScrollTrigger, Flip, useGSAP };
 export default gsap;

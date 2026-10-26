@@ -2,14 +2,15 @@ import { useRef } from 'react';
 import { Phone, MessageCircle, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { useData } from '@/context/DataProvider';
 import { carImages } from '@/data/cars';
-import { contactInfo } from '@/data/content';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useTextReveal, useFloatingAnimation, useParallax } from '@/hooks/useAnimations';
 import { canHover } from '@/hooks/useHoverCapable';
 
 export function HeroSection() {
+  const { contactInfo } = useData();
   const containerRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroImageRef = useRef<HTMLDivElement>(null);

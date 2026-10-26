@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 import { Phone, MessageCircle, MapPin, Clock } from 'lucide-react';
+import { useData } from '@/context/DataProvider';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Button } from '@/components/ui/Button';
-import { contactInfo } from '@/data/content';
 import { useMagneticButton, useBatchReveal } from '@/hooks/useAnimations';
 import gsap, { useGSAP, rtlX } from '@/lib/gsap';
 
@@ -18,6 +18,7 @@ const MagneticWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 export function CTASection() {
+  const { contactInfo } = useData();
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const pulseRef = useRef<HTMLDivElement>(null);

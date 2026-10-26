@@ -5,8 +5,8 @@ import gsap, { useGSAP, rtlX } from '@/lib/gsap';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Button } from '@/components/ui/Button';
+import { useData } from '@/context/DataProvider';
 import { logoImage } from '@/data/cars';
-import { contactInfo } from '@/data/content';
 import { useMagneticButton } from '@/hooks/useAnimations';
 import { usePWAInstall } from '@/context/PWAInstallContext';
 import type { PWAInstallButtonProps } from '@/types';
@@ -56,6 +56,7 @@ interface MobileMenuProps {
 }
 
 function MobileMenu({ isOpen, onClose, onNavClick, id }: MobileMenuProps) {
+  const { contactInfo } = useData();
   const containerRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -220,6 +221,7 @@ function PWAInstallButton({ isMobile }: PWAInstallButtonProps) {
 }
 
 export function Header() {
+  const { contactInfo } = useData();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
   const headerRef = useRef<HTMLElement>(null);
@@ -410,16 +412,13 @@ export function Header() {
             <a
               ref={logoRef}
               href="#home"
-              className="flex items-center gap-3"
+              className="flex items-center"
             >
               <img
                 src={logoImage}
                 alt="وصلني"
                 className="w-12 h-12 rounded-xl object-cover"
               />
-              <span className="text-2xl font-bold gradient-text hidden sm:block">
-                وصلني
-              </span>
             </a>
 
             {/* Desktop Navigation */}

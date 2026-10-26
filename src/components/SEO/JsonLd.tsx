@@ -1,18 +1,19 @@
 import type { Car } from '@/types';
-import { faqs } from '@/data/faqs';
+import { useData } from '@/context/DataProvider';
 
 interface JsonLdProps {
     cars: Car[];
 }
 
 export function JsonLd({ cars }: JsonLdProps) {
+    const { faqs } = useData();
     const structuredData = {
         "@context": "https://schema.org",
         "@graph": [
             {
                 "@type": "CarRental",
                 "name": "مكتب وصلني في دمياط (Wasalny Office)",
-                "image": "https://wasalny.pages.dev/assets/images/logo/logo.jpeg",
+                "image": "https://wasalny.pages.dev/assets/images/new-logo/logo.jpeg",
                 "description": "Premium car rental and passenger transport services in Damietta, Cairo, and Airports. Modern fleet of Sedans, SUVs, and Minibuses.",
                 "url": "https://wasalny.pages.dev",
                 "sameAs": [

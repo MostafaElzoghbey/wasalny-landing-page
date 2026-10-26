@@ -8,7 +8,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from '@/lib/gsap';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { cn } from '@/lib/utils';
-import { faqs } from '@/data/faqs';
+import { useData } from '@/context/DataProvider';
 import type { Faq } from '@/types';
 
 interface FAQItemProps {
@@ -90,6 +90,7 @@ export function FAQItem({ item, isOpen, onClick, id }: FAQItemProps) {
 }
 
 export function FAQSection() {
+    const { faqs } = useData();
     const [openIndex, setOpenIndex] = useState<number | null>(0);
     const containerRef = useRef<HTMLDivElement>(null);
     const idPrefix = useId();

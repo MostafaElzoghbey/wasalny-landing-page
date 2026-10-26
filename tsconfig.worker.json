@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.worker.tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "types": ["node", "@cloudflare/workers-types"],
+    "skipLibCheck": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "outDir": "./node_modules/.tmp/worker-out",
+    "rootDir": ".",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+
+    /* Path aliases (mirror tsconfig.app.json) */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@assets/*": ["assets/*"]
+    }
+  },
+  "include": [
+    "server",
+    "scripts",
+    "src/types",
+    "src/data/cars.ts",
+    "src/data/pricing.ts",
+    "src/data/content.ts",
+    "src/data/faqs.ts",
+    "src/data/routeData.ts"
+  ],
+  // Tests are excluded from every tsc project (tsconfig.app.json already drops
+  // `src/**/*.test.ts` and `tests`): a co-located `server/**/*.test.ts` imports
+  // `tests/helpers/d1.ts`, which pulls better-sqlite3 and the D1 shim into this
+  // Workers program where neither belongs.
+  "exclude": ["server/**/*.test.ts"]
+}

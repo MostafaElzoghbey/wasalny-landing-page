@@ -1,10 +1,12 @@
 import { useRef } from 'react';
 import { Shield, Star, Clock, Wallet, Headphones, MapPin } from 'lucide-react';
+
 import { SectionHeading } from '@/components/ui/SectionHeading';
+import { useData } from '@/context/DataProvider';
+import type { Stat } from '@/data/api';
 import { useCounterAnimation, useBatchReveal } from '@/hooks/useAnimations';
-import { stats } from '@/data/content';
-import gsap, { useGSAP } from '@/lib/gsap';
 import { canHover } from '@/hooks/useHoverCapable';
+import gsap, { useGSAP } from '@/lib/gsap';
 
 const iconMap = {
   shield: Shield,
@@ -74,7 +76,7 @@ function GSAPCounter({ value, suffix = '' }: { value: number; suffix?: string })
 }
 
 interface StatCardProps {
-  stat: typeof stats[0];
+  stat: Stat;
 }
 
 const StatCard = ({ stat }: StatCardProps) => {
@@ -185,6 +187,7 @@ const FeatureCard = ({ feature }: FeatureCardProps) => {
 };
 
 export function FeaturesSection() {
+  const { stats } = useData();
   const [statsRef] = useBatchReveal({
     selector: '.stat-card',
     interval: 0.2,
