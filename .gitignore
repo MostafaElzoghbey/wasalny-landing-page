@@ -38,3 +38,4 @@ processed_results.txt
 
 # Omo agent files
 .omo/
+.playwright-mcp/

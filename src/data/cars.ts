@@ -110,7 +110,7 @@ export const mockupImages = [
   '/assets/images/mockups/wasalny-travel-family-road-trip-kia-hyundai.jpeg',
 ];
 
-export const logoImage = '/assets/images/logo/logo.jpeg';
+export const logoImage = '/assets/images/new-logo/logo.jpeg';
 
 function generateImageAlts(paths: string[], fallback: string): string[] {
   return paths.map(path => {

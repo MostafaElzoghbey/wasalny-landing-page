@@ -13,7 +13,7 @@ export function JsonLd({ cars }: JsonLdProps) {
             {
                 "@type": "CarRental",
                 "name": "مكتب وصلني في دمياط (Wasalny Office)",
-                "image": "https://wasalny.pages.dev/assets/images/logo/logo.jpeg",
+                "image": "https://wasalny.pages.dev/assets/images/new-logo/logo.jpeg",
                 "description": "Premium car rental and passenger transport services in Damietta, Cairo, and Airports. Modern fleet of Sedans, SUVs, and Minibuses.",
                 "url": "https://wasalny.pages.dev",
                 "sameAs": [

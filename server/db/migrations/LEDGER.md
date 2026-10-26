@@ -136,3 +136,14 @@ no-op re-run even outside the runners (`IF NOT EXISTS` on both statements).
 
 Ledger values: `schema_migrations` stores `0007_photos` (filename minus
 `.sql`); `d1_migrations` stores `0007_photos.sql` (full filename).
+
+## 0008_set_logo_image.sql (rebrand logo window)
+
+Re-points the single `content` KV row `logoImage` from the old logo path
+(`/assets/images/logo/logo.jpeg`) to the new asset set
+(`/assets/images/new-logo/logo.jpeg`) so pre-existing D1/SQLite databases
+follow the logo swap without a re-seed (the seed is all-or-nothing and skips
+populated databases). Only an exact match on the old path is rewritten, so
+admin-curated values are preserved and re-runs are no-ops. The static module
+fallback (`src/data/cars.ts` `logoImage`) was updated in the same change. No
+schema change; one value UPDATE inside the runner's transaction.

@@ -412,16 +412,13 @@ export function Header() {
             <a
               ref={logoRef}
               href="#home"
-              className="flex items-center gap-3"
+              className="flex items-center"
             >
               <img
                 src={logoImage}
                 alt="وصلني"
                 className="w-12 h-12 rounded-xl object-cover"
               />
-              <span className="text-2xl font-bold gradient-text hidden sm:block">
-                وصلني
-              </span>
             </a>
 
             {/* Desktop Navigation */}
