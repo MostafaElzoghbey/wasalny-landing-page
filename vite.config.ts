@@ -14,6 +14,12 @@ export default defineConfig({
       pwaAssets: {
         disabled: false,
         config: true,
+        // index.html already declares the icon links with their real
+        // /assets/images/new-logo/ paths. The auto-injected head links use
+        // root paths (/favicon.ico, /apple-touch-icon-180x180.png) that do
+        // not exist, and a duplicate theme-color is not wanted either.
+        includeHtmlHeadLinks: false,
+        injectThemeColor: false,
       },
       manifest: {
         name: 'وصلني - خدمة نقل الركاب',
@@ -55,6 +61,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
+        globIgnores: ['**/icon-master.png'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/],
         cleanupOutdatedCaches: true,
